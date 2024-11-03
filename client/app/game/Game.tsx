@@ -1,31 +1,42 @@
 "use client";
 
 import React, { useEffect, useRef } from "react";
-import Phaser from "phaser";
 import GameScene from "./GameScene";
+import Phaser from "phaser";
 
-export const Game = () => {
+const Game = () => {
   const gameRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (!gameRef.current) return;
+    // Проверяем, что код выполняется на клиенте
+    if (
+      typeof window === "undefined" ||
+      !gameRef.current ||
+      gameRef.current.childElementCount > 1
+    ) {
+      return;
+    }
+
     const config: Phaser.Types.Core.GameConfig = {
       type: Phaser.AUTO,
       parent: gameRef.current,
-      width: 400,
+      width: 2000,
       height: 400,
       physics: {
         default: "arcade",
         arcade: {
-          gravity: { x: 0, y: -15 },
+          gravity: { x: 0, y: 0 },
           debug: true,
+          fps: 60,
+          timeScale: 1,
         },
       },
-      fps: { target: 30, forceSetTimeOut: true },
       scene: GameScene,
     };
 
+    // Создаем экземпляр Phaser только на клиенте
     const game = new Phaser.Game(config);
+
     return () => {
       game.destroy(true);
     };
@@ -33,3 +44,5 @@ export const Game = () => {
 
   return <div ref={gameRef} />;
 };
+
+export default Game;
