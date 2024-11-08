@@ -1,23 +1,18 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useStore } from "./lib/store/store";
 import dynamic from "next/dynamic";
+import UserAvatar from "./components/UserAvatar";
+declare global {
+  interface Window {
+    Telegram?: any;
+  }
+}
 
-// Динамический импорт компонента Game с отключением SSR
 const Game = dynamic(() => import("./game/Game"), { ssr: false });
 
 const Home = () => {
-  const setUser = useStore((state) => state.setUser);
-  const setTokens = useStore((state) => state.setTokens);
-  const setTickets = useStore((state) => state.setTickets);
-  const setInventory = useStore((state) => state.setInventory);
-  const setAchievements = useStore((state) => state.setAchievements);
-  const setInvitedUsers = useStore((state) => state.setInvitedUsers);
-  const setTotalTokensFromInvited = useStore(
-    (state) => state.setTotalTokensFromInvited
-  );
-
   // Функция для отправки запроса на авторизацию или регистрацию
   const authenticate = async () => {
     try {
@@ -34,13 +29,6 @@ const Home = () => {
 
       if (response.ok) {
         // Обновляем состояние на клиенте
-        setUser(data.user);
-        setTokens(data.tokens);
-        setTickets(data.tickets);
-        setInventory(data.inventory);
-        setAchievements(data.achievements);
-        setInvitedUsers(data.invitedUsers);
-        setTotalTokensFromInvited(data.totalTokensFromInvited);
       } else {
         console.error("Ошибка регистрации:", data.message);
       }
@@ -50,12 +38,53 @@ const Home = () => {
   };
 
   useEffect(() => {
-    authenticate();
+    // authenticate();
   }, []);
 
+  const [telegramUser, setTelegramUser] = useState<any>(null);
+
+  useEffect(() => {
+    const script = document.createElement("script");
+    script.src = "https://telegram.org/js/telegram-web-app.js";
+    script.async = true;
+    document.body.appendChild(script);
+
+    script.onload = () => {
+      if (window.Telegram && window.Telegram.WebApp) {
+        const tg = window.Telegram.WebApp;
+        if (tg.initDataUnsafe) setTelegramUser(tg.initDataUnsafe.user);
+      }
+    };
+
+    return () => {
+      document.body.removeChild(script);
+    };
+  }, []);
   return (
     <div>
-      <h1>asdasd</h1>
+      <h1>Telegram User Information</h1>
+      {telegramUser ? (
+        <div>
+          <p>
+            <strong>First Name:</strong> {telegramUser?.first_name}
+          </p>
+          <p>
+            <strong>Last Name:</strong> {telegramUser?.last_name}
+          </p>
+          <p>
+            <strong>Username:</strong> {telegramUser?.username}
+          </p>
+          <p>
+            <strong>Language Code:</strong> {telegramUser?.language_code}
+          </p>
+          <p>
+            <strong>User ID:</strong> {telegramUser?.id}
+          </p>
+          <UserAvatar avatarUrl={telegramUser?.photo_url} />
+        </div>
+      ) : (
+        <p>No Telegram user data available.</p>
+      )}
       {/* <Game /> */}
     </div>
   );

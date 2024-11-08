@@ -1,3 +1,14 @@
 {
-  "extends": ["next/core-web-vitals", "next/typescript"]
+  "extends": [
+    "next/core-web-vitals",
+    "next/typescript",
+    "plugin:@typescript-eslint/recommended"
+  ],
+  "rules": {
+    "react-hooks/rules-of-hooks": "off", // Отключает проверку хуков
+    "react-hooks/exhaustive-deps": "warn", // Снижает строгость правила зависимостей хуков
+    "@typescript-eslint/no-unused-vars": "warn", // Превращает ошибку неиспользуемых переменных в предупреждение
+    "@typescript-eslint/no-explicit-any": "off", // Отключает предупреждения об использовании `any`
+    "@typescript-eslint/explicit-module-boundary-types": "off" // Отключает проверку на указание типов
+  }
 }

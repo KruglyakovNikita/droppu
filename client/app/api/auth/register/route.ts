@@ -18,11 +18,22 @@ export async function POST(request: NextRequest) {
   //   );
 
   //Это пример запроса с NextApi server
-  const response = await fetch("https://jsonplaceholder.typicode.com/posts", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ username: "exampleUser", password: "examplePass" }),
-  });
+  // const response = await fetch("https://jsonplaceholder.typicode.com/posts", {
+  //   method: "POST",
+  //   headers: { "Content-Type": "application/json" },
+  //   body: JSON.stringify({ username: "exampleUser", password: "examplePass" }),
+  // });
+  const botId = "@DroppuBot";
+  const originUrl = "https://droppu.ru";
+  const response = await fetch(
+    `https://oauth.telegram.org/auth?bot_id=${botId}&origin=${originUrl}&request_access=write`,
+    {
+      method: "GET",
+    }
+  );
+  console.log("RESPONSE AUTH 3");
+  console.log(response);
+  console.log(JSON.stringify(response));
 
   if (!response.ok) {
     const errorData = await response.json();
@@ -33,25 +44,26 @@ export async function POST(request: NextRequest) {
   }
 
   const data = await response.json();
+  console.log(data);
 
-  // Устанавливаем HTTP-only cookie с токеном
-  const nextResponse = NextResponse.json({
-    user: data.user,
-    tokens: data.tokens,
-    tickets: data.tickets,
-    inventory: data.inventory,
-    achievements: data.achievements,
-    invitedUsers: data.invitedUsers,
-    totalTokensFromInvited: data.totalTokensFromInvited,
-  });
+  // // Устанавливаем HTTP-only cookie с токеном
+  // const nextResponse = NextResponse.json({
+  //   user: data.user,
+  //   tokens: data.tokens,
+  //   tickets: data.tickets,
+  //   inventory: data.inventory,
+  //   achievements: data.achievements,
+  //   invitedUsers: data.invitedUsers,
+  //   totalTokensFromInvited: data.totalTokensFromInvited,
+  // });
 
-  nextResponse.cookies.set("token", data.token, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV !== "development",
-    maxAge: 60 * 60 * 24 * 7, // 1 неделя
-    sameSite: "strict",
-    path: "/",
-  });
+  // nextResponse.cookies.set("token", data.token, {
+  //   httpOnly: true,
+  //   secure: process.env.NODE_ENV !== "development",
+  //   maxAge: 60 * 60 * 24 * 7, // 1 неделя
+  //   sameSite: "strict",
+  //   path: "/",
+  // });
 
-  return nextResponse;
+  return data;
 }
