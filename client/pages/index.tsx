@@ -29,6 +29,7 @@ const Home = () => {
 
       if (response.ok) {
         setUser(data.user);
+        getAchievements();
       } else {
         console.error("Ошибка регистрации:", data.message);
       }
@@ -73,7 +74,7 @@ const Home = () => {
     return () => {
       document.body.removeChild(script);
     };
-  }, [authenticate]);
+  }, []);
 
   // useEffect(() => {
   //   if (userInfo) getAchievements();

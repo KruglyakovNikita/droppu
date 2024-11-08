@@ -4,13 +4,15 @@ export const dynamic = "force-static";
 
 export async function POST(request: NextRequest) {
   const body = await request.json();
+  console.log("body init POST");
+  console.log(body);
 
   const response = await fetch(
     `${process.env.PYTHON_BACKEND_URL}/api/v1/users/init/`,
     {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
+      body,
     }
   );
 
