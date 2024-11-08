@@ -10,7 +10,7 @@ export async function GET(request: NextRequest) {
   console.log(cookieStore);
 
   const response = await fetch(
-    `${process.env.PYTHON_BACKEND_URL}/api/v1/achievements/`,
+    `${process.env.PYTHON_BACKEND_URL}/api/v1/achievement/`,
     {
       method: "GET",
       headers: {
