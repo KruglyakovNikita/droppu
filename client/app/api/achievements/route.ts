@@ -5,12 +5,12 @@ export const dynamic = "force-dynamic";
 
 export async function GET(request: NextRequest) {
   const cookieStore = await cookies();
-  const accessToken = cookieStore.get("accessToken")?.value ?? "test";
-
-  console.log(cookieStore);
+  const accessToken = cookieStore.get("accessToken")?.value ?? "why";
+  console.log(accessToken);
+  console.log(`Bearer ${accessToken}`);
 
   const response = await fetch(
-    `${process.env.PYTHON_BACKEND_URL}/api/v1/achievement/`,
+    `${process.env.PYTHON_BACKEND_URL}/api/v1/achievements/`,
     {
       method: "GET",
       headers: {
