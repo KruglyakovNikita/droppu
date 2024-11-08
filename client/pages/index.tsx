@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState } from "react";
 import UserAvatar from "../app/components/UserAvatar";
 import { useStore } from "../app/lib/store/store";
 
@@ -17,30 +17,27 @@ const Home = () => {
   const userAchievements = useStore((state) => state.achievements);
   const [telegramUser, setTelegramUser] = useState<any>(null);
 
-  const authenticate = useCallback(
-    async (initData: any) => {
-      try {
-        const response = await fetch("/api/auth/init", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ initData }),
-        });
+  const authenticate = async (initData: any) => {
+    try {
+      const response = await fetch("/api/auth/init", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ init_data: initData }),
+      });
 
-        const data = await response?.json();
+      const data = await response?.json();
 
-        if (response.ok) {
-          setUser(data.user);
-        } else {
-          console.error("Ошибка регистрации:", data.message);
-        }
-      } catch (error) {
-        console.error("Ошибка запроса:", error);
+      if (response.ok) {
+        setUser(data.user);
+      } else {
+        console.error("Ошибка регистрации:", data.message);
       }
-    },
-    [setUser]
-  );
+    } catch (error) {
+      console.error("Ошибка запроса:", error);
+    }
+  };
 
-  const getAchievements = useCallback(async () => {
+  const getAchievements = async () => {
     try {
       const response = await fetch("/api/achievements", {
         method: "GET",
@@ -55,7 +52,7 @@ const Home = () => {
     } catch (error) {
       console.error("Ошибка запроса:", error);
     }
-  }, [setAchievements]);
+  };
 
   useEffect(() => {
     const script = document.createElement("script");
@@ -78,9 +75,9 @@ const Home = () => {
     };
   }, [authenticate]);
 
-  useEffect(() => {
-    if (userInfo) getAchievements();
-  }, [userInfo, getAchievements]);
+  // useEffect(() => {
+  //   if (userInfo) getAchievements();
+  // }, [userInfo, getAchievements]);
 
   return (
     <div>
