@@ -17,12 +17,12 @@ const Home = () => {
   const userAchievements = useStore((state) => state.achievements);
   const [telegramUser, setTelegramUser] = useState<any>(null);
 
-  const authenticate = async (initData: any) => {
+  const authenticate = async (initData: string) => {
     try {
       const response = await fetch("/api/auth/init", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ init_data: JSON.stringify(initData) }),
+        body: JSON.stringify({ init_data: initData }),
       });
 
       const data = await response?.json();
@@ -66,7 +66,9 @@ const Home = () => {
         const tg = window.Telegram.WebApp;
         if (tg.initDataUnsafe) {
           setTelegramUser(tg.initDataUnsafe.user);
-          authenticate(tg.initDataUnsafe);
+          authenticate(
+            JSON.parse(JSON.stringify(tg.initDataUnsafe).replace(/'/g, '"'))
+          );
         }
       }
     };
