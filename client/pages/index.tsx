@@ -1,34 +1,34 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useStore } from "./lib/store/store";
-import dynamic from "next/dynamic";
-import UserAvatar from "./components/UserAvatar";
+import UserAvatar from "../app/components/UserAvatar";
+import { useStore } from "../app/lib/store/store";
+
 declare global {
   interface Window {
     Telegram?: any;
   }
 }
 
-const Game = dynamic(() => import("./game/Game"), { ssr: false });
-
 const Home = () => {
-  // Функция для отправки запроса на авторизацию или регистрацию
-  const authenticate = async () => {
+  const setUser = useStore((state) => state.setUser);
+  const setAchievements = useStore((state) => state.setAchievements);
+  const userInfo = useStore((state) => state.user);
+  const userAchievements = useStore((state) => state.achievements);
+  const [telegramUser, setTelegramUser] = useState<any>(null);
+
+  const authenticate = async (initData: any) => {
     try {
-      const response = await fetch("api/auth/register", {
+      const response = await fetch("api/auth/init", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          username: "exampleUser",
-          password: "examplePass",
-        }),
+        body: JSON.stringify({ initData }),
       });
 
-      const data = await response.json();
+      const data = await response?.json();
 
       if (response.ok) {
-        // Обновляем состояние на клиенте
+        setUser(data.user);
       } else {
         console.error("Ошибка регистрации:", data.message);
       }
@@ -36,12 +36,6 @@ const Home = () => {
       console.error("Ошибка запроса:", error);
     }
   };
-
-  useEffect(() => {
-    // authenticate();
-  }, []);
-
-  const [telegramUser, setTelegramUser] = useState<any>(null);
 
   useEffect(() => {
     const script = document.createElement("script");
@@ -52,7 +46,10 @@ const Home = () => {
     script.onload = () => {
       if (window.Telegram && window.Telegram.WebApp) {
         const tg = window.Telegram.WebApp;
-        if (tg.initDataUnsafe) setTelegramUser(tg.initDataUnsafe.user);
+        if (tg.initDataUnsafe) {
+          setTelegramUser(tg.initDataUnsafe.user);
+          authenticate(tg.initDataUnsafe.user);
+        }
       }
     };
 
@@ -60,6 +57,27 @@ const Home = () => {
       document.body.removeChild(script);
     };
   }, []);
+
+  const getAchievements = async () => {
+    try {
+      const response = await fetch("api/achievements", {
+        method: "GET",
+      });
+
+      const data = await response?.json();
+      if (response.ok) {
+        setAchievements(data.achievements);
+      } else {
+        console.error("Ошибка регистрации:", data.message);
+      }
+    } catch (error) {
+      console.error("Ошибка запроса:", error);
+    }
+  };
+
+  useEffect(() => {
+    if (userInfo) getAchievements();
+  }, [userInfo]);
   return (
     <div>
       <h1>Telegram User Information</h1>
@@ -85,7 +103,7 @@ const Home = () => {
       ) : (
         <p>No Telegram user data available.</p>
       )}
-      {/* <Game /> */}
+      <p>{JSON.stringify(userAchievements)}</p>
     </div>
   );
 };

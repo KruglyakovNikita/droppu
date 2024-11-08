@@ -1,9 +1,14 @@
 import { create } from "zustand";
 
 type User = {
-  id: string;
-  name: string;
-  // Добавьте другие поля пользователя по необходимости
+  id: number;
+  username: string;
+  coins: number;
+  tokens: number;
+  tickets: number;
+  language: string;
+  region: string;
+  registration_date: string;
 };
 
 type InvitedUser = {
@@ -19,16 +24,12 @@ type Achievement = {
 };
 
 type StoreState = {
-  tokens: number;
-  tickets: number;
   user: User | null;
-  inventory: string[]; // Массив идентификаторов предметов
+  inventory: string[];
   achievements: Achievement[];
   invitedUsers: InvitedUser[];
   totalTokensFromInvited: number;
-  // Методы для обновления состояния
-  setTokens: (tokens: number) => void;
-  setTickets: (tickets: number) => void;
+  totalTicketsFromInvited: number;
   setUser: (user: User | null) => void;
   setInventory: (inventory: string[]) => void;
   setAchievements: (achievements: Achievement[]) => void;
@@ -37,15 +38,12 @@ type StoreState = {
 };
 
 export const useStore = create<StoreState>((set) => ({
-  tokens: 0,
-  tickets: 0,
   user: null,
   inventory: [],
   achievements: [],
   invitedUsers: [],
   totalTokensFromInvited: 0,
-  setTokens: (tokens) => set({ tokens }),
-  setTickets: (tickets) => set({ tickets }),
+  totalTicketsFromInvited: 0,
   setUser: (user) => set({ user }),
   setInventory: (inventory) => set({ inventory }),
   setAchievements: (achievements) => set({ achievements }),
