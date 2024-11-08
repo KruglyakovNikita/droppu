@@ -1,5 +1,7 @@
 import { Box, Heading } from "@chakra-ui/react";
-import Game from "../app/game/Game";
+import dynamic from "next/dynamic";
+
+const Game = dynamic(() => import("../app/game/Game"), { ssr: false });
 
 export default function GamePage() {
   return (

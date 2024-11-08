@@ -1,16 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
+import { cookies } from "next/headers";
+
+export const dynamic = "force-dynamic";
 
 export async function GET(request: NextRequest) {
-  const accessToken = request.cookies.get("accessToken")?.value;
+  const cookieStore = await cookies();
+  const accessToken = cookieStore.get("accessToken")?.value ?? "test";
 
-  if (!accessToken) {
-    console.log(request.cookies.getAll());
-
-    return NextResponse.json(
-      { message: "Access token is missing" },
-      { status: 401 }
-    );
-  }
+  console.log(cookieStore);
 
   const response = await fetch(
     `${process.env.PYTHON_BACKEND_URL}/api/v1/achievements/`,
@@ -26,7 +23,7 @@ export async function GET(request: NextRequest) {
   if (!response.ok) {
     const errorData = await response.json();
     return NextResponse.json(
-      { message: errorData.message || "Registration failed" },
+      { message: errorData.message || "Registration failed", achievements: [] },
       { status: response.status }
     );
   }
@@ -34,11 +31,9 @@ export async function GET(request: NextRequest) {
   const data = await response.json();
   console.log(data);
 
-  // Устанавливаем HTTP-only cookie с токеном
   const nextResponse = NextResponse.json({
-    achievements: data.achievements,
+    achievements: data.achievements ?? [],
   });
 
   return nextResponse;
 }
-//Ешё будет PUT для обновления

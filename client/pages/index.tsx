@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import UserAvatar from "../app/components/UserAvatar";
 import { useStore } from "../app/lib/store/store";
 
@@ -17,25 +17,45 @@ const Home = () => {
   const userAchievements = useStore((state) => state.achievements);
   const [telegramUser, setTelegramUser] = useState<any>(null);
 
-  const authenticate = async (initData: any) => {
+  const authenticate = useCallback(
+    async (initData: any) => {
+      try {
+        const response = await fetch("/api/auth/init", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ initData }),
+        });
+
+        const data = await response?.json();
+
+        if (response.ok) {
+          setUser(data.user);
+        } else {
+          console.error("Ошибка регистрации:", data.message);
+        }
+      } catch (error) {
+        console.error("Ошибка запроса:", error);
+      }
+    },
+    [setUser]
+  );
+
+  const getAchievements = useCallback(async () => {
     try {
-      const response = await fetch("api/auth/init", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ initData }),
+      const response = await fetch("/api/achievements", {
+        method: "GET",
       });
 
       const data = await response?.json();
-
       if (response.ok) {
-        setUser(data.user);
+        setAchievements(data.achievements);
       } else {
-        console.error("Ошибка регистрации:", data.message);
+        console.error("Ошибка получения достижений:", data.message);
       }
     } catch (error) {
       console.error("Ошибка запроса:", error);
     }
-  };
+  }, [setAchievements]);
 
   useEffect(() => {
     const script = document.createElement("script");
@@ -48,7 +68,7 @@ const Home = () => {
         const tg = window.Telegram.WebApp;
         if (tg.initDataUnsafe) {
           setTelegramUser(tg.initDataUnsafe.user);
-          authenticate(tg.initDataUnsafe.user);
+          authenticate(tg.initData);
         }
       }
     };
@@ -56,28 +76,12 @@ const Home = () => {
     return () => {
       document.body.removeChild(script);
     };
-  }, []);
-
-  const getAchievements = async () => {
-    try {
-      const response = await fetch("api/achievements", {
-        method: "GET",
-      });
-
-      const data = await response?.json();
-      if (response.ok) {
-        setAchievements(data.achievements);
-      } else {
-        console.error("Ошибка регистрации:", data.message);
-      }
-    } catch (error) {
-      console.error("Ошибка запроса:", error);
-    }
-  };
+  }, [authenticate]);
 
   useEffect(() => {
     if (userInfo) getAchievements();
-  }, [userInfo]);
+  }, [userInfo, getAchievements]);
+
   return (
     <div>
       <h1>Telegram User Information</h1>
