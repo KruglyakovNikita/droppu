@@ -66,7 +66,7 @@ const Home = () => {
         const tg = window.Telegram.WebApp;
         if (tg.initDataUnsafe) {
           setTelegramUser(tg.initDataUnsafe.user);
-          authenticate(tg.initData);
+          authenticate(tg.initDataUnsafe);
         }
       }
     };
