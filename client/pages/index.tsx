@@ -22,7 +22,7 @@ const Home = () => {
       const response = await fetch("/api/auth/init", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ init_data: initData }),
+        body: JSON.stringify({ init_data: JSON.stringify(initData) }),
       });
 
       const data = await response?.json();
