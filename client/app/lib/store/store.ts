@@ -1,27 +1,5 @@
 import { create } from "zustand";
-
-type User = {
-  id: number;
-  username: string;
-  coins: number;
-  tokens: number;
-  tickets: number;
-  language: string;
-  region: string;
-  registration_date: string;
-};
-
-type InvitedUser = {
-  id: string;
-  name: string;
-  tokensEarned: number;
-};
-
-type Achievement = {
-  id: string;
-  title: string;
-  completed: boolean;
-};
+import { Achievement, InvitedUser, User } from "./types";
 
 type StoreState = {
   user: User | null;

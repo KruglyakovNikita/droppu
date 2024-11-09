@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import UserAvatar from "../app/components/UserAvatar";
 import { useStore } from "../app/lib/store/store";
+import { initUser } from "@/app/lib/api/user";
+import { getAchievements } from "@/app/lib/api/achievements";
 
 declare global {
   interface Window {
@@ -19,36 +21,25 @@ const Home = () => {
 
   const authenticate = async (initData: string) => {
     try {
-      const response = await fetch("/api/auth/init", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ init_data: initData }),
-      });
+      const response = await initUser(initData);
+      const data = response.data;
 
-      const data = await response?.json();
-
-      if (response.ok) {
+      if (data) {
         setUser(data.user);
-        getAchievements();
-      } else {
-        console.error("Ошибка регистрации:", data.message);
+        getAchievement();
       }
     } catch (error) {
       console.error("Ошибка запроса:", error);
     }
   };
 
-  const getAchievements = async () => {
+  const getAchievement = async () => {
     try {
-      const response = await fetch("/api/achievements", {
-        method: "GET",
-      });
+      const response = await getAchievements();
 
-      const data = await response?.json();
-      if (response.ok) {
+      const data = response.data;
+      if (data) {
         setAchievements(data.achievements);
-      } else {
-        console.error("Ошибка получения достижений:", data.message);
       }
     } catch (error) {
       console.error("Ошибка запроса:", error);
@@ -77,10 +68,6 @@ const Home = () => {
       document.body.removeChild(script);
     };
   }, []);
-
-  // useEffect(() => {
-  //   if (userInfo) getAchievements();
-  // }, [userInfo, getAchievements]);
 
   return (
     <div>
