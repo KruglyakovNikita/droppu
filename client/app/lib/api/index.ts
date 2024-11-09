@@ -1,4 +1,4 @@
-const API_BASE_URL = process.env.NEXT_PUBLIC_PYTHON_BACKEND_URL;
+const API_BASE_URL = "https://droppu.ru:7777";
 
 interface ApiResponse<T> {
   data: T | null;
