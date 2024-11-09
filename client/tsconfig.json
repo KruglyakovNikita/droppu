@@ -1,10 +1,6 @@
 {
   "compilerOptions": {
-    "lib": [
-      "dom",
-      "dom.iterable",
-      "esnext"
-    ],
+    "lib": ["dom", "dom.iterable", "esnext"],
     "module": "ESNext",
     "moduleResolution": "Bundler",
     "noImplicitAny": false,
@@ -25,26 +21,18 @@
       }
     ],
     "paths": {
-      "@chakra-ui/react": [
-        "../../packages/react/src"
-      ],
-      "@/*": [
-        "./*"
-      ]
+      "@chakra-ui/react": ["../../packages/react/src"],
+      "@/*": ["./*"]
     },
     "target": "ES2017"
   },
-  "customConditions": [
-    "source"
-  ],
+  "customConditions": ["source"],
   "include": [
     "**/*.ts",
     "**/*.tsx",
     "next-env.d.ts",
-    "next.config.js",
+    "next.config.ts",
     ".next/types/**/*.ts"
   ],
-  "exclude": [
-    "node_modules"
-  ]
+  "exclude": ["node_modules"]
 }
