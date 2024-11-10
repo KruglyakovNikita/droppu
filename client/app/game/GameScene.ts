@@ -1,6 +1,11 @@
 "use client";
 
 import Phaser from "phaser";
+import { easyPresets } from "./presets/easy-presets";
+import { mediumPresets } from "./presets/medium-presets";
+import { hardPresets } from "./presets/hard-presets";
+import { ultraHardPresets } from "./presets/ultra-hard-presets";
+import { Preset } from "./presets/types";
 
 const PLAYER_SPEED = 200;
 const LASER_GAP_MIN = 400;
@@ -23,6 +28,7 @@ class GameScene extends Phaser.Scene {
   PLAYER_SPEED = 200;
   LASER_GAP_MIN = 400;
   LASER_GAP_MAX = 650;
+  presetQueue: Preset[] = [];
 
   constructor() {
     super({ key: "GameScene" });
@@ -31,6 +37,43 @@ class GameScene extends Phaser.Scene {
   preload() {
     this.load.image("laser", "/blocks/laser.png");
     this.load.image("player", "/player/player.png");
+    // Инициализация очереди пресетов
+    for (let i = 0; i < 3; i++) {
+      this.enqueuePreset();
+    }
+  }
+
+  enqueuePreset() {
+    const difficulty = this.getRandomDifficulty();
+    let presetPool: Preset[];
+
+    switch (difficulty) {
+      case "easy":
+        presetPool = easyPresets;
+        break;
+      case "medium":
+        presetPool = mediumPresets;
+        break;
+      case "hard":
+        presetPool = hardPresets;
+        break;
+      case "ultra-hard":
+        presetPool = ultraHardPresets;
+        break;
+    }
+
+    const preset = Phaser.Utils.Array.GetRandom(presetPool);
+    this.presetQueue.push(preset);
+  }
+
+  addPresetFromQueue() {
+    if (this.presetQueue.length > 0) {
+      const preset = this.presetQueue.shift();
+      if (preset) {
+        this.createPreset(preset);
+        this.enqueuePreset(); // Добавляем новый пресет в очередь
+      }
+    }
   }
 
   create() {
@@ -85,13 +128,6 @@ class GameScene extends Phaser.Scene {
       undefined,
       this
     );
-
-    // this.time.addEvent({
-    //   delay: Phaser.Math.Between(3000, 5000), // Задержка между лазерами в миллисекундах
-    //   callback: this.addLaser,
-    //   callbackScope: this,
-    //   loop: true,
-    // });
   }
 
   update() {
@@ -125,11 +161,25 @@ class GameScene extends Phaser.Scene {
     }
 
     // ---Blocks
-    // console.log(this.player.x + "-" + this.lastPlatformX);
-
+    // if (this.player.x > this.lastPlatformX) {
+    //   this.addLaser();
+    // }
     if (this.player.x > this.lastPlatformX) {
-      this.addLaser();
+      this.addPresetFromQueue();
     }
+
+    this.lasers.getChildren().forEach((laser) => {
+      const laserSprite = laser as Phaser.Physics.Arcade.Sprite;
+      // if (laserSprite.x < this.player.x - 1000) {
+      //   this.lasers.remove(laserSprite, true, true);
+      // }
+
+      if (laserSprite.body) {
+        if (laserSprite.x < this.player.x - 500)
+          laserSprite.body.enable = false;
+        else laserSprite.body.enable = true;
+      }
+    });
 
     //Map
 
@@ -181,6 +231,87 @@ class GameScene extends Phaser.Scene {
 
     this.createLaser(x, y);
     this.lastPlatformX += laserGap;
+  }
+
+  addPreset() {
+    const difficulty = this.getRandomDifficulty();
+
+    let presetPool: Preset[];
+    switch (difficulty) {
+      case "easy":
+        presetPool = easyPresets;
+        break;
+      case "medium":
+        presetPool = mediumPresets;
+        break;
+      case "hard":
+        presetPool = hardPresets;
+        break;
+      case "ultra-hard":
+        presetPool = ultraHardPresets;
+        break;
+    }
+
+    const preset = Phaser.Utils.Array.GetRandom(presetPool);
+
+    this.createPreset(preset);
+  }
+
+  createPreset(preset: Preset) {
+    const baseX = this.lastPlatformX + Phaser.Math.Between(400, 650);
+
+    preset.lasers.forEach((laserConfig) => {
+      const x = baseX + laserConfig.x;
+      const y = laserConfig.y;
+      const angle = laserConfig.angle || 0;
+      const length = laserConfig.length || 200; // Длина лазера по умолчанию
+
+      const laser = this.lasers.create(
+        x,
+        y,
+        "laser"
+      ) as Phaser.Physics.Arcade.Sprite;
+      laser.setOrigin(0.5, 0.5);
+      laser.displayHeight = length;
+      laser.rotation = Phaser.Math.DegToRad(angle);
+      laser.setImmovable(true);
+      laser.setBounce(0);
+    });
+
+    this.lastPlatformX = baseX; // Обновляем позицию для следующего пресета
+  }
+
+  getRandomDifficulty(): "easy" | "medium" | "hard" | "ultra-hard" {
+    const distance = this.player?.x ?? 0;
+    const difficulties = ["easy", "medium", "hard", "ultra-hard"];
+    const weights = [50, 30, 15, 5]; // Начальные вероятности
+
+    // Увеличиваем вероятность сложных пресетов по мере продвижения
+    if (distance > 1000) {
+      weights[1] += 10; // medium
+      weights[0] -= 10; // easy
+    }
+    if (distance > 2000) {
+      weights[2] += 10; // hard
+      weights[1] -= 10; // medium
+    }
+    if (distance > 3000) {
+      weights[3] += 10; // ultra-hard
+      weights[2] -= 10; // hard
+    }
+
+    const totalWeight = weights.reduce((sum, weight) => sum + weight, 0);
+    const randomNum = Phaser.Math.Between(0, totalWeight);
+
+    let cumulativeWeight = 0;
+    for (let i = 0; i < difficulties.length; i++) {
+      cumulativeWeight += weights[i];
+      if (randomNum <= cumulativeWeight) {
+        return difficulties[i] as "easy" | "medium" | "hard" | "ultra-hard";
+      }
+    }
+
+    return "easy";
   }
 }
 
