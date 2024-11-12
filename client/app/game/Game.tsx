@@ -12,7 +12,7 @@ const Game = () => {
     if (
       typeof window === "undefined" ||
       !gameRef.current ||
-      gameRef.current.childElementCount > 1
+      gameRef.current.childElementCount > 0
     ) {
       return;
     }
@@ -20,15 +20,16 @@ const Game = () => {
     const config: Phaser.Types.Core.GameConfig = {
       type: Phaser.AUTO,
       parent: gameRef.current,
-      width: 600,
-      height: 400,
+      width: 600, // Ширина экрана
+      height: 400, // Высота экрана
       physics: {
-        default: "arcade",
-        arcade: {
-          gravity: { x: 0, y: 0 },
-          debug: true,
-          fps: 60,
-          timeScale: 1,
+        default: "matter",
+        matter: {
+          gravity: { x: 0, y: 0 }, // Без гравитации
+          // debug: true, // Включите true для отладки
+          // Настройки итераций могут быть настроены при необходимости
+          positionIterations: 6,
+          velocityIterations: 4,
         },
       },
       scene: GameScene,
