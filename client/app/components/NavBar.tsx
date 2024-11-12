@@ -15,7 +15,6 @@ const NavBar = () => {
   ];
 
   return (
-
     <GradientBorderWrapper
       borderRadius={12}
       startColor="#793BC7"
@@ -25,11 +24,13 @@ const NavBar = () => {
       bottom={7}
       left="50%"
       transform="translateX(-50%)"
-      p={3}  // Padding для видимой обводки
+      p={3}
       bg="transparent"
       backgroundClip="padding-box"
+      w={["90%", "80%", "400px"]} // Адаптивная ширина: 90% на маленьких экранах, 80% на средних и фиксированная ширина на больших
+      maxW="400px" // Ограничение максимальной ширины NavBar
     >
-      <HStack spacing={4}>
+      <HStack spacing={0} justify="space-between" w="100%">
         {navItems.map((item) => {
           const isActive = router.pathname === item.href;
           return (
@@ -41,13 +42,17 @@ const NavBar = () => {
                 fontSize="20px"
                 variant="solid"
                 color="white"
-                w="80px"
+                flex="1"
                 h="45px"
+                w="70px"
                 borderRadius="12px"
                 bg={isActive ? "linear-gradient(45deg, #FF56F9, #724BFF)" : "#111030"}
                 _hover={{
                   bg: isActive ? "linear-gradient(45deg, #FF56F9, #724BFF)" : "#1A1A3D",
                 }}
+                display="flex"
+                alignItems="center"
+                justifyContent="center"
               />
             </Link>
           );
