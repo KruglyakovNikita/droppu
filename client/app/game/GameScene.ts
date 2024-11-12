@@ -6,15 +6,15 @@ import { mediumPresets } from "./presets/medium-presets";
 import { hardPresets } from "./presets/hard-presets";
 import { ultraHardPresets } from "./presets/ultra-hard-presets";
 import { Preset } from "./presets/types";
+import { getPresetPool, getRandomDifficulty } from "./utils";
 
-const PLAYER_SPEED = 200;
-const LASER_GAP_MIN = 400;
-const LASER_GAP_MAX = 650;
+export const PLAYER_SPEED = 200;
+export const MAX_ASCENT_SPEED = -300; // Максимальная скорость подъёма
+export const MAX_DESCENT_SPEED = 300; // Максимальная скорость падения
+export const ASCENT_ACCELERATION = -20; // Ускорение вверх при удержании
+export const DESCENT_ACCELERATION = 20; // Ускорение вниз при падении
 
-const MAX_ASCENT_SPEED = -300; // Максимальная скорость подъёма
-const MAX_DESCENT_SPEED = 300; // Максимальная скорость падения
-const ASCENT_ACCELERATION = -20; // Ускорение вверх при удержании
-const DESCENT_ACCELERATION = 20; // Ускорение вниз при падении
+export const MIN_DISTANCE_BETWEEN_PRESETS = 350; // Минимальное расстояние между пресетами
 
 class GameScene extends Phaser.Scene {
   player!: Phaser.Types.Physics.Arcade.SpriteWithDynamicBody;
@@ -25,9 +25,6 @@ class GameScene extends Phaser.Scene {
   lastPlatformX!: number;
   lastBoundsUpdateX: number = 0;
 
-  PLAYER_SPEED = 200;
-  LASER_GAP_MIN = 400;
-  LASER_GAP_MAX = 650;
   presetQueue: Preset[] = [];
 
   constructor() {
@@ -44,26 +41,35 @@ class GameScene extends Phaser.Scene {
   }
 
   enqueuePreset() {
+    const distance = this.player?.x ?? 0;
     const difficulty = this.getRandomDifficulty();
-    let presetPool: Preset[];
+    const presetPool = getPresetPool(difficulty);
+    let preset: Preset | null = null;
 
-    switch (difficulty) {
-      case "easy":
-        presetPool = easyPresets;
-        break;
-      case "medium":
-        presetPool = mediumPresets;
-        break;
-      case "hard":
-        presetPool = hardPresets;
-        break;
-      case "ultra-hard":
-        presetPool = ultraHardPresets;
-        break;
+    // Attempt to find a suitable preset
+    for (let i = 0; i < 10; i++) {
+      const candidate = Phaser.Utils.Array.GetRandom(presetPool);
+      preset = candidate;
+      break;
     }
 
-    const preset = Phaser.Utils.Array.GetRandom(presetPool);
-    this.presetQueue.push(preset);
+    // If no suitable preset found, fallback to easier difficulty
+    if (!preset) {
+      const easierPresetPool = getPresetPool("easy");
+      preset = Phaser.Utils.Array.GetRandom(easierPresetPool);
+    }
+
+    // If still no preset found, use any preset from the original pool
+    if (!preset) {
+      preset = Phaser.Utils.Array.GetRandom(presetPool);
+    }
+
+    // Add the preset to the queue
+    if (preset) {
+      this.presetQueue.push(preset);
+    } else {
+      console.error("No presets available to enqueue.");
+    }
   }
 
   addPresetFromQueue() {
@@ -71,8 +77,8 @@ class GameScene extends Phaser.Scene {
       const preset = this.presetQueue.shift();
       if (preset) {
         this.createPreset(preset);
-        this.enqueuePreset(); // Добавляем новый пресет в очередь
       }
+      this.enqueuePreset(); // Добавляем новый пресет в очередь
     }
   }
 
@@ -124,7 +130,8 @@ class GameScene extends Phaser.Scene {
     this.physics.add.collider(
       this.player,
       this.lasers,
-      this.playerTouchLaser,
+      this
+        .playerTouchLaser as Phaser.Types.Physics.Arcade.ArcadePhysicsCallback,
       undefined,
       this
     );
@@ -136,7 +143,7 @@ class GameScene extends Phaser.Scene {
       // Ускоряем подъём при удержании кнопки
       this.player.setVelocityY(
         Phaser.Math.Clamp(
-          this.player.body.velocity.y + ASCENT_ACCELERATION,
+          (this.player.body?.velocity?.y ?? 0) + ASCENT_ACCELERATION,
           MAX_ASCENT_SPEED,
           0
         )
@@ -145,7 +152,7 @@ class GameScene extends Phaser.Scene {
       // Ускоряем падение, если кнопка не нажата
       this.player.setVelocityY(
         Phaser.Math.Clamp(
-          this.player.body.velocity.y + DESCENT_ACCELERATION,
+          (this.player.body?.velocity?.y ?? 0) + DESCENT_ACCELERATION,
           0,
           MAX_DESCENT_SPEED
         )
@@ -164,30 +171,28 @@ class GameScene extends Phaser.Scene {
     // if (this.player.x > this.lastPlatformX) {
     //   this.addLaser();
     // }
-    if (this.player.x > this.lastPlatformX) {
+    if (this.player.x > this.lastPlatformX - 500) {
+      // Убедимся, что пресеты генерируются заранее
       this.addPresetFromQueue();
     }
 
     this.lasers.getChildren().forEach((laser) => {
       const laserSprite = laser as Phaser.Physics.Arcade.Sprite;
-      // if (laserSprite.x < this.player.x - 1000) {
-      //   this.lasers.remove(laserSprite, true, true);
-      // }
-
       if (laserSprite.body) {
-        if (laserSprite.x < this.player.x - 500)
+        if (laserSprite.x < this.player.x - 500) {
           laserSprite.body.enable = false;
-        else laserSprite.body.enable = true;
+        } else {
+          laserSprite.body.enable = true;
+        }
       }
     });
 
-    //Map
-
+    // Обновление границ мира
     if (this.lastBoundsUpdateX - this.player.x <= 1000) {
       const leftBound = this.player.x - 500;
       const rightBound = this.player.x + 1500;
       this.physics.world.setBounds(leftBound, 0, rightBound, 400);
-      this.lastBoundsUpdateX = rightBound; // Обновляем позицию последнего обновления
+      this.lastBoundsUpdateX = rightBound;
     }
   }
 
@@ -221,18 +226,6 @@ class GameScene extends Phaser.Scene {
     );
   }
 
-  addLaser() {
-    const laserGap = Phaser.Math.Between(LASER_GAP_MIN, LASER_GAP_MAX);
-    const minY = 60;
-    const maxY = 340;
-
-    const x = this.lastPlatformX + laserGap;
-    const y = Phaser.Math.Between(minY, maxY);
-
-    this.createLaser(x, y);
-    this.lastPlatformX += laserGap;
-  }
-
   addPreset() {
     const difficulty = this.getRandomDifficulty();
 
@@ -258,13 +251,17 @@ class GameScene extends Phaser.Scene {
   }
 
   createPreset(preset: Preset) {
-    const baseX = this.lastPlatformX + Phaser.Math.Between(400, 650);
+    const baseX = Math.max(
+      this.lastPlatformX +
+        Phaser.Math.Between(MIN_DISTANCE_BETWEEN_PRESETS, 400),
+      this.lastPlatformX + MIN_DISTANCE_BETWEEN_PRESETS
+    );
 
     preset.lasers.forEach((laserConfig) => {
       const x = baseX + laserConfig.x;
       const y = laserConfig.y;
       const angle = laserConfig.angle || 0;
-      const length = laserConfig.length || 200; // Длина лазера по умолчанию
+      const length = Math.min(laserConfig.length || 100, 100); // Ограничиваем длину лазера
 
       const laser = this.lasers.create(
         x,
@@ -278,40 +275,11 @@ class GameScene extends Phaser.Scene {
       laser.setBounce(0);
     });
 
-    this.lastPlatformX = baseX; // Обновляем позицию для следующего пресета
+    this.lastPlatformX = baseX; // Обновляем координату для следующего пресета
   }
 
   getRandomDifficulty(): "easy" | "medium" | "hard" | "ultra-hard" {
-    const distance = this.player?.x ?? 0;
-    const difficulties = ["easy", "medium", "hard", "ultra-hard"];
-    const weights = [50, 30, 15, 5]; // Начальные вероятности
-
-    // Увеличиваем вероятность сложных пресетов по мере продвижения
-    if (distance > 1000) {
-      weights[1] += 10; // medium
-      weights[0] -= 10; // easy
-    }
-    if (distance > 2000) {
-      weights[2] += 10; // hard
-      weights[1] -= 10; // medium
-    }
-    if (distance > 3000) {
-      weights[3] += 10; // ultra-hard
-      weights[2] -= 10; // hard
-    }
-
-    const totalWeight = weights.reduce((sum, weight) => sum + weight, 0);
-    const randomNum = Phaser.Math.Between(0, totalWeight);
-
-    let cumulativeWeight = 0;
-    for (let i = 0; i < difficulties.length; i++) {
-      cumulativeWeight += weights[i];
-      if (randomNum <= cumulativeWeight) {
-        return difficulties[i] as "easy" | "medium" | "hard" | "ultra-hard";
-      }
-    }
-
-    return "easy";
+    return getRandomDifficulty(this.player?.x ?? 0);
   }
 }
 

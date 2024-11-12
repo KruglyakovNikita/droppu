@@ -2,6 +2,10 @@
 
 import { Preset } from "./types";
 
+const MIN_GAP_LASER = 25;
+const ZERO_GAP_LASER = 0;
+const MIN_FLIGHT_DISTANCE_BETWEEN = 150;
+
 export const easyPresets: Preset[] = [
   // Простой одиночный лазер
   {
@@ -12,7 +16,7 @@ export const easyPresets: Preset[] = [
   {
     lasers: [
       { x: 0, y: 50 },
-      { x: 0, y: 350 },
+      { x: 160, y: 350 },
     ],
     difficulty: "easy",
   },

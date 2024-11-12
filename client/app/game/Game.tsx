@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useRef } from "react";
-import GameScene from "./GameScene";
+import GameScene from "../game/GameScene";
 import Phaser from "phaser";
 
 const Game = () => {
@@ -20,7 +20,7 @@ const Game = () => {
     const config: Phaser.Types.Core.GameConfig = {
       type: Phaser.AUTO,
       parent: gameRef.current,
-      width: 2000,
+      width: 600,
       height: 400,
       physics: {
         default: "arcade",
