@@ -97,6 +97,7 @@ const Home: React.FC = () => {
     bgGradient="linear(to-b, #0D1478, #130B3D, #0D1478)"
     color={colors.primaryText}
     minH="100vh"
+    overflowY="auto"
     p={4}
   >
     <Grid mt={0} gap={4} templateColumns="repeat(2, 1fr)">
@@ -190,7 +191,7 @@ const Home: React.FC = () => {
       strokeWidth={1.5}
       w="360px"
       h="180px"
-      mt="40px"
+      mt="30px"
     >
       <Box
         w="100%"
@@ -301,7 +302,7 @@ const Home: React.FC = () => {
     </GradientBorderWrapper>
 
     {/* INVENTORY AND STATS */}
-    <Grid mt={41} gap={4} templateColumns="repeat(2, 1fr)">
+    <Grid mt={30} gap={4} templateColumns="repeat(2, 1fr)">
       {/* Inventory */}
       <GradientBorderWrapper
         borderRadius={12}
@@ -388,7 +389,7 @@ const Home: React.FC = () => {
     </Grid>
  {/* PLAY BTN */}
  <Box
-    mt={45}
+    mt={30}
     w="360px"
     h="185px"
     borderRadius="12px"
