@@ -14,13 +14,12 @@ import UserAvatar from "../app/components/UserAvatar";
 import { initUser } from "@/app/lib/api/user";
 import { getAchievements } from "@/app/lib/api/achievements";
 
-interface TelegramUser {
-  id: number;
-  first_name: string;
-  last_name?: string;
-  username: string;
-  language_code: string;
-  photo_url?: string;
+
+
+declare global {
+  interface Window {
+    Telegram?: any;
+  }
 }
 
 const Home: React.FC = () => {
@@ -28,7 +27,7 @@ const Home: React.FC = () => {
   const setAchievements = useStore((state) => state.setAchievements);
   const userInfo = useStore((state) => state.user);
   const userAchievements = useStore((state) => state.achievements);
-  const [telegramUser, setTelegramUser] = useState<TelegramUser | null>(null);
+  const [telegramUser, setTelegramUser] = useState<any>(null);
 
   useEffect(() => {
     const authenticate = async (initData: string) => {
@@ -66,7 +65,7 @@ const Home: React.FC = () => {
       if (window.Telegram && window.Telegram.WebApp) {
         const tg = window.Telegram.WebApp;
         if (tg.initDataUnsafe) {
-          setTelegramUser(tg.initDataUnsafe.user as TelegramUser);
+          setTelegramUser(tg.initDataUnsafe.user);
           console.log(tg.initDataUnsafe);
           console.log(tg.initData);
           authenticate(
