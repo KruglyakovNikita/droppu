@@ -1,102 +1,642 @@
-"use client";
+// "use client";
 
+// import { useEffect, useState } from "react";
+// import UserAvatar from "../app/components/UserAvatar";
+// import { useStore } from "../app/lib/store/store";
+// import { initUser } from "@/app/lib/api/user";
+// import { getAchievements } from "@/app/lib/api/achievements";
+
+// declare global {
+//   interface Window {
+//     Telegram?: any;
+//   }
+// }
+
+// const Home = () => {
+//   const setUser = useStore((state) => state.setUser);
+//   const setAchievements = useStore((state) => state.setAchievements);
+//   const userInfo = useStore((state) => state.user);
+//   const userAchievements = useStore((state) => state.achievements);
+//   const [telegramUser, setTelegramUser] = useState<any>(null);
+
+//   const authenticate = async (initData: string) => {
+//     try {
+//       const response = await initUser(initData);
+//       const data = response.data;
+
+//       if (data) {
+//         setUser(data.user);
+//         getAchievement();
+//       }
+//     } catch (error) {
+//       console.error("Ошибка запроса:", error);
+//     }
+//   };
+
+//   const getAchievement = async () => {
+//     try {
+//       const response = await getAchievements();
+
+//       const data = response.data;
+//       if (data) {
+//         setAchievements(data.achievements);
+//       }
+//     } catch (error) {
+//       console.error("Ошибка запроса:", error);
+//     }
+//   };
+
+//   useEffect(() => {
+//     const script = document.createElement("script");
+//     script.src = "https://telegram.org/js/telegram-web-app.js";
+//     script.async = true;
+//     document.body.appendChild(script);
+
+//     script.onload = () => {
+//       if (window.Telegram && window.Telegram.WebApp) {
+//         const tg = window.Telegram.WebApp;
+//         if (tg.initDataUnsafe) {
+//           setTelegramUser(tg.initDataUnsafe.user);
+//           authenticate(
+//             JSON.parse(JSON.stringify(tg.initDataUnsafe).replace(/'/g, '"'))
+//           );
+//         }
+//       }
+//     };
+
+//     return () => {
+//       document.body.removeChild(script);
+//     };
+//   }, []);
+
+//   return (
+//     <div>
+//       <h1>Telegram User Information</h1>
+//       {telegramUser ? (
+//         <div>
+//           <p>
+//             <strong>First Name:</strong> {telegramUser?.first_name}
+//           </p>
+//           <p>
+//             <strong>Last Name:</strong> {telegramUser?.last_name}
+//           </p>
+//           <p>
+//             <strong>Username:</strong> {telegramUser?.username}
+//           </p>
+//           <p>
+//             <strong>Language Code:</strong> {telegramUser?.language_code}
+//           </p>
+//           <p>
+//             <strong>User ID:</strong> {telegramUser?.id}
+//           </p>
+//           <UserAvatar avatarUrl={telegramUser?.photo_url} />
+//         </div>
+//       ) : (
+//         <p>No Telegram user data available.</p>
+//       )}
+//       <p>{JSON.stringify(userAchievements)}</p>
+//     </div>
+//   );
+// };
+
+// export default Home;
+
+
+// components/Home.tsx
+import { Box, Flex, Avatar, Text, Grid, 
+  Card, CardHeader, CardBody, CardFooter,
+  Stack,
+  Button, Image,
+  Heading
+ } from "@chakra-ui/react";
+
+import { keyframes } from '@emotion/react';
+import GradientBorderWrapper from '../components/GradientBorderWrapper';
 import { useEffect, useState } from "react";
-import UserAvatar from "../app/components/UserAvatar";
+import colors from "../theme/colors";
 import { useStore } from "../app/lib/store/store";
+import UserAvatar from "../app/components/UserAvatar";
 import { initUser } from "@/app/lib/api/user";
 import { getAchievements } from "@/app/lib/api/achievements";
 
-declare global {
-  interface Window {
-    Telegram?: any;
-  }
+interface TelegramUser {
+  id: number;
+  first_name: string;
+  last_name?: string;
+  username: string;
+  language_code: string;
+  photo_url?: string;
 }
 
-const Home = () => {
+const Home: React.FC = () => {
   const setUser = useStore((state) => state.setUser);
   const setAchievements = useStore((state) => state.setAchievements);
   const userInfo = useStore((state) => state.user);
   const userAchievements = useStore((state) => state.achievements);
-  const [telegramUser, setTelegramUser] = useState<any>(null);
+  const [telegramUser, setTelegramUser] = useState<TelegramUser | null>(null);
 
-  const authenticate = async (initData: string) => {
-    try {
-      const response = await initUser(initData);
-      const data = response.data;
+  // useEffect(() => {
+  //   const authenticate = async (initData: string) => {
+  //     try {
+  //       const response = await initUser(initData);
+  //       const data = response.data;
 
-      if (data) {
-        setUser(data.user);
-        getAchievement();
-      }
-    } catch (error) {
-      console.error("Ошибка запроса:", error);
-    }
-  };
+  //       if (data) {
+  //         setUser(data.user);
+  //         fetchAchievements();
+  //       }
+  //     } catch (error) {
+  //       console.error("Request Error:", error);
+  //     }
+  //   };
 
-  const getAchievement = async () => {
-    try {
-      const response = await getAchievements();
+  //   const fetchAchievements = async () => {
+  //     try {
+  //       const response = await getAchievements();
+  //       const data = response.data;
 
-      const data = response.data;
-      if (data) {
-        setAchievements(data.achievements);
-      }
-    } catch (error) {
-      console.error("Ошибка запроса:", error);
-    }
-  };
+  //       if (data) {
+  //         setAchievements(data.achievements);
+  //       }
+  //     } catch (error) {
+  //       console.error("Request Error:", error);
+  //     }
+  //   };
 
-  useEffect(() => {
-    const script = document.createElement("script");
-    script.src = "https://telegram.org/js/telegram-web-app.js";
-    script.async = true;
-    document.body.appendChild(script);
+  //   const script = document.createElement("script");
+  //   script.src = "https://telegram.org/js/telegram-web-app.js";
+  //   script.async = true;
+  //   document.body.appendChild(script);
 
-    script.onload = () => {
-      if (window.Telegram && window.Telegram.WebApp) {
-        const tg = window.Telegram.WebApp;
-        if (tg.initDataUnsafe) {
-          setTelegramUser(tg.initDataUnsafe.user);
-          authenticate(
-            JSON.parse(JSON.stringify(tg.initDataUnsafe).replace(/'/g, '"'))
-          );
-        }
-      }
-    };
+  //   script.onload = () => {
+  //     if (window.Telegram && window.Telegram.WebApp) {
+  //       const tg = window.Telegram.WebApp;
+  //       if (tg.initDataUnsafe) {
+  //         setTelegramUser(tg.initDataUnsafe.user as TelegramUser);
+  //         authenticate(
+  //           JSON.parse(JSON.stringify(tg.initDataUnsafe).replace(/'/g, '"'))
+  //         );
+  //       }
+  //     }
+  //   };
 
-    return () => {
-      document.body.removeChild(script);
-    };
-  }, []);
+  //   return () => {
+  //     document.body.removeChild(script);
+  //   };
+  // }, []);
+
+  const floatAnimation = keyframes`
+  0% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+  100% { transform: translateY(0px); }
+`;
 
   return (
-    <div>
-      <h1>Telegram User Information</h1>
-      {telegramUser ? (
-        <div>
-          <p>
-            <strong>First Name:</strong> {telegramUser?.first_name}
-          </p>
-          <p>
-            <strong>Last Name:</strong> {telegramUser?.last_name}
-          </p>
-          <p>
-            <strong>Username:</strong> {telegramUser?.username}
-          </p>
-          <p>
-            <strong>Language Code:</strong> {telegramUser?.language_code}
-          </p>
-          <p>
-            <strong>User ID:</strong> {telegramUser?.id}
-          </p>
-          <UserAvatar avatarUrl={telegramUser?.photo_url} />
-        </div>
-      ) : (
-        <p>No Telegram user data available.</p>
-      )}
-      <p>{JSON.stringify(userAchievements)}</p>
-    </div>
+    <Flex
+    direction="column"
+    align="center"
+    bgGradient="linear(to-b, #0D1478, #130B3D, #0D1478)"
+    color={colors.primaryText}
+    minH="100vh"
+    p={4}
+  >
+    <Grid mt={7} gap={4} templateColumns="repeat(2, 1fr)">
+      <GradientBorderWrapper
+        borderRadius={12}
+        startColor="#793BC7"
+        endColor="#C2D2FF"
+        strokeWidth={1.5}
+        w="165px"
+        h="45px"
+      >
+        <Card
+          direction="row"
+          alignItems="center"
+          justifyContent="left"
+          bg="transparent"
+          h="100%"
+          p={0.5}
+          pl={2}
+          pr={4}
+        >
+          <Image
+            src="/icons/star_icon.svg"
+            alt="Tribes Icon"
+            boxSize="23px"
+            mr={2}
+          />
+          <Stack spacing={0}>
+            <Heading
+              fontSize="16px"
+              color={colors.primaryText}
+              fontFamily="'PixelifySans-Bold', sans-serif"
+              fontWeight="bold"
+              mb={-1.5}
+            >
+              Tribes
+            </Heading>
+            <Text fontSize="8px" color={colors.secondaryText}>
+              Complete for rewards
+            </Text>
+          </Stack>
+        </Card>
+      </GradientBorderWrapper>
+
+      <GradientBorderWrapper
+        borderRadius={12}
+        startColor="#793BC7"
+        endColor="#C2D2FF"
+        strokeWidth={1.5}
+        w="165px"
+        h="45px"
+      >
+        <Card
+          direction="row"
+          alignItems="center"
+          justifyContent="space-between"
+          bg="transparent"
+          h="100%"
+          p={0.5}
+          pl={4}
+        >
+          <Stack spacing={0}>
+            <Heading
+              fontSize="16px"
+              color={colors.primaryText}
+              fontFamily="'PixelifySans-Bold', sans-serif"
+              fontWeight="bold"
+              mb={-1.5}
+            >
+              Invite Friend
+            </Heading>
+            <Text fontSize="8px" color={colors.secondaryText}>
+              Get more tickets and points
+            </Text>
+          </Stack>
+          <Image
+            src="/icons/frens_icon.svg"
+            alt="Invite Friend Icon"
+            boxSize="23px"
+            mr={2}
+          />
+        </Card>
+      </GradientBorderWrapper>
+    </Grid>
+
+    {/* PROFILE */}
+    <GradientBorderWrapper
+      borderRadius={12}
+      startColor="#793BC7"
+      endColor="#C2D2FF"
+      strokeWidth={1.5}
+      w="360px"
+      h="180px"
+      mt="45px"
+    >
+      <Box
+        w="100%"
+        h="100%"
+        borderRadius="12px"
+        p={4}
+        bg="transparent"
+      >
+        <Flex>
+          <Box mr={4} textAlign="center">
+            <Avatar
+              size="2xl"
+              src={telegramUser?.photo_url}
+              w="125px"
+              h="125px"
+              border="1px"
+              borderColor="transparent"
+              mb={1}
+            />
+            <Text
+              fontFamily="'PixelifySans-Bold', sans-serif"
+              fontSize="15px"
+              color={colors.primaryText}
+            >
+              {telegramUser?.username || 'a_yanushevich'}
+            </Text>
+          </Box>
+
+          <Stack spacing={5} mt={5}>
+            <GradientBorderWrapper
+              borderRadius={12}
+              startColor="#793BC7"
+              endColor="#C2D2FF"
+              strokeWidth={1.5}
+              w="165px"
+              h="45px"
+            >
+              <Flex
+                align="center"
+                justify="left"
+                h="100%"
+                pl={4}
+                pr={4}
+                bg="transparent"
+                borderRadius="12px"
+              >
+                <Image
+                  src="/icons/star_icon.svg"
+                  alt="Points Icon"
+                  boxSize="23px"
+                />
+                <Stack spacing={0} ml={3}>
+                  <Heading
+                    fontSize="16px"
+                    color={colors.primaryText}
+                    fontFamily="'PixelifySans-Bold', sans-serif"
+                    mb={-1.5}
+                  >
+                    1234567
+                  </Heading>
+                  <Text fontSize="12px" color={colors.secondaryText}>
+                    Points
+                  </Text>
+                </Stack>
+              </Flex>
+            </GradientBorderWrapper>
+
+            <GradientBorderWrapper
+              borderRadius={12}
+              startColor="#793BC7"
+              endColor="#C2D2FF"
+              strokeWidth={1.5}
+              w="165px"
+              h="45px"
+            >
+              <Flex
+                align="center"
+                justify="left"
+                h="100%"
+                pl={4}
+                pr={4}
+                bg="transparent"
+                borderRadius="12px"
+              >
+                <Image
+                  src="/icons/star_icon.svg"
+                  alt="Tickets Icon"
+                  boxSize="23px"
+                />
+                <Stack spacing={0} ml={3}>
+                  <Heading
+                    fontSize="16px"
+                    color={colors.primaryText}
+                    fontFamily="'PixelifySans-Bold', sans-serif"
+                    mb={-1.5}
+                  >
+                    123
+                  </Heading>
+                  <Text fontSize="12px" color={colors.secondaryText}>
+                    Tickets
+                  </Text>
+                </Stack>
+              </Flex>
+            </GradientBorderWrapper>
+          </Stack>
+        </Flex>
+      </Box>
+    </GradientBorderWrapper>
+
+    {/* INVENTORY AND STATS */}
+    <Grid mt={45} gap={4} templateColumns="repeat(2, 1fr)">
+      {/* Inventory */}
+      <GradientBorderWrapper
+        borderRadius={12}
+        startColor="#793BC7"
+        endColor="#C2D2FF"
+        strokeWidth={1.5}
+        w="165px"
+        h="110px"
+      >
+        <Card
+          direction="row"
+          alignItems="center"
+          justifyContent="left"
+          bg="transparent"
+          h="100%"
+          p={0.5}
+          pl={5}
+          pr={4}
+        >
+          <Image
+            src="/icons/bag_icon.svg"
+            alt="Inventory Icon"
+            boxSize="40px"
+            mr={2}
+          />
+          <Stack spacing={0}>
+            <Heading
+              fontSize="18px"
+              color={colors.primaryText}
+              fontFamily="'PixelifySans-Bold', sans-serif"
+              fontWeight="bold"
+              mb={-1}
+            >
+              Inventory
+            </Heading>
+            <Text fontSize="10px" color={colors.secondaryText}>
+              183 items
+            </Text>
+          </Stack>
+        </Card>
+      </GradientBorderWrapper>
+
+      {/* Top */}
+      <GradientBorderWrapper
+        borderRadius={12}
+        startColor="#793BC7"
+        endColor="#C2D2FF"
+        strokeWidth={1.5}
+        w="165px"
+        h="110px"
+      >
+        <Card
+          direction="row"
+          alignItems="center"
+          justifyContent="left"
+          bg="transparent"
+          h="100%"
+          p={0.5}
+          pl={5}
+          pr={4}
+        >
+          <Image
+            src="/icons/star_icon.svg"
+            alt="Top Icon"
+            boxSize="40px"
+            mr={2}
+          />
+          <Stack spacing={0}>
+            <Heading
+              fontSize="18px"
+              color={colors.primaryText}
+              fontFamily="'PixelifySans-Bold', sans-serif"
+              fontWeight="bold"
+              mb={-1}
+            >
+              Top
+            </Heading>
+            <Text fontSize="10px" color={colors.secondaryText}>
+              You are: 143
+            </Text>
+          </Stack>
+        </Card>
+      </GradientBorderWrapper>
+    </Grid>
+ {/* PLAY BTN */}
+ <Box
+    mt={45}
+    w="360px"
+    h="185px"
+    borderRadius="12px"
+    display="flex"
+    alignItems="center"
+    justifyContent="center"
+    position="relative"
+    overflow="hidden"
+    cursor="pointer"
+    bg="transparent" // Прозрачный фон
+    _before={{
+      content: '""',
+      position: "absolute",
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      background: "linear-gradient(45deg, #793BC7, #C2D2FF)",
+      borderRadius: "12px",
+      padding: "2px",
+      backgroundClip: "padding-box",
+      WebkitMask:
+        "linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)",
+      WebkitMaskComposite: "xor",
+      maskComposite: "exclude",
+    }}
+  >
+    {/* Фоновый элемент с размытием */}
+    <Box
+      position="absolute"
+      top="0"
+      left="0"
+      right="0"
+      bottom="0"
+      bgGradient="linear(45deg, #151336, #2A266F)"
+      bgSize="cover"
+      bgPosition="center"
+      filter="blur(6px)"
+      zIndex="-1"
+    />
+
+    <Box
+      as="img"
+      src="/icons/jetpack.svg"
+      alt="Flying Character"
+      position="absolute"
+      left="5px"
+      bottom="0px"
+      w="140px"
+      filter="blur(2px)"
+      animation={`${floatAnimation} 3s ease-in-out infinite`}
+    />
+
+    <Box
+      as="img"
+      src="/icons/star.svg"
+      alt="Star"
+      position="absolute"
+      top="20px"
+      right="50px"
+      w="50px"
+      filter="blur(1px)" // Размытие на звезде
+      animation={`${floatAnimation} 4s ease-in-out infinite`}
+    />
+    <Box
+      as="img"
+      src="/icons/star.svg"
+      alt="Star"
+      position="absolute"
+      bottom="20px"
+      right="20px"
+      w="70px"
+      filter="blur(1px)"
+      animation={`${floatAnimation} 2.5s ease-in-out infinite`}
+    />
+    <Box
+      as="img"
+      src="/icons/star.svg"
+      alt="Star"
+      position="absolute"
+      top="50px"
+      left="80px"
+      w="45px"
+      filter="blur(1px)"
+      animation={`${floatAnimation} 3.5s ease-in-out infinite`}
+    />
+    <Box
+      as="img"
+      src="/icons/star.svg"
+      alt="Star"
+      position="absolute"
+      bottom="40px"
+      left="120px"
+      w="20px"
+      filter="blur(1px)"
+      animation={`${floatAnimation} 2s ease-in-out infinite`}
+    />
+    {/* Добавление еще звезд для заполнения фона */}
+    <Box
+      as="img"
+      src="/icons/star.svg"
+      alt="Star"
+      position="absolute"
+      top="30px"
+      left="140px"
+      w="38px"
+      filter="blur(1px)"
+      animation={`${floatAnimation} 3s ease-in-out infinite`}
+    />
+    <Box
+      as="img"
+      src="/icons/star.svg"
+      alt="Star"
+      position="absolute"
+      top="80px"
+      right="120px"
+      w="22px"
+      filter="blur(1px)"
+      animation={`${floatAnimation} 2.7s ease-in-out infinite`}
+    />
+    <Box
+      as="img"
+      src="/icons/star.svg"
+      alt="Star"
+      position="absolute"
+      bottom="60px"
+      right="150px"
+      w="24px"
+      filter="blur(1px)"
+      animation={`${floatAnimation} 3.2s ease-in-out infinite`}
+    />
+
+    {/* Текст "PLAY" */}
+    <Text
+      fontSize="32px"
+      color="white"
+      fontFamily="'PixelifySans-Bold', sans-serif"
+      zIndex="1"
+      textAlign="center"
+    >
+      PLAY
+    </Text>
+  </Box>
+  </Flex>
   );
 };
+
+
 
 export default Home;
