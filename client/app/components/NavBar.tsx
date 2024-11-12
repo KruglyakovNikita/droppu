@@ -1,5 +1,11 @@
 import { HStack, IconButton } from "@chakra-ui/react";
-import { FaHome, FaTrophy, FaUserFriends, FaWallet } from "react-icons/fa";
+import {
+  FaHome,
+  FaTrophy,
+  FaUserFriends,
+  FaWallet,
+  FaGamepad,
+} from "react-icons/fa";
 import Link from "next/link";
 
 const NavBar = () => {
@@ -40,6 +46,15 @@ const NavBar = () => {
           colorScheme="whiteAlpha"
         >
           <FaWallet />
+        </IconButton>
+      </Link>
+      <Link href="/game">
+        <IconButton
+          aria-label="Wallet"
+          variant="ghost"
+          colorScheme="whiteAlpha"
+        >
+          <FaGamepad />
         </IconButton>
       </Link>
     </HStack>
