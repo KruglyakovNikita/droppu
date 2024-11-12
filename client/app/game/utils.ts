@@ -41,15 +41,21 @@ export function getRandomDifficulty(
 export function getPresetPool(
   difficulty: "easy" | "medium" | "hard" | "ultra-hard"
 ): Preset[] {
+  // switch (difficulty) {
+  //   case "easy":
+  //     return easyPresets;
+  //   case "medium":
+  //     return mediumPresets;
+  //   case "hard":
+  //     return hardPresets;
+  //   case "ultra-hard":
+  //     return ultraHardPresets;
+  //   default:
+  //     return easyPresets;
+  // }
   switch (difficulty) {
     case "easy":
       return easyPresets;
-    case "medium":
-      return mediumPresets;
-    case "hard":
-      return hardPresets;
-    case "ultra-hard":
-      return ultraHardPresets;
     default:
       return easyPresets;
   }

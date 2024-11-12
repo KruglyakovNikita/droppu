@@ -18,6 +18,7 @@ export const MAX_ASCENTT_SPEED = -6.5; // Максимальная скорос�
 export const MIN_DISTANCE_BETWEEN_PRESETS = 175; // Минимальное расстояние между пресетами
 
 class GameScene extends Phaser.Scene {
+  testInd: number = 0;
   player!: Phaser.Physics.Matter.Sprite;
   lasers: Phaser.Physics.Matter.Image[] = [];
   cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
@@ -168,17 +169,27 @@ class GameScene extends Phaser.Scene {
     let preset: Preset | null = null;
 
     // Попытка найти подходящий пресет
-    for (let i = 0; i < 10; i++) {
-      const candidate = Phaser.Utils.Array.GetRandom(presetPool);
-      if (candidate) {
-        preset = candidate;
-        break;
+    // for (let i = 0; i < 10; i++) {
+    //   const candidate = Phaser.Utils.Array.GetRandom(presetPool);
+    //   if (candidate) {
+    //     preset = candidate;
+    //     break;
+    //   }
+    // }
+    // // Если не найден подходящий пресет, используем более легкие
+    // if (!preset) {
+    //   const easierPresetPool = getPresetPool("easy");
+    //   preset = Phaser.Utils.Array.GetRandom(easierPresetPool);
+    // }
+
+    for (let i = 0; i < presetPool.length; i++) {
+      if (this.testInd === i) {
+        preset = presetPool[i];
+        this.testInd = i + 1;
       }
     }
-
-    // Если не найден подходящий пресет, используем более легкие
     if (!preset) {
-      const easierPresetPool = getPresetPool("easy");
+      const easierPresetPool = getPresetPool("hard");
       preset = Phaser.Utils.Array.GetRandom(easierPresetPool);
     }
 
