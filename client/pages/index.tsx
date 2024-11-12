@@ -1,108 +1,3 @@
-// "use client";
-
-// import { useEffect, useState } from "react";
-// import UserAvatar from "../app/components/UserAvatar";
-// import { useStore } from "../app/lib/store/store";
-// import { initUser } from "@/app/lib/api/user";
-// import { getAchievements } from "@/app/lib/api/achievements";
-
-// declare global {
-//   interface Window {
-//     Telegram?: any;
-//   }
-// }
-
-// const Home = () => {
-//   const setUser = useStore((state) => state.setUser);
-//   const setAchievements = useStore((state) => state.setAchievements);
-//   const userInfo = useStore((state) => state.user);
-//   const userAchievements = useStore((state) => state.achievements);
-//   const [telegramUser, setTelegramUser] = useState<any>(null);
-
-//   const authenticate = async (initData: string) => {
-//     try {
-//       const response = await initUser(initData);
-//       const data = response.data;
-
-//       if (data) {
-//         setUser(data.user);
-//         getAchievement();
-//       }
-//     } catch (error) {
-//       console.error("Ошибка запроса:", error);
-//     }
-//   };
-
-//   const getAchievement = async () => {
-//     try {
-//       const response = await getAchievements();
-
-//       const data = response.data;
-//       if (data) {
-//         setAchievements(data.achievements);
-//       }
-//     } catch (error) {
-//       console.error("Ошибка запроса:", error);
-//     }
-//   };
-
-//   useEffect(() => {
-//     const script = document.createElement("script");
-//     script.src = "https://telegram.org/js/telegram-web-app.js";
-//     script.async = true;
-//     document.body.appendChild(script);
-
-//     script.onload = () => {
-//       if (window.Telegram && window.Telegram.WebApp) {
-//         const tg = window.Telegram.WebApp;
-//         if (tg.initDataUnsafe) {
-//           setTelegramUser(tg.initDataUnsafe.user);
-//           authenticate(
-//             JSON.parse(JSON.stringify(tg.initDataUnsafe).replace(/'/g, '"'))
-//           );
-//         }
-//       }
-//     };
-
-//     return () => {
-//       document.body.removeChild(script);
-//     };
-//   }, []);
-
-//   return (
-//     <div>
-//       <h1>Telegram User Information</h1>
-//       {telegramUser ? (
-//         <div>
-//           <p>
-//             <strong>First Name:</strong> {telegramUser?.first_name}
-//           </p>
-//           <p>
-//             <strong>Last Name:</strong> {telegramUser?.last_name}
-//           </p>
-//           <p>
-//             <strong>Username:</strong> {telegramUser?.username}
-//           </p>
-//           <p>
-//             <strong>Language Code:</strong> {telegramUser?.language_code}
-//           </p>
-//           <p>
-//             <strong>User ID:</strong> {telegramUser?.id}
-//           </p>
-//           <UserAvatar avatarUrl={telegramUser?.photo_url} />
-//         </div>
-//       ) : (
-//         <p>No Telegram user data available.</p>
-//       )}
-//       <p>{JSON.stringify(userAchievements)}</p>
-//     </div>
-//   );
-// };
-
-// export default Home;
-
-
-// components/Home.tsx
 import { Box, Flex, Avatar, Text, Grid, 
   Card, CardHeader, CardBody, CardFooter,
   Stack,
@@ -111,7 +6,7 @@ import { Box, Flex, Avatar, Text, Grid,
  } from "@chakra-ui/react";
 
 import { keyframes } from '@emotion/react';
-import GradientBorderWrapper from '../components/GradientBorderWrapper';
+import GradientBorderWrapper from '../app/components/GradientBorderWrapper';
 import { useEffect, useState } from "react";
 import colors from "../theme/colors";
 import { useStore } from "../app/lib/store/store";
@@ -135,55 +30,60 @@ const Home: React.FC = () => {
   const userAchievements = useStore((state) => state.achievements);
   const [telegramUser, setTelegramUser] = useState<TelegramUser | null>(null);
 
-  // useEffect(() => {
-  //   const authenticate = async (initData: string) => {
-  //     try {
-  //       const response = await initUser(initData);
-  //       const data = response.data;
+  useEffect(() => {
+    const authenticate = async (initData: string) => {
+      try {
+        const response = await initUser(initData);
+        const data = response.data;
 
-  //       if (data) {
-  //         setUser(data.user);
-  //         fetchAchievements();
-  //       }
-  //     } catch (error) {
-  //       console.error("Request Error:", error);
-  //     }
-  //   };
+        if (data) {
+          setUser(data.user);
+        }
+      } catch (error) {
+        console.error("Request Error:", error);
+      }
+    };
 
-  //   const fetchAchievements = async () => {
-  //     try {
-  //       const response = await getAchievements();
-  //       const data = response.data;
+    // const fetchAchievements = async () => {
+    //   try {
+    //     const response = await getAchievements();
+    //     const data = response.data;
 
-  //       if (data) {
-  //         setAchievements(data.achievements);
-  //       }
-  //     } catch (error) {
-  //       console.error("Request Error:", error);
-  //     }
-  //   };
+    //     if (data) {
+    //       setAchievements(data.achievements);
+    //     }
+    //   } catch (error) {
+    //     console.error("Request Error:", error);
+    //   }
+    // };
 
-  //   const script = document.createElement("script");
-  //   script.src = "https://telegram.org/js/telegram-web-app.js";
-  //   script.async = true;
-  //   document.body.appendChild(script);
+    const script = document.createElement("script");
+    script.src = "https://telegram.org/js/telegram-web-app.js";
+    script.async = true;
+    document.body.appendChild(script);
 
-  //   script.onload = () => {
-  //     if (window.Telegram && window.Telegram.WebApp) {
-  //       const tg = window.Telegram.WebApp;
-  //       if (tg.initDataUnsafe) {
-  //         setTelegramUser(tg.initDataUnsafe.user as TelegramUser);
-  //         authenticate(
-  //           JSON.parse(JSON.stringify(tg.initDataUnsafe).replace(/'/g, '"'))
-  //         );
-  //       }
-  //     }
-  //   };
+    script.onload = () => {
+      if (window.Telegram && window.Telegram.WebApp) {
+        const tg = window.Telegram.WebApp;
+        if (tg.initDataUnsafe) {
+          setTelegramUser(tg.initDataUnsafe.user as TelegramUser);
+          console.log(tg.initDataUnsafe);
+          console.log(tg.initData);
+          authenticate(
+            JSON.parse(JSON.stringify(tg.initDataUnsafe).replace(/'/g, '"'))
+          );
+          tg.expand();
+          tg.setHeaderColor("#0D1478");
+          tg.HapticFeedback.notificationOccurred('warning');
 
-  //   return () => {
-  //     document.body.removeChild(script);
-  //   };
-  // }, []);
+        }
+      }
+    };
+
+    return () => {
+      document.body.removeChild(script);
+    };
+  }, []);
 
   const floatAnimation = keyframes`
   0% { transform: translateY(0px); }
@@ -200,7 +100,7 @@ const Home: React.FC = () => {
     minH="100vh"
     p={4}
   >
-    <Grid mt={7} gap={4} templateColumns="repeat(2, 1fr)">
+    <Grid mt={0} gap={4} templateColumns="repeat(2, 1fr)">
       <GradientBorderWrapper
         borderRadius={12}
         startColor="#793BC7"
@@ -291,7 +191,7 @@ const Home: React.FC = () => {
       strokeWidth={1.5}
       w="360px"
       h="180px"
-      mt="45px"
+      mt="40px"
     >
       <Box
         w="100%"
@@ -316,7 +216,7 @@ const Home: React.FC = () => {
               fontSize="15px"
               color={colors.primaryText}
             >
-              {telegramUser?.username || 'a_yanushevich'}
+              {telegramUser?.username || 'None'}
             </Text>
           </Box>
 
@@ -402,7 +302,7 @@ const Home: React.FC = () => {
     </GradientBorderWrapper>
 
     {/* INVENTORY AND STATS */}
-    <Grid mt={45} gap={4} templateColumns="repeat(2, 1fr)">
+    <Grid mt={41} gap={4} templateColumns="repeat(2, 1fr)">
       {/* Inventory */}
       <GradientBorderWrapper
         borderRadius={12}
