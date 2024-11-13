@@ -5,6 +5,7 @@ const colors = {
     accent: "#A084F5",
     primaryText: "#FFFFFF",
     secondaryText: "#8B66E2",
+    frensPlateBackground: "#282654",
   };
   
   export default colors;

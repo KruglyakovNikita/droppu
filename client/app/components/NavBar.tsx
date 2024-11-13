@@ -25,12 +25,13 @@ const NavBar = () => {
       left="50%"
       transform="translateX(-50%)"
       p={3}
+      zIndex="999"
       bg="transparent"
       backgroundClip="padding-box"
       w={["90%", "80%", "400px"]} // Адаптивная ширина: 90% на маленьких экранах, 80% на средних и фиксированная ширина на больших
       maxW="400px" // Ограничение максимальной ширины NavBar
     >
-      <HStack spacing={0} justify="space-between" w="100%">
+      <HStack spacing={0} justify="space-between" w="100%" zIndex="999">
         {navItems.map((item) => {
           const isActive = router.pathname === item.href;
           return (

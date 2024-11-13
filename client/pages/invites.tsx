@@ -4,6 +4,11 @@ import { Box, Flex, Avatar, Text, Grid,
   Button, Image,
   Heading
  } from "@chakra-ui/react";
+import GradientBorderWrapper from '../app/components/GradientBorderWrapper';
+import colors from "@/theme/colors";
+
+
+
 export default function Invites() {
   return (
     <Flex
@@ -15,17 +20,20 @@ export default function Invites() {
     p={4}
   >
     {/* Заголовок */}
-    <Heading fontSize="32px" fontFamily="'PixelifySans-Bold', sans-serif" mb={6}>
+    <Heading fontSize="24px" fontFamily="'PixelifySans-Bold', sans-serif" mb={6}>
       Invite Friends
     </Heading>
 
     {/* Карточка со статистикой */}
-    <Box
-      w="90%"
+    <GradientBorderWrapper
+      borderRadius={12}
+      startColor="#793BC7"
+      endColor="#C2D2FF"
+      strokeWidth={1.5}
+      w="100%"
       maxW="360px"
-      borderRadius="12px"
+      h="130px"
       p="16px"
-      bgGradient="linear(45deg, #793BC7, #C2D2FF)"
       display="flex"
       flexDirection="column"
       alignItems="center"
@@ -35,55 +43,75 @@ export default function Invites() {
       <Box
         w="100%"
         h="100%"
-        bg="rgba(0, 0, 0, 0.4)"
         borderRadius="12px"
-        p={4}
+        p={1.5}
         display="flex"
         flexDirection="column"
         alignItems="center"
       >
-        <Flex w="full" justify="space-around" mb={4}>
+        <Flex w="full" justify="space-around" mb={1} gap={5}>
           {[
-            { label: "Points", value: "1234967" },
+            { label: "Points", value: "12349" },
             { label: "Tickets", value: "123" },
             { label: "Frens", value: "12" }
           ].map((stat, index) => (
-            <Box
-              key={index}
+            <GradientBorderWrapper
+            borderRadius={12}
+            startColor="#793BC7"
+            endColor="#C2D2FF"
+            strokeWidth={1.5}
+            w="95px"
+            h="45px"
+          >
+            <Flex
+              align="center"
+              justify="left"
+              h="100%"
+              pl={2}
+              pr={4}
+              bg="transparent"
               borderRadius="12px"
-              p="1px"
-              bgGradient="linear(45deg, #793BC7, #C2D2FF)"
-              w="100px"
-              h="45px"
             >
-              <Flex
-                bg="rgba(0, 0, 0, 0.5)"
-                borderRadius="12px"
-                h="100%"
-                align="center"
-                justify="center"
-                flexDirection="column"
-              >
-                <Image src="/icons/star_icon.svg" alt={stat.label} boxSize="20px" mb={1} />
-                <Text fontSize="14px" fontFamily="'PixelifySans-Bold', sans-serif">{stat.value}</Text>
-                <Text fontSize="10px" color="#B0AEE0">{stat.label}</Text>
-              </Flex>
-            </Box>
+              <Image
+                src="/icons/star_icon.svg"
+                alt="Tickets Icon"
+                boxSize="23px"
+              />
+              <Stack spacing={0} ml={1}>
+                <Heading
+                  fontSize="16px"
+                  color={colors.primaryText}
+                  fontFamily="'PixelifySans-Bold', sans-serif"
+                  mb={-1.5}
+                >
+                  {stat.value}
+                </Heading>
+                <Text fontSize="12px" color={colors.secondaryText}>
+                  {stat.label}
+                </Text>
+              </Stack>
+            </Flex>
+          </GradientBorderWrapper>
+        
           ))}
         </Flex>
         <Button
-          mt={3}
+          mt="3"
+          height="25px"
+          width="70px"
           border="1px solid white"
-          borderRadius="8px"
+          borderRadius="52px"
           bg="transparent"
           fontFamily="'PixelifySans-Bold', sans-serif"
+          fontWeight="normal"
           fontSize="14px"
           _hover={{ bg: "rgba(255, 255, 255, 0.1)" }}
+          color={colors.primaryText}
         >
           Claim
         </Button>
       </Box>
-    </Box>
+    </GradientBorderWrapper>
 
     {/* Блок с описанием */}
     <Text fontSize="14px" color="#B0AEE0" textAlign="center" maxW="360px" mb={6}>
@@ -91,12 +119,13 @@ export default function Invites() {
     </Text>
 
     {/* Список друзей */}
-    <Stack spacing={4} w="90%" maxW="360px" mb={6}>
+    <Stack spacing={4} w="100%" maxW="360px" mb={6} overflowX="scroll">
       {[...Array(5)].map((_, index) => (
         <Flex
           key={index}
-          borderRadius="20px"
-          bg="rgba(0, 0, 0, 0.4)"
+          borderRadius="12px"
+          h="60px"
+          bg={colors.frensPlateBackground}
           align="center"
           justify="space-between"
           p={4}
@@ -111,48 +140,66 @@ export default function Invites() {
               mr={4}
             />
             <Stack spacing={0}>
-              <Text fontFamily="'PixelifySans-Bold', sans-serif" fontSize="14px">NoName</Text>
-              <Text fontSize="12px" color="#B0AEE0">+10</Text>
+              <Text fontFamily="'PixelifySans-Bold', sans-serif" fontSize="16px" mb={-2}>NoName</Text>
+              <Text fontSize="12px" color={colors.secondaryText}>+10</Text>
             </Stack>
           </Flex>
-          <Text fontFamily="'PixelifySans-Bold', sans-serif" fontSize="16px">
-            123486 Points
+          <Stack spacing={0}>
+          <Text fontFamily="'PixelifySans-Bold', sans-serif" fontSize="16px" color={colors.primaryText} mb={-2}>
+            123486
           </Text>
+          <Text fontFamily="'PixelifySans-Bold', sans-serif" fontSize="12px" color={colors.secondaryText}>
+               points
+            </Text>
+          </Stack>
         </Flex>
       ))}
     </Stack>
 
     {/* Кнопка Invite Friend */}
-    <Box
-      w="90%"
-      maxW="360px"
-      borderRadius="12px"
-      p="1px"
-      bgGradient="linear(45deg, #793BC7, #C2D2FF)"
-    >
-      <Flex
-        bg="rgba(0, 0, 0, 0.5)"
-        borderRadius="12px"
-        align="center"
-        justify="space-between"
-        p={3}
+    <GradientBorderWrapper
+        position="fixed"
+        bottom={110}
+        left="50%"
+        transform="translateX(-50%)"
+        borderRadius={12}
+        startColor="#793BC7"
+        endColor="#C2D2FF"
+        strokeWidth={1.5}
+        w="165px"
+        h="45px"
       >
-        <Stack spacing={0}>
-          <Text fontFamily="'PixelifySans-Bold', sans-serif" fontSize="16px">
-            Invite Friend
-          </Text>
-          <Text fontSize="10px" color="#B0AEE0">
-            Get more tickets and points
-          </Text>
-        </Stack>
-        <Image
-          src="/icons/frens_icon.svg"
-          alt="Invite Friend Icon"
-          boxSize="23px"
-          mr={2}
-        />
-      </Flex>
-    </Box>
+        <Card
+          direction="row"
+          alignItems="center"
+          justifyContent="space-between"
+          bg="transparent"
+          h="100%"
+          p={0.5}
+          pl={4}
+        >
+          <Stack spacing={0}>
+            <Heading
+              fontSize="16px"
+              color={colors.primaryText}
+              fontFamily="'PixelifySans-Bold', sans-serif"
+              fontWeight="bold"
+              mb={-1.5}
+            >
+              Invite Friend
+            </Heading>
+            <Text fontSize="8px" color={colors.secondaryText}>
+              Get more tickets and points
+            </Text>
+          </Stack>
+          <Image
+            src="/icons/frens_icon.svg"
+            alt="Invite Friend Icon"
+            boxSize="23px"
+            mr={2}
+          />
+        </Card>
+      </GradientBorderWrapper>
   </Flex>
   );
 }
