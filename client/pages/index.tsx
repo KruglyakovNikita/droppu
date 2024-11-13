@@ -389,6 +389,7 @@ const Home: React.FC = () => {
     </Grid>
  {/* PLAY BTN */}
  <Box
+    onClick={() => {window.location.href = '/roulet'}}
     mt={30}
     w="360px"
     h="185px"
