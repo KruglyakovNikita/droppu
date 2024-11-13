@@ -1,9 +1,6 @@
 import { Box, Flex, Text, Stack, Button, Image, Heading } from "@chakra-ui/react";
 import GradientBorderWrapper from '../app/components/GradientBorderWrapper';
 import colors from "@/theme/colors";
-import WebApp from '@twa-dev/sdk'
-
-WebApp.showAlert('Hey there!');
 
 export default function Invites() {
   return (
