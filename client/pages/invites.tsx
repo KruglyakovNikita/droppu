@@ -113,7 +113,7 @@ export default function Invites() {
       </Text>
 
       {/* Контейнер для списка друзей с ограниченной высотой и прокруткой */}
-      <Box w="100%" maxW="360px" flex="1" overflowY="auto" mb={4} maxH={400}>
+      <Box w="100%" maxW="360px" flex="1" overflowY="auto" mb={4} maxH={300} borderRadius={12}>
         <Stack spacing={4} w="100%">
           {[...Array(10)].map((_, index) => (
             <Flex
