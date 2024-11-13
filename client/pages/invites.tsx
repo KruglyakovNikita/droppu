@@ -56,6 +56,7 @@ export default function Invites() {
             { label: "Frens", value: "12" }
           ].map((stat, index) => (
             <GradientBorderWrapper
+            key={index}
             borderRadius={12}
             startColor="#793BC7"
             endColor="#C2D2FF"
