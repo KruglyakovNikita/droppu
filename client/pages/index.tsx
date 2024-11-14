@@ -63,8 +63,7 @@ const Home: React.FC = () => {
           tg.expand();
           tg.setHeaderColor("#0D1478");
           tg.HapticFeedback.notificationOccurred('warning');
-          tg.disableVerticalSwipe();
-
+          window.Telegram.WebApp.disableVerticalSwipes()
         }
       }
     };
@@ -75,12 +74,12 @@ const Home: React.FC = () => {
   }, []);
 
   const inviteFriendsLink = () => {
-    window.Telegram.WebApp.impactOccurred('soft')
+    window.Telegram.WebApp.HapticFeedback.notificationOccurred("soft");
     window.Telegram.WebApp.openTelegramLink(`https://t.me/share/url?url=https://t.me/DroppuBot/start?startapp=${telegramUser?.id}&text=%0A%0A🚀 Jump into action with @Droppu's jetpack game and earn $JET tokens soon!%0A🌟 Get a 750 rating boost just for joining!%0A💥 Premium players score a massive 1000 rating boost!`);
   }
 
   const chanelLink = () => {
-    window.Telegram.WebApp.impactOccurred('soft')
+    window.Telegram.WebApp.HapticFeedback.notificationOccurred("soft");
     window.Telegram.WebApp.openTelegramLink(`https://t.me/droppu`);
   }
 
@@ -315,7 +314,7 @@ const Home: React.FC = () => {
         h="110px"
       >
         <Card
-          onClick={() => {window.location.href = '/inventory'}}
+          onClick={() => {window.Telegram.WebApp.HapticFeedback.notificationOccurred("soft"); window.location.href = '/inventory'}}
           direction="row"
           alignItems="center"
           justifyContent="left"
@@ -358,7 +357,7 @@ const Home: React.FC = () => {
         h="110px"
       >
         <Card
-          onClick={() => {window.location.href = '/stats'}}
+          onClick={() => { window.Telegram.WebApp.HapticFeedback.notificationOccurred("soft"); window.location.href = '/stats'}}
           direction="row"
           alignItems="center"
           justifyContent="left"
