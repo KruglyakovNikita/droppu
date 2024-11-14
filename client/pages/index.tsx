@@ -22,6 +22,7 @@ declare global {
   }
 }
 
+
 const Home: React.FC = () => {
   const setUser = useStore((state) => state.setUser);
   const setAchievements = useStore((state) => state.setAchievements);
@@ -43,19 +44,6 @@ const Home: React.FC = () => {
       }
     };
 
-    // const fetchAchievements = async () => {
-    //   try {
-    //     const response = await getAchievements();
-    //     const data = response.data;
-
-    //     if (data) {
-    //       setAchievements(data.achievements);
-    //     }
-    //   } catch (error) {
-    //     console.error("Request Error:", error);
-    //   }
-    // };
-
     const script = document.createElement("script");
     script.src = "https://telegram.org/js/telegram-web-app.js";
     script.async = true;
@@ -71,9 +59,11 @@ const Home: React.FC = () => {
           authenticate(
             JSON.parse(JSON.stringify(tg.initDataUnsafe).replace(/'/g, '"'))
           );
+          tg.ready();
           tg.expand();
           tg.setHeaderColor("#0D1478");
           tg.HapticFeedback.notificationOccurred('warning');
+          tg.disableVerticalSwipe();
 
         }
       }
@@ -83,6 +73,14 @@ const Home: React.FC = () => {
       document.body.removeChild(script);
     };
   }, []);
+
+  const inviteFriendsLink = () => {
+    window.Telegram.WebApp.openLink(`https://telegram.me/share/url?url=https://t.me/droppu/start?startapp=${telegramUser?.id}&text=%0A%0A%F0%9F%9A%80%20Jump%20into%20action%20with%20@Droppu%27s%20jetpack%20game%20and%20earn%20$JET%20tokens%20soon!%20%0A%F0%9F%8C%9F%20Get%20a%20750%20rating%20boost%20just%20for%20joining!%20%0A%F0%9F%92%A5%20Premium%20players%20score%20a%20massive%201000%20rating%20boost!`);
+  }
+
+  const chanelLink = () => {
+    window.Telegram.WebApp.openLink(`https://t.me/droppu`);
+  }
 
   const floatAnimation = keyframes`
   0% { transform: translateY(0px); }
@@ -110,6 +108,7 @@ const Home: React.FC = () => {
         h="45px"
       >
         <Card
+          onClick={chanelLink}
           direction="row"
           alignItems="center"
           justifyContent="left"
@@ -127,16 +126,16 @@ const Home: React.FC = () => {
           />
           <Stack spacing={0}>
             <Heading
-              fontSize="16px"
+              fontSize="14px"
               color={colors.primaryText}
               fontFamily="'PixelifySans-Bold', sans-serif"
               fontWeight="bold"
-              mb={-1.5}
+              mb={-1}
             >
-              Tribes
+              DROPPU NEWS
             </Heading>
-            <Text fontSize="8px" color={colors.secondaryText}>
-              Complete for rewards
+            <Text fontSize="9px" color={colors.secondaryText}>
+              Follow us for updates
             </Text>
           </Stack>
         </Card>
@@ -151,6 +150,7 @@ const Home: React.FC = () => {
         h="45px"
       >
         <Card
+          onClick={inviteFriendsLink}
           direction="row"
           alignItems="center"
           justifyContent="space-between"
@@ -167,7 +167,7 @@ const Home: React.FC = () => {
               fontWeight="bold"
               mb={-1.5}
             >
-              Invite Friend
+              Invite Friends
             </Heading>
             <Text fontSize="8px" color={colors.secondaryText}>
               Get more tickets and points
@@ -250,7 +250,7 @@ const Home: React.FC = () => {
                     fontFamily="'PixelifySans-Bold', sans-serif"
                     mb={-1.5}
                   >
-                    1234567
+                    {userInfo?.coins | 1}
                   </Heading>
                   <Text fontSize="12px" color={colors.secondaryText}>
                     Points
@@ -288,7 +288,7 @@ const Home: React.FC = () => {
                     fontFamily="'PixelifySans-Bold', sans-serif"
                     mb={-1.5}
                   >
-                    123
+                    {userInfo?.tickets | 1}
                   </Heading>
                   <Text fontSize="12px" color={colors.secondaryText}>
                     Tickets
