@@ -75,7 +75,7 @@ const Home: React.FC = () => {
   }, []);
 
   const inviteFriendsLink = () => {
-    window.Telegram.WebApp.openTelegramLink(`https://telegram.me/share/url?url=https://t.me/droppu/start?startapp=${telegramUser?.id}&text=%0A%0A%F0%9F%9A%80%20Jump%20into%20action%20with%20@Droppu%27s%20jetpack%20game%20and%20earn%20$JET%20tokens%20soon!%0A%F0%9F%8C%9F%20Get%20a%20750%20rating%20boost%20just%20for%20joining!%0A%F0%9F%92%A5%20Premium%20players%20score%20a%20massive%201000%20rating%20boost!`);
+    window.Telegram.WebApp.openTelegramLink(`https://t.me/share/url?url=https://t.me/droppu/start?startapp=${telegramUser?.id}&text=%0A%0A🚀 Jump into action with @Droppu's jetpack game and earn $JET tokens soon!%0A🌟 Get a 750 rating boost just for joining!%0A💥 Premium players score a massive 1000 rating boost!`);
   }
 
   const chanelLink = () => {
