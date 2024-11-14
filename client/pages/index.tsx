@@ -250,7 +250,7 @@ const Home: React.FC = () => {
                     fontFamily="'PixelifySans-Bold', sans-serif"
                     mb={-1.5}
                   >
-                    {userInfo?.coins | 1}
+                    {userInfo?.coins ?? 1}
                   </Heading>
                   <Text fontSize="12px" color={colors.secondaryText}>
                     Points
@@ -288,7 +288,7 @@ const Home: React.FC = () => {
                     fontFamily="'PixelifySans-Bold', sans-serif"
                     mb={-1.5}
                   >
-                    {userInfo?.tickets | 1}
+                    {userInfo?.tickets ?? 1}
                   </Heading>
                   <Text fontSize="12px" color={colors.secondaryText}>
                     Tickets
