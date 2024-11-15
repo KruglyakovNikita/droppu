@@ -146,7 +146,7 @@ class GameScene extends Phaser.Scene {
    */
   update(time: number, delta: number) {
     if (this.isStoped) {
-      this.generateRockettimer = null;
+      this.time.removeAllEvents();
       return;
     }
 
