@@ -282,7 +282,7 @@ endIcon={  <Image
         h="110px"
       >
         <Card
-          onClick={() => {window.Telegram.WebApp.HapticFeedback.impactOccurred("soft"); window.location.href = '/inventory'}}
+          onClick={() => {window.Telegram.WebApp.HapticFeedback.impactOccurred("soft"); window.location.href = '/roulette'}}
           direction="row"
           alignItems="center"
           justifyContent="left"
@@ -360,7 +360,7 @@ endIcon={  <Image
     </Grid>
  {/* PLAY BTN */}
  <Box
-    onClick={() => {window.location.href = '/roulet'}}
+    onClick={() => {window.location.href = '/game'}}
     mt={30}
     w="360px"
     h="185px"
