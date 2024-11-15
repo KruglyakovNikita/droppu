@@ -4,9 +4,9 @@
 import Phaser from "phaser";
 import { Preset } from "./presets/types";
 import { getPresetPool, getRandomDifficulty } from "./utils";
-import { DynamicRocket } from "./weapons/Rocket/DynamicRocket";
-import { HomingRocket } from "./weapons/Rocket/HomingRocket";
-import { StaticRocket } from "./weapons/Rocket/StaticRocket";
+import { DynamicRocket } from "./weapons/rocket/DynamicRocket";
+import { HomingRocket } from "./weapons/rocket/HomingRocket";
+import { StaticRocket } from "./weapons/rocket/StaticRocket";
 import { WeaponManager } from "./weapons/WeaponManager";
 
 // Константы игры

@@ -1,14 +1,11 @@
 import { Preset } from "./presets/types";
 import { easyPresets } from "./presets/easy-presets";
-import { mediumPresets } from "./presets/medium-presets";
-import { hardPresets } from "./presets/hard-presets";
-import { ultraHardPresets } from "./presets/ultra-hard-presets";
 
 export function getRandomDifficulty(
   distance: number = 0
 ): "easy" | "medium" | "hard" | "ultra-hard" {
   const difficulties = ["easy", "medium", "hard", "ultra-hard"] as const;
-  let weights = [50, 30, 15, 5]; // Начальные вероятности
+  const weights = [50, 30, 15, 5]; // Начальные вероятности
 
   // Увеличиваем вероятность сложных пресетов по мере продвижения
   if (distance > 1000) {
