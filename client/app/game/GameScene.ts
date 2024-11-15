@@ -1,14 +1,19 @@
+// GameScene.ts
 "use client";
 
 import Phaser from "phaser";
 import { Preset } from "./presets/types";
 import { getPresetPool, getRandomDifficulty } from "./utils";
+import { DynamicRocket } from "./weapons/Rocket/DynamicRocket";
+import { HomingRocket } from "./weapons/Rocket/HomingRocket";
+import { StaticRocket } from "./weapons/Rocket/StaticRocket";
+import { WeaponManager } from "./weapons/WeaponManager";
 
 // Константы игры
 export const PLAYER_SPEED = 2; // Постоянная скорость вправо
 export const MAX_ASCENT_SPEED = -5; // Максимальная скорость подъёма
-export const MIN_Y = 10; // Минимальная Y-координата (верхняя граница)
-export const MAX_Y = 390; // Максимальная Y-координата (нижняя граница)
+export const MIN_Y = 25; // Минимальная Y-координата (верхняя граница)
+export const MAX_Y = 375; // Максимальная Y-координата (нижняя граница)
 
 export const ASCENT_FORCE = -0.15; // Увеличенная сила подъема для более резкого подъема
 export const DESCENT_ACCELERATION = 0.15; // Увеличенное ускорение вниз
@@ -33,6 +38,9 @@ class GameScene extends Phaser.Scene {
   presetQueue: Preset[] = [];
   isStoped: boolean = false;
 
+  objectManager!: WeaponManager;
+  generateRockettimer!: Phaser.Time.TimerEvent | null;
+
   constructor() {
     super({ key: "GameScene" });
   }
@@ -42,9 +50,29 @@ class GameScene extends Phaser.Scene {
     this.load.image("player", "/player/player.png");
     this.load.image("background", "/map/background2.jpg");
     this.load.image("background2", "/map/background2.jpg");
+
+    // Текстуры для ракет
+    this.load.image("homingRocketTexture", "/blocks/rocket_default_homing.png");
+    this.load.image("staticRocketTexture", "/blocks/rocket_default.png");
+    this.load.image(
+      "dynamicRocketTexture",
+      "/blocks/rocket_default_dynamic.png"
+    );
+
+    // Текстура для дыма
+    this.load.image("smoke", "/blocks/smoke.png"); // Убедитесь, что путь корректен
+
+    // Звуки
+    this.load.audio("rocketLaunch", "/audio/rocket_start.mp3");
+    this.load.audio("playerHit", "/audio/rocket_touch.mp3");
+
+    // Предупреждающий треугольник (если требуется)
+    this.load.image("warningTriangle", "/blocks/warningTriangle.png");
   }
 
   create() {
+    this.objectManager = new WeaponManager(this);
+
     // Создаем игрока с физикой Matter
     this.player = this.matter.add.sprite(100, 200, "player");
     this.player.setFixedRotation(); // Предотвращаем вращение
@@ -97,27 +125,53 @@ class GameScene extends Phaser.Scene {
     // Устанавливаем оба изображения в верхний левый угол и закрепляем на заднем плане
     this.background1.setOrigin(0, 0).setScrollFactor(0).setDepth(-Infinity);
     this.background2.setOrigin(0, 0).setScrollFactor(0).setDepth(-Infinity);
+
+    // Запускаем генерацию ракет каждые 5 секунд
+    this.generateRocketsByTimer();
   }
 
-  update() {
-    if (this.isStoped) return;
+  generateRocketsByTimer() {
+    this.generateRockettimer = this.time.addEvent({
+      delay: 5000, // 5 секунд
+      callback: this.generateRocket,
+      callbackScope: this,
+      loop: true,
+    });
+  }
+
+  /**
+   * Метод обновления сцены
+   * @param time Текущее время
+   * @param delta Время с последнего кадра в миллисекундах
+   */
+  update(time: number, delta: number) {
+    if (this.isStoped) {
+      this.time.removeAllEvents();
+      return;
+    }
+
+    // Обновляем все объекты оружия, передавая player и delta
+    if (this.objectManager) {
+      this.objectManager.update(this.player, delta);
+    }
+
+    // Обновление фона для бесконечной прокрутки
     this.background1.x -= 1;
     this.background2.x -= 1;
 
-    // Когда первое изображение полностью уходит за левую границу экрана, перемещаем его вправо
+    // Перемещение фона для создания эффекта бесконечной прокрутки
     if (this.background1.x <= -this.background1.width) {
       this.background1.x = this.background2.x + this.background2.width;
     }
-    // Аналогично для второго изображения
     if (this.background2.x <= -this.background2.width) {
       this.background2.x = this.background1.x + this.background1.width;
     }
+
     // Устанавливаем постоянную скорость вправо
     this.player.setVelocityX(PLAYER_SPEED);
 
     // Управление джетпаком
     if (this.cursors.up.isDown || this.cursors.space.isDown) {
-      // this.player.applyForce(new Phaser.Math.Vector2(0, ASCENT_FORCE));
       const newVelocityY = Math.max(
         (this.player.body?.velocity.y ?? 0) + ASCENT_FORCE,
         MAX_ASCENTT_SPEED
@@ -131,7 +185,9 @@ class GameScene extends Phaser.Scene {
       this.player.setVelocityY(newVelocityY);
     }
 
+    // Добавление пресетов из очереди
     this.addPresetFromQueue();
+
     // Удаление лазеров за пределами экрана
     this.lasers = this.lasers.filter((laser) => {
       if (
@@ -162,25 +218,71 @@ class GameScene extends Phaser.Scene {
     }
   }
 
+  /**
+   * Метод генерации ракеты
+   */
+  generateRocket() {
+    // const rocketTypes = ["homing", "static", "dynamic"];
+    const rocketTypes = ["dynamic"];
+    const rocketType = Phaser.Utils.Array.GetRandom(rocketTypes);
+
+    let rocket;
+    const initialX = this.cameras.main.scrollX + this.cameras.main.width + 100; // X-координата ракеты справа от экрана
+    const yPosition = this.player.y; // Для homing и dynamic rockets
+
+    switch (rocketType) {
+      case "homing":
+        rocket = new HomingRocket(this, initialX, yPosition, this.player, 5);
+        rocket.setWarning(
+          () => this.cameras.main.scrollX + this.cameras.main.width - 20,
+          () => this.player.y // Динамическое отслеживание Y игрока
+        );
+        break;
+      case "static":
+        const fixedY = Phaser.Math.Between(50, 350);
+        rocket = new StaticRocket(this, initialX, fixedY, 3);
+        rocket.setWarning(
+          () => this.cameras.main.scrollX + this.cameras.main.width - 20,
+          () => fixedY // Фиксированное Y
+        );
+        break;
+      case "dynamic":
+        rocket = new DynamicRocket(
+          this,
+          initialX,
+          yPosition,
+          this.player,
+          4,
+          20,
+          2
+        ); // Амплитуда 20 пикселей
+        rocket.setWarning(
+          () => this.cameras.main.scrollX + this.cameras.main.width - 20,
+          () => this.player.y // Динамическое отслеживание Y игрока
+        );
+        break;
+      default:
+        console.warn(`Unknown rocket type: ${rocketType}`);
+        return;
+    }
+
+    if (rocket) {
+      this.objectManager.addObject("rocket", rocket, {
+        type: rocketType,
+        x: rocket.x,
+        y: rocket.y,
+      });
+    }
+  }
+
+  /**
+   * Метод добавления пресета в очередь
+   */
   enqueuePreset() {
     const distance = this.player?.x ?? 0;
     const difficulty = getRandomDifficulty(distance);
     const presetPool = getPresetPool(difficulty);
     let preset: Preset | null = null;
-
-    // Попытка найти подходящий пресет
-    // for (let i = 0; i < 10; i++) {
-    //   const candidate = Phaser.Utils.Array.GetRandom(presetPool);
-    //   if (candidate) {
-    //     preset = candidate;
-    //     break;
-    //   }
-    // }
-    // // Если не найден подходящий пресет, используем более легкие
-    // if (!preset) {
-    //   const easierPresetPool = getPresetPool("easy");
-    //   preset = Phaser.Utils.Array.GetRandom(easierPresetPool);
-    // }
 
     for (let i = 0; i < presetPool.length; i++) {
       if (this.testInd === i) {
@@ -189,8 +291,8 @@ class GameScene extends Phaser.Scene {
       }
     }
     if (!preset) {
-      const easierPresetPool = getPresetPool("hard");
-      preset = Phaser.Utils.Array.GetRandom(easierPresetPool);
+      const harderPresetPool = getPresetPool("hard"); // Исправлено с "easier" на "hard" для логики
+      preset = Phaser.Utils.Array.GetRandom(harderPresetPool);
     }
 
     // Если всё ещё не найдено, используем любой пресет из исходного пула
@@ -206,6 +308,9 @@ class GameScene extends Phaser.Scene {
     }
   }
 
+  /**
+   * Метод добавления пресета из очереди
+   */
   addPresetFromQueue() {
     if (
       this.presetQueue.length > 0 &&
@@ -219,6 +324,10 @@ class GameScene extends Phaser.Scene {
     }
   }
 
+  /**
+   * Метод создания пресета лазеров
+   * @param preset Пресет для создания лазеров
+   */
   createPreset(preset: Preset) {
     // Генерируем лазеры из пресета
     let maxOffsetX = 0;
@@ -237,7 +346,6 @@ class GameScene extends Phaser.Scene {
       laser.setRotation(angle);
       laser.setDisplaySize(25, laserLength); // Настройте длину и толщину для видимости
 
-      // laser.setDisplaySize(length, 10); // Настройте длину и толщину для видимости
       laser.setSensor(true); // Лазеры как сенсоры (не вызывают физическое столкновение)
 
       this.lasers.push(laser);
@@ -248,6 +356,10 @@ class GameScene extends Phaser.Scene {
     this.lastPlatformX += maxOffsetX + MIN_DISTANCE_BETWEEN_PRESETS;
   }
 
+  /**
+   * Метод обработки столкновений
+   * @param event Событие столкновения
+   */
   handleCollision(event: Phaser.Physics.Matter.Events.CollisionStartEvent) {
     event.pairs.forEach((pair) => {
       const { bodyA, bodyB } = pair;
@@ -272,8 +384,10 @@ class GameScene extends Phaser.Scene {
     });
   }
 
+  /**
+   * Метод вызывается при столкновении игрока с лазером
+   */
   playerTouchLaser() {
-    // Приостанавливаем мир и окрашиваем игрока в красный цвет при столкновении
     // Приостанавливаем мир и окрашиваем игрока в красный цвет при столкновении
     this.matter.world.pause();
     this.player.setTint(0xff0000);
@@ -298,6 +412,7 @@ class GameScene extends Phaser.Scene {
         color: "#ffffff",
       })
       .setInteractive({ useHandCursor: true }); // Устанавливаем курсор "рука"
+
     restartText.on("pointerdown", () => {
       this.isStoped = false;
       // Удаляем все элементы модального окна
@@ -315,6 +430,8 @@ class GameScene extends Phaser.Scene {
 
     continueText.on("pointerdown", () => {
       this.isStoped = false;
+      this.generateRocketsByTimer();
+
       modal.destroy();
       restartText.destroy();
       continueText.destroy();
@@ -323,19 +440,13 @@ class GameScene extends Phaser.Scene {
     this.isStoped = true;
   }
 
+  /**
+   * Метод продолжения игры после столкновения
+   */
   continueGame() {
     // Убираем красный цвет игрока и возобновляем мир
     this.player.clearTint();
     this.matter.world.resume();
-
-    // // Удаляем все лазеры позади игрока на расстоянии 800 пикселей
-    // this.lasers.filter((laser) => {
-    //   if (laser.x < this.player.x - 800) {
-    //     laser.destroy();
-    //     return false;
-    //   }
-    //   return true;
-    // });
 
     // Очищаем массив от уничтоженных лазеров
     console.log(this.lasers[0]?.x);
