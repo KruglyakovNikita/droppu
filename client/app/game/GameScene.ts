@@ -12,8 +12,8 @@ import { WeaponManager } from "./weapons/WeaponManager";
 // Константы игры
 export const PLAYER_SPEED = 2; // Постоянная скорость вправо
 export const MAX_ASCENT_SPEED = -5; // Максимальная скорость подъёма
-export const MIN_Y = 10; // Минимальная Y-координата (верхняя граница)
-export const MAX_Y = 390; // Максимальная Y-координата (нижняя граница)
+export const MIN_Y = 25; // Минимальная Y-координата (верхняя граница)
+export const MAX_Y = 375; // Максимальная Y-координата (нижняя граница)
 
 export const ASCENT_FORCE = -0.15; // Увеличенная сила подъема для более резкого подъема
 export const DESCENT_ACCELERATION = 0.15; // Увеличенное ускорение вниз
@@ -39,6 +39,7 @@ class GameScene extends Phaser.Scene {
   isStoped: boolean = false;
 
   objectManager!: WeaponManager;
+  generateRockettimer!: Phaser.Time.TimerEvent | null;
 
   constructor() {
     super({ key: "GameScene" });
@@ -126,7 +127,11 @@ class GameScene extends Phaser.Scene {
     this.background2.setOrigin(0, 0).setScrollFactor(0).setDepth(-Infinity);
 
     // Запускаем генерацию ракет каждые 5 секунд
-    this.time.addEvent({
+    this.generateRocketsByTimer();
+  }
+
+  generateRocketsByTimer() {
+    this.generateRockettimer = this.time.addEvent({
       delay: 5000, // 5 секунд
       callback: this.generateRocket,
       callbackScope: this,
@@ -140,7 +145,10 @@ class GameScene extends Phaser.Scene {
    * @param delta Время с последнего кадра в миллисекундах
    */
   update(time: number, delta: number) {
-    if (this.isStoped) return;
+    if (this.isStoped) {
+      this.generateRockettimer = null;
+      return;
+    }
 
     // Обновляем все объекты оружия, передавая player и delta
     if (this.objectManager) {
@@ -422,6 +430,8 @@ class GameScene extends Phaser.Scene {
 
     continueText.on("pointerdown", () => {
       this.isStoped = false;
+      this.generateRocketsByTimer();
+
       modal.destroy();
       restartText.destroy();
       continueText.destroy();

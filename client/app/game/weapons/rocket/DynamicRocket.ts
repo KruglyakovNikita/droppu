@@ -34,7 +34,7 @@ export class DynamicRocket extends Rocket {
   }
 
   /**
-   * Метод обновления ракеты с волнообразным движением
+   * Метод обновления ракеты с волнообразным движением и ограничением по Y
    * @param player Ссылка на игрока
    * @param delta Время с последнего кадра в миллисекундах
    */
@@ -44,7 +44,13 @@ export class DynamicRocket extends Rocket {
       this.time += delta / 1000; // Преобразуем delta из мс в секунды
       const waveOffsetY =
         this.amplitude * Math.sin(this.frequency * this.time * Math.PI * 2);
+
       this.setPosition(this.x, this.baseY + waveOffsetY);
+
+      let newY = this.baseY + waveOffsetY;
+
+      newY = Phaser.Math.Clamp(newY, 20, 380);
+      this.setY(newY);
     }
   }
 }

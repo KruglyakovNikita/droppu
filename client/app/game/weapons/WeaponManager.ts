@@ -48,8 +48,8 @@ export class WeaponManager {
         if (
           obj.instance.x < camera.scrollX - 200 || // Левый край за пределами камеры
           obj.instance.x > camera.scrollX + camera.width + 200 || // Правый край за пределами камеры
-          obj.instance.y <= camera.scrollY - 200 || // Верхний край за пределами камеры
-          obj.instance.y >= camera.scrollY + camera.height + 200 // Нижний край за пределами камеры
+          obj.instance.y <= camera.scrollY || // Верхний край за пределами камеры
+          obj.instance.y >= camera.scrollY + camera.height // Нижний край за пределами камеры
         ) {
           console.log("Удаление объекта за пределами камеры:", obj.type);
           this.removeObject(obj.instance);
