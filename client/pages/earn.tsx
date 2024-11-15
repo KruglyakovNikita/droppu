@@ -28,8 +28,7 @@ const Earn: React.FC = () => {
         const response = await getTasks();
         if (response?.data) {
           console.log(response.data);
-          const tasks= {"tasks": response.data};
-          setTasks(tasks);
+          setTasks(response.data);
           // filterTasks("New Socials", tasks.);
         }
       } catch (error) {

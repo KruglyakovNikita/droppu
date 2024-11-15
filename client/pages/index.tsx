@@ -1,7 +1,7 @@
 import { Box, Flex, Avatar, Text, Grid, 
-  Card, CardHeader, CardBody, CardFooter,
+  Card, 
   Stack,
-  Button, Image,
+  Image,
   Heading
  } from "@chakra-ui/react";
 
@@ -10,9 +10,8 @@ import GradientBorderWrapper from '../app/components/GradientBorderWrapper';
 import { useEffect, useState } from "react";
 import colors from "../theme/colors";
 import { useStore } from "../app/lib/store/store";
-import UserAvatar from "../app/components/UserAvatar";
 import { initUser } from "@/app/lib/api/user";
-import { getAchievements } from "@/app/lib/api/achievements";
+import { ButtonIfoLink } from "@/app/components/ButtonIfoLink";
 
 
 
@@ -25,9 +24,7 @@ declare global {
 
 const Home: React.FC = () => {
   const setUser = useStore((state) => state.setUser);
-  const setAchievements = useStore((state) => state.setAchievements);
   const userInfo = useStore((state) => state.user);
-  const userAchievements = useStore((state) => state.achievements);
   const [telegramUser, setTelegramUser] = useState<any>(null);
 
   useEffect(() => {
@@ -87,7 +84,7 @@ const Home: React.FC = () => {
   0% { transform: translateY(0px); }
   50% { transform: translateY(-10px); }
   100% { transform: translateY(0px); }
-`;
+  `;
 
   return (
     <Flex
@@ -100,48 +97,24 @@ const Home: React.FC = () => {
     p={4}
   >
     <Grid mt={0} gap={4} templateColumns="repeat(2, 1fr)">
-      <GradientBorderWrapper
-        borderRadius={12}
-        startColor="#793BC7"
-        endColor="#C2D2FF"
-        strokeWidth={1.5}
-        w="165px"
-        h="45px"
-      >
-        <Card
-          onClick={chanelLink}
-          direction="row"
-          alignItems="center"
-          justifyContent="left"
-          bg="transparent"
-          h="100%"
-          p={0.5}
-          pl={2}
-          pr={4}
-        >
-          <Image
+      
+      <ButtonIfoLink title='DROPPU NEWS' description=" Follow us for updates" onClick={chanelLink} startIcon={ <Image
             src="/icons/star_icon.svg"
             alt="Tribes Icon"
             boxSize="23px"
             mr={2}
-          />
-          <Stack spacing={0}>
-            <Heading
-              fontSize="14px"
-              color={colors.primaryText}
-              fontFamily="'PixelifySans-Bold', sans-serif"
-              fontWeight="bold"
-              mb={-1}
-            >
-              DROPPU NEWS
-            </Heading>
-            <Text fontSize="9px" color={colors.secondaryText}>
-              Follow us for updates
-            </Text>
-          </Stack>
-        </Card>
-      </GradientBorderWrapper>
+          />}
+        />
 
+<ButtonIfoLink title='Invite Friends' description="Get more tickets and points" onClick={inviteFriendsLink} descriptionFontSize='8px' titleFontSize="16px"
+endIcon={  <Image
+            src="/icons/frens_icon.svg"
+            alt="Invite Friend Icon"
+            boxSize="23px"
+            mr={2}
+          />}
+        />
+        
       <GradientBorderWrapper
         borderRadius={12}
         startColor="#793BC7"
@@ -174,12 +147,7 @@ const Home: React.FC = () => {
               Get more tickets and points
             </Text>
           </Stack>
-          <Image
-            src="/icons/frens_icon.svg"
-            alt="Invite Friend Icon"
-            boxSize="23px"
-            mr={2}
-          />
+         
         </Card>
       </GradientBorderWrapper>
     </Grid>

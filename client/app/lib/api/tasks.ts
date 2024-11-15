@@ -1,12 +1,9 @@
 import apiService from ".";
 import { Task } from "../store/types";
 
-interface GetTasks {
-  tasks: Task[];  
-}
 
 export const getTasks = async () => {
-  const response = await apiService.get<GetTasks>(
+  const response = await apiService.get<Task[]>(
     "/api/v1/tasks/incomplete"
   );
 
