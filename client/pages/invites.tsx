@@ -1,8 +1,15 @@
-import { Box, Flex, Text, Stack, Button, Image, Heading } from "@chakra-ui/react";
-import GradientBorderWrapper from '../app/components/GradientBorderWrapper';
+import {
+  Box,
+  Flex,
+  Text,
+  Stack,
+  Button,
+  Image,
+  Heading,
+} from "@chakra-ui/react";
+import GradientBorderWrapper from "../app/components/GradientBorderWrapper";
 import colors from "@/theme/colors";
-import WebApp from '@twa-dev/sdk';
-
+import WebApp from "@twa-dev/sdk";
 
 export default function Invites() {
   return (
@@ -16,13 +23,16 @@ export default function Invites() {
       position="relative"
     >
       {/* Заголовок */}
-      <Heading fontSize="24px" fontFamily="'PixelifySans-Bold', sans-serif" mb={4}>
+      <Heading
+        fontSize="24px"
+        fontFamily="'PixelifySans-Bold', sans-serif"
+        mb={4}
+      >
         Invite Friends
       </Heading>
 
       {/* Карточка со статистикой */}
       <GradientBorderWrapper
-        borderRadius={12}
         startColor="#793BC7"
         endColor="#C2D2FF"
         strokeWidth={1.5}
@@ -49,11 +59,10 @@ export default function Invites() {
             {[
               { label: "Points", value: "12349" },
               { label: "Tickets", value: "123" },
-              { label: "Frens", value: "12" }
+              { label: "Frens", value: "12" },
             ].map((stat, index) => (
               <GradientBorderWrapper
                 key={index}
-                borderRadius={12}
                 startColor="#793BC7"
                 endColor="#C2D2FF"
                 strokeWidth={1.5}
@@ -110,12 +119,18 @@ export default function Invites() {
       </GradientBorderWrapper>
 
       {/* Блок с описанием */}
-      <Text fontSize="12px" color={colors.secondaryText} textAlign="center" maxW="360px" mb={4}>
+      <Text
+        fontSize="12px"
+        color={colors.secondaryText}
+        textAlign="center"
+        maxW="360px"
+        mb={4}
+      >
         Score 10% from buddies <br /> Plus an extra 8.5% from their referrals
       </Text>
 
       {/* Контейнер для списка друзей с ограниченной высотой и прокруткой */}
-      <Box w="100%" maxW="360px" flex="1" overflowY="auto" mb={4} maxH={300} borderRadius={12}>
+      <Box w="100%" maxW="360px" flex="1" overflowY="auto" mb={4} maxH={300}>
         <Stack spacing={4} w="100%">
           {[...Array(10)].map((_, index) => (
             <Flex
@@ -137,15 +152,32 @@ export default function Invites() {
                   mr={4}
                 />
                 <Stack spacing={0}>
-                  <Text fontFamily="'PixelifySans-Bold', sans-serif" fontSize="16px" mb={-2}>NoName</Text>
-                  <Text fontSize="12px" color={colors.secondaryText}>+10</Text>
+                  <Text
+                    fontFamily="'PixelifySans-Bold', sans-serif"
+                    fontSize="16px"
+                    mb={-2}
+                  >
+                    NoName
+                  </Text>
+                  <Text fontSize="12px" color={colors.secondaryText}>
+                    +10
+                  </Text>
                 </Stack>
               </Flex>
               <Stack spacing={0}>
-                <Text fontFamily="'PixelifySans-Bold', sans-serif" fontSize="16px" color={colors.primaryText} mb={-2}>
+                <Text
+                  fontFamily="'PixelifySans-Bold', sans-serif"
+                  fontSize="16px"
+                  color={colors.primaryText}
+                  mb={-2}
+                >
                   123486
                 </Text>
-                <Text fontFamily="'PixelifySans-Bold', sans-serif" fontSize="12px" color={colors.secondaryText}>
+                <Text
+                  fontFamily="'PixelifySans-Bold', sans-serif"
+                  fontSize="12px"
+                  color={colors.secondaryText}
+                >
                   points
                 </Text>
               </Stack>
@@ -160,7 +192,6 @@ export default function Invites() {
         bottom="120px"
         left="50%"
         transform="translateX(-50%)"
-        borderRadius={12}
         startColor="#793BC7"
         endColor="#C2D2FF"
         strokeWidth={1.5}

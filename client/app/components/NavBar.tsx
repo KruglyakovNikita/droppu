@@ -1,6 +1,6 @@
 import { HStack, IconButton, Box } from "@chakra-ui/react";
 import { FaHome, FaTrophy, FaUserFriends, FaWallet } from "react-icons/fa";
-import GradientBorderWrapper from './GradientBorderWrapper';
+import GradientBorderWrapper from "./GradientBorderWrapper";
 import Link from "next/link";
 import { useRouter } from "next/router";
 
@@ -16,7 +16,6 @@ const NavBar = () => {
 
   return (
     <GradientBorderWrapper
-      borderRadius={12}
       startColor="#793BC7"
       endColor="#C2D2FF"
       strokeWidth={1.5}
@@ -47,9 +46,15 @@ const NavBar = () => {
                 h="45px"
                 w="70px"
                 borderRadius="12px"
-                bg={isActive ? "linear-gradient(45deg, #FF56F9, #724BFF)" : "#111030"}
+                bg={
+                  isActive
+                    ? "linear-gradient(45deg, #FF56F9, #724BFF)"
+                    : "#111030"
+                }
                 _hover={{
-                  bg: isActive ? "linear-gradient(45deg, #FF56F9, #724BFF)" : "#1A1A3D",
+                  bg: isActive
+                    ? "linear-gradient(45deg, #FF56F9, #724BFF)"
+                    : "#1A1A3D",
                 }}
                 display="flex"
                 alignItems="center"

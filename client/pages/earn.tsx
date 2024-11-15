@@ -1,4 +1,13 @@
-import { Box, Flex, Grid, Text, Heading, Button, Stack, Image } from "@chakra-ui/react";
+import {
+  Box,
+  Flex,
+  Grid,
+  Text,
+  Heading,
+  Button,
+  Stack,
+  Image,
+} from "@chakra-ui/react";
 import { keyframes } from "@emotion/react";
 import GradientBorderWrapper from "../app/components/GradientBorderWrapper";
 import TaskPopup from "../app/components/TaskPop";
@@ -79,16 +88,35 @@ const Earn: React.FC = () => {
       <GradientBorderWrapper
         width="360px"
         height="110px"
-        borderRadius={12}
         startColor="#793BC7"
         endColor="#C2D2FF"
         strokeWidth={1.5}
       >
-        <Box position="relative" zIndex="1" display="flex" flexDirection="column" alignItems="left" justifyContent="start" height="100%" px="6" mt="4">
-          <Text fontSize="20px" fontFamily="'PixelifySans-Bold', sans-serif" color={colors.primaryText} textAlign="left">
+        <Box
+          position="relative"
+          zIndex="1"
+          display="flex"
+          flexDirection="column"
+          alignItems="left"
+          justifyContent="start"
+          height="100%"
+          px="6"
+          mt="4"
+        >
+          <Text
+            fontSize="20px"
+            fontFamily="'PixelifySans-Bold', sans-serif"
+            color={colors.primaryText}
+            textAlign="left"
+          >
             Earn for checking socials
           </Text>
-          <Text fontSize="14px" fontFamily="'PixelifySans-Bold', sans-serif" color={colors.secondaryText} mt="-1">
+          <Text
+            fontSize="14px"
+            fontFamily="'PixelifySans-Bold', sans-serif"
+            color={colors.secondaryText}
+            mt="-1"
+          >
             300 Points
           </Text>
           <Button
@@ -103,7 +131,12 @@ const Earn: React.FC = () => {
             fontSize="14px"
             _hover={{ bg: "rgba(255, 255, 255, 0.1)" }}
             color={colors.primaryText}
-            onClick={() => openRewardPopup({ name: "Earn for checking socials", reward_coins: 300 })}
+            onClick={() =>
+              openRewardPopup({
+                name: "Earn for checking socials",
+                reward_coins: 300,
+              })
+            }
           >
             Start
           </Button>
@@ -111,15 +144,24 @@ const Earn: React.FC = () => {
       </GradientBorderWrapper>
 
       {/* Навигационная панель */}
-      <Flex w="90%" maxW="500px" justify="space-around" alignSelf="flex-start" mb={4} mt="4">
-        {["New", "Socials","Frens", "Farming"].map((item) => (
+      <Flex
+        w="90%"
+        maxW="500px"
+        justify="space-around"
+        alignSelf="flex-start"
+        mb={4}
+        mt="4"
+      >
+        {["New", "Socials", "Frens", "Farming"].map((item) => (
           <Text
             fontFamily="'PixelifySans-Bold', sans-serif"
             fontSize="20px"
             fontWeight="bold"
             ml="3"
             p="1.5"
-            color={selectedCategory === item ? colors.accent : colors.primaryText}
+            color={
+              selectedCategory === item ? colors.accent : colors.primaryText
+            }
             key={item}
             cursor="pointer"
             onClick={() => filterTasks(item)}
@@ -132,12 +174,32 @@ const Earn: React.FC = () => {
       {/* Список задач */}
       <Grid templateColumns="1fr" gap={4} w="100%" maxW="360px">
         {filteredTasks.map((task, index) => (
-          <GradientBorderWrapper borderRadius={12} startColor="#793BC7" endColor="#C2D2FF" strokeWidth={1.5} key={index}>
-            <Flex bg="transparent" borderRadius="12px" p={4} h="50px" align="center" justify="space-between">
+          <GradientBorderWrapper
+            startColor="#793BC7"
+            endColor="#C2D2FF"
+            strokeWidth={1.5}
+            key={index}
+          >
+            <Flex
+              bg="transparent"
+              borderRadius="12px"
+              p={4}
+              h="50px"
+              align="center"
+              justify="space-between"
+            >
               <Flex align="center">
-                <Image src="/icons/star_icon.svg" alt="Task Icon" boxSize="23px" mr={3} />
+                <Image
+                  src="/icons/star_icon.svg"
+                  alt="Task Icon"
+                  boxSize="23px"
+                  mr={3}
+                />
                 <Stack spacing={0}>
-                  <Text fontFamily="'PixelifySans-Bold', sans-serif" fontSize="16px">
+                  <Text
+                    fontFamily="'PixelifySans-Bold', sans-serif"
+                    fontSize="16px"
+                  >
                     {task.name}
                   </Text>
                   <Text fontSize="12px" color={colors.secondaryText}>

@@ -7,6 +7,20 @@ const config: ThemeConfig = {
 };
 
 // Extend the theme
-const theme = extendTheme({ config });
+
+const theme = extendTheme({
+  config,
+  styles: {
+    global: {
+      "html, body, #__next": {
+        overflow: "hidden",
+        height: "100%",
+        width: "100%",
+        margin: 0,
+        padding: 0,
+      },
+    },
+  },
+});
 
 export default theme;
