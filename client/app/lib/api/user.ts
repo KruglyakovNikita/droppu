@@ -8,8 +8,6 @@ export const initUser = async (initData: any) => {
       init_data: initData,
     }
   );
-  console.log("INIT data response");
-  console.log(response);
 
   if (response.error) {
     console.error("Registration error:", response.error);

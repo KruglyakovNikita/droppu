@@ -20,3 +20,15 @@ export type Achievement = {
   title: string;
   completed: boolean;
 };
+
+export type Task = {
+  id: string;
+  name: string;
+  description: string;
+  reward_coins: number;
+  reward_tokens: number;
+  reward_tickets: number;
+  link: string;
+  additional_info: string;
+  type: string;
+};
