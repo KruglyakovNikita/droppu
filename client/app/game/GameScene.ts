@@ -1,4 +1,3 @@
-// GameScene.ts
 "use client";
 
 import Phaser from "phaser";
@@ -9,6 +8,7 @@ import { HomingRocket } from "./weapons/Rocket/HomingRocket";
 import { StaticRocket } from "./weapons/Rocket/StaticRocket";
 import { WeaponManager } from "./weapons/WeaponManager";
 import { LaserCannon } from "./weapons/Laser/LaserCannon"; // Add this import
+import { Rocket } from "./weapons/Rocket/Rocket";
 
 // Константы игры
 export const PLAYER_SPEED = 2; // Постоянная скорость вправо
@@ -124,7 +124,7 @@ class GameScene extends Phaser.Scene {
     this.background1.setOrigin(0, 0).setScrollFactor(0).setDepth(-Infinity);
     this.background2.setOrigin(0, 0).setScrollFactor(0).setDepth(-Infinity);
 
-    //СОЗДАНИЕ ПРЕПЯТСТВИЙ
+    // СОЗДАНИЕ ПРЕПЯТСТВИЙ
     // Запускаем генерацию ракет каждые 5 секунд
     // this.generateRocketsByTimer();
     // Start generating Laser Cannons every 15 seconds (adjust as needed)
@@ -145,7 +145,7 @@ class GameScene extends Phaser.Scene {
 
   generateLaserCannonsByTimer() {
     this.generateLaserCannonTimer = this.time.addEvent({
-      delay: 8000, // Every 15 seconds (adjust as needed)
+      delay: 8000, // Every 8 seconds (adjust as needed)
       callback: this.generateLaserCannon,
       callbackScope: this,
       loop: true,
@@ -253,8 +253,7 @@ class GameScene extends Phaser.Scene {
    * Метод генерации ракеты
    */
   generateRocket() {
-    // const rocketTypes = ["homing", "static", "dynamic"];
-    const rocketTypes = ["dynamic"];
+    const rocketTypes = ["homing", "static", "dynamic"];
     const rocketType = Phaser.Utils.Array.GetRandom(rocketTypes);
 
     let rocket;
@@ -284,8 +283,7 @@ class GameScene extends Phaser.Scene {
           yPosition,
           this.player,
           4,
-          20,
-          2
+          20
         ); // Амплитуда 20 пикселей
         rocket.setWarning(
           () => this.cameras.main.scrollX + this.cameras.main.width - 20,
@@ -386,7 +384,6 @@ class GameScene extends Phaser.Scene {
     // Обновляем позицию последнего пресета
     this.lastPlatformX += maxOffsetX + MIN_DISTANCE_BETWEEN_PRESETS;
   }
-
   /**
    * Метод обработки столкновений
    * @param event Событие столкновения
@@ -403,15 +400,48 @@ class GameScene extends Phaser.Scene {
         return;
       }
 
-      // Проверяем, что происходит столкновение между игроком и лазером
+      // Проверяем столкновение между игроком и лазером
       if (
         (gameObjectA === this.player &&
-          this.lasers.includes(gameObjectB as Phaser.Physics.Matter.Image)) ||
+          gameObjectB instanceof Phaser.Physics.Matter.Image &&
+          this.lasers.includes(gameObjectB)) ||
         (gameObjectB === this.player &&
-          this.lasers.includes(gameObjectA as Phaser.Physics.Matter.Image))
+          gameObjectA instanceof Phaser.Physics.Matter.Image &&
+          this.lasers.includes(gameObjectA))
       ) {
         this.handlePlayerHit();
       }
+
+      // Проверяем столкновение между игроком и ракетой
+      if (
+        (gameObjectA === this.player &&
+          gameObjectB instanceof Rocket &&
+          gameObjectB.active) ||
+        (gameObjectB === this.player &&
+          gameObjectA instanceof Rocket &&
+          gameObjectA.active)
+      ) {
+        this.handlePlayerHit();
+      }
+
+      // Проверяем столкновение между игроком и лазерной пушкой (если нужно)
+      // Здесь мы подразумеваем, что лазерная пушка имеет физическое тело
+      const laserCannons = this.objectManager.getObjectsByType("laserCannon");
+      laserCannons.forEach((cannonObj) => {
+        const cannon = cannonObj.instance as LaserCannon;
+
+        // Добавляем проверку на физическое тело у LaserCannon, если требуется
+        if (
+          (gameObjectA === this.player &&
+            gameObjectB instanceof LaserCannon &&
+            gameObjectB === cannon) ||
+          (gameObjectB === this.player &&
+            gameObjectA instanceof LaserCannon &&
+            gameObjectA === cannon)
+        ) {
+          this.handlePlayerHit();
+        }
+      });
     });
   }
 
@@ -423,6 +453,13 @@ class GameScene extends Phaser.Scene {
     // Pause the game world
     this.matter.world.pause();
     this.player.setTint(0xff0000);
+
+    // Remove all active warning triangles from weapons
+    this.objectManager.objects.forEach((obj) => {
+      if (typeof obj.instance.destroyWarning === "function") {
+        obj.instance.destroyWarning();
+      }
+    });
 
     // Get the center of the current camera view
     const centerX = this.cameras.main.worldView.x + this.cameras.main.width / 2;

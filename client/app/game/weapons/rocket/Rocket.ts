@@ -97,7 +97,7 @@ export class Rocket extends Phaser.Physics.Matter.Sprite {
     console.log("Rocket activate called:", this);
 
     // Устанавливаем начальную позицию ракеты
-    this.setPosition(getX(), getY());
+    this.setPosition(getX() + 50, getY());
 
     // Делаем ракету видимой и активной
     this.setVisible(true);
@@ -115,26 +115,8 @@ export class Rocket extends Phaser.Physics.Matter.Sprite {
    * Метод обновления ракеты
    * @param player Ссылка на игрока
    */
-  update(player: Phaser.GameObjects.Sprite, delta?: number) {
-    this.checkCollisionWithPlayer(player);
+  update() {
     this.addTrail();
-  }
-
-  /**
-   * Метод для проверки столкновений с игроком
-   * @param player Ссылка на игрока
-   */
-  checkCollisionWithPlayer(player: Phaser.GameObjects.Sprite) {
-    if (
-      Phaser.Geom.Intersects.RectangleToRectangle(
-        this.getBounds(),
-        player.getBounds()
-      )
-    ) {
-      // Смертельное столкновение
-      this.scene.events.emit("playerHit");
-      this.destroy();
-    }
   }
 
   /**

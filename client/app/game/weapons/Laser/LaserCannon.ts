@@ -170,7 +170,7 @@ export class LaserCannon {
   }
 
   /**
-   * Обновляет позицию лазера и проверяет столкновение
+   * Обновляет состояние лазерной пушки
    * @param player Ссылка на спрайт игрока
    * @param delta Время с последнего кадра в миллисекундах
    */
@@ -182,24 +182,38 @@ export class LaserCannon {
   }
 
   /**
-   * Очищает все таймеры и игровые объекты
+   * Метод для уничтожения активных предупреждений и очистки ресурсов
    */
-  destroy() {
+  destroyWarning() {
+    // Скрываем и уничтожаем предупреждающие треугольники, если они видимы
+    if (this.warningLeft.visible) {
+      this.warningLeft.setVisible(false);
+      this.warningLeft.destroy();
+    }
+    if (this.warningRight.visible) {
+      this.warningRight.setVisible(false);
+      this.warningRight.destroy();
+    }
+
+    // Останавливаем все твины, связанные с предупреждениями
+    this.scene.tweens.killTweensOf([this.warningLeft, this.warningRight]);
+
+    // Удаляем все таймеры, связанные с предупреждениями
     this.timers.forEach((timer) => timer.remove(false));
     this.timers = [];
 
+    // Удаляем обработчик обновления позиций треугольников
     if (this.updateWarningPosition) {
       this.scene.events.off("update", this.updateWarningPosition);
       this.updateWarningPosition = null;
     }
+  }
 
-    if (this.updateLaserPosition) {
-      this.scene.events.off("update", this.updateLaserPosition);
-      this.updateLaserPosition = null;
-    }
-
+  /**
+   * Очищает все таймеры и игровые объекты
+   */
+  destroy() {
+    this.destroyWarning(); // Убедитесь, что предупреждения уничтожены
     this.laser.destroy();
-    this.warningLeft.destroy();
-    this.warningRight.destroy();
   }
 }

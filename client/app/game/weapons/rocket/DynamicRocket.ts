@@ -3,7 +3,6 @@ import { Rocket } from "./Rocket";
 
 export class DynamicRocket extends Rocket {
   amplitude: number;
-  frequency: number;
   baseY: number;
   time: number;
 
@@ -13,12 +12,10 @@ export class DynamicRocket extends Rocket {
     y: number,
     target: Phaser.GameObjects.Sprite,
     speed: number,
-    amplitude: number,
-    frequency: number
+    amplitude: number
   ) {
     super(scene, x, y, "dynamicRocketTexture", target, speed);
     this.amplitude = amplitude;
-    this.frequency = frequency;
     this.baseY = y;
     this.time = 0;
   }
@@ -38,19 +35,20 @@ export class DynamicRocket extends Rocket {
    * @param player Ссылка на игрока
    * @param delta Время с последнего кадра в миллисекундах
    */
-  update(player: Phaser.GameObjects.Sprite, delta: number) {
-    super.update(player);
+  update() {
+    super.update();
     if (this.active) {
-      this.time += delta / 1000; // Преобразуем delta из мс в секунды
-      const waveOffsetY =
-        this.amplitude * Math.sin(this.frequency * this.time * Math.PI * 2);
+      if (this.active) {
+        const currentTime = this.scene.time.now / 1000; // Получаем текущее время в секундах
+        const waveOffsetY =
+          this.amplitude * Math.sin((this.amplitude / 2) * currentTime); // Генерируем плавное смещение
 
-      this.setPosition(this.x, this.baseY + waveOffsetY);
+        const newY = Phaser.Math.Clamp(this.baseY + waveOffsetY, 20, 380);
 
-      let newY = this.baseY + waveOffsetY;
-
-      newY = Phaser.Math.Clamp(newY, 20, 380);
-      this.setY(newY);
+        // Устанавливаем новое положение по Y
+        this.setY(newY);
+        this.setVelocityY(0);
+      }
     }
   }
 }

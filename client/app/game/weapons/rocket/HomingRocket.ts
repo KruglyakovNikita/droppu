@@ -21,8 +21,8 @@ export class HomingRocket extends Rocket {
    * @param player Ссылка на игрока
    * @param delta Время с последнего кадра в миллисекундах
    */
-  update(player: Phaser.GameObjects.Sprite) {
-    super.update(player);
+  update() {
+    super.update();
     // Ракета движется влево с фиксированной Y-координатой
     // this.setVelocityY(0); // Фиксируем скорость по оси Y
     // this.setPosition(this.x, this.baseY);
