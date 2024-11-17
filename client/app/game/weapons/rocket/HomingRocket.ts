@@ -16,11 +16,6 @@ export class HomingRocket extends Rocket {
     this.x = x;
   }
 
-  /**
-   * Метод обновления ракеты
-   * @param player Ссылка на игрока
-   * @param delta Время с последнего кадра в миллисекундах
-   */
   update() {
     super.update();
     // Ракета движется влево с фиксированной Y-координатой

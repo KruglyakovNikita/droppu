@@ -145,7 +145,7 @@ class GameScene extends Phaser.Scene {
 
   generateLaserCannonsByTimer() {
     this.generateLaserCannonTimer = this.time.addEvent({
-      delay: 8000, // Every 8 seconds (adjust as needed)
+      delay: 5000, // Every 8 seconds (adjust as needed)
       callback: this.generateLaserCannon,
       callbackScope: this,
       loop: true,
@@ -169,9 +169,8 @@ class GameScene extends Phaser.Scene {
   /**
    * Метод обновления сцены
    * @param time Текущее время
-   * @param delta Время с последнего кадра в миллисекундах
    */
-  update(delta: number) {
+  update() {
     if (this.isStoped) {
       this.time.removeAllEvents();
       return;
@@ -179,7 +178,7 @@ class GameScene extends Phaser.Scene {
 
     // Update all weapon objects, passing the player and delta
     if (this.objectManager) {
-      this.objectManager.update(this.player, delta);
+      this.objectManager.update(this.player);
     }
 
     // Update the background for infinite scrolling
@@ -389,6 +388,8 @@ class GameScene extends Phaser.Scene {
    * @param event Событие столкновения
    */
   handleCollision(event: Phaser.Physics.Matter.Events.CollisionStartEvent) {
+    console.log("YEEE");
+
     event.pairs.forEach((pair) => {
       const { bodyA, bodyB } = pair;
 
@@ -446,6 +447,8 @@ class GameScene extends Phaser.Scene {
   }
 
   handlePlayerHit() {
+    console.log("asdasd");
+
     if (this.isStoped) return; // Prevent multiple triggers
 
     this.isStoped = true;

@@ -27,12 +27,7 @@ export class WeaponManager {
     instance.destroy();
   }
 
-  /**
-   * Метод обновления всех объектов
-   * @param player Ссылка на игрока
-   * @param delta Время с последнего кадра в миллисекундах
-   */
-  update(player: Phaser.GameObjects.Sprite, delta: number) {
+  update(player: Phaser.GameObjects.Sprite) {
     this.objects = this.objects.filter((obj) => {
       if (!obj.instance || !obj.instance.body) {
         // Удаляем объект, если его больше нет
@@ -59,7 +54,7 @@ export class WeaponManager {
 
       // Обновляем объект, если у него есть метод update
       if (obj.instance.update) {
-        obj.instance.update(player, delta); // Pass both player and delta
+        obj.instance.update(player); // Pass both player and delta
       }
 
       return true;

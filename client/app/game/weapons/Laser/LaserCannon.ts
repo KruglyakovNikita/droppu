@@ -3,7 +3,7 @@ import Phaser from "phaser";
 
 export class LaserCannon {
   scene: Phaser.Scene;
-  laser: Phaser.GameObjects.Rectangle;
+  laserCannon: Phaser.Physics.Matter.Image;
   warningLeft: Phaser.GameObjects.Image;
   warningRight: Phaser.GameObjects.Image;
   active: boolean = false;
@@ -15,16 +15,23 @@ export class LaserCannon {
     this.scene = scene;
 
     // Инициализируем лазер, но делаем его невидимым
-    this.laser = this.scene.add.rectangle(
+    this.laserCannon = this.scene.matter.add.image(
       0,
       0,
-      this.scene.cameras.main.width, // Ширина равна ширине камеры
-      5, // Толщина лазера
-      0xff0000 // Красный цвет
+      "", // Пустая текстура, так как мы будем использовать только физическое тело
+      undefined,
+      { isStatic: true, isSensor: true } // Статичное сенсорное тело
     );
-    this.laser.setOrigin(0, 0.5);
-    this.laser.setVisible(false);
-    this.laser.setDepth(2); // Убедитесь, что он выше других элементов
+    this.laserCannon.setOrigin(0, 0.5);
+    this.laserCannon.setVisible(false);
+    this.laserCannon.setDepth(2);
+
+    // Устанавливаем физическое тело вручную
+    this.laserCannon.setBody({
+      type: "rectangle",
+      width: this.scene.cameras.main.width,
+      height: 5,
+    });
 
     // Инициализируем предупреждающие треугольники с обеих сторон
     this.warningLeft = this.scene.add.image(0, 0, "warningTriangle");
@@ -66,11 +73,11 @@ export class LaserCannon {
     // Функция для обновления позиций треугольников
     this.updateWarningPosition = () => {
       this.warningLeft.setPosition(
-        this.scene.cameras.main.scrollX + 50,
+        this.scene.cameras.main.scrollX + 25,
         this.scene.scale.height / 2
       );
       this.warningRight.setPosition(
-        this.scene.cameras.main.scrollX + this.scene.cameras.main.width - 50,
+        this.scene.cameras.main.scrollX + this.scene.cameras.main.width - 25,
         this.scene.scale.height / 2
       );
     };
@@ -112,15 +119,15 @@ export class LaserCannon {
    */
   fireLaser() {
     this.active = true;
-    this.laser.setVisible(true);
+    this.laserCannon.setVisible(true);
 
     // Функция для обновления позиции лазера
     this.updateLaserPosition = () => {
-      this.laser.setPosition(
+      this.laserCannon.setPosition(
         this.scene.cameras.main.scrollX,
         this.scene.scale.height / 2
       );
-      this.laser.setSize(this.scene.cameras.main.width, 5); // Обновляем ширину лазера
+      this.laserCannon.setSize(this.scene.cameras.main.width, 5); // Обновляем ширину лазера
     };
     this.updateLaserPosition();
     this.scene.events.on("update", this.updateLaserPosition);
@@ -132,7 +139,7 @@ export class LaserCannon {
     const removeTimer = this.scene.time.delayedCall(
       4000, // 4 секунды
       () => {
-        this.laser.setVisible(false);
+        this.laserCannon.setVisible(false);
         this.active = false;
 
         // Удаляем функцию обновления позиции лазера
@@ -159,26 +166,22 @@ export class LaserCannon {
    */
   checkCollision(player: Phaser.GameObjects.Sprite) {
     if (
+      this.active && // Проверяем, активен ли лазер
       Phaser.Geom.Intersects.RectangleToRectangle(
-        this.laser.getBounds(),
+        this.laserCannon.getBounds(),
         player.getBounds()
       )
     ) {
-      // Генерируем событие столкновения
-      this.scene.events.emit("playerHit");
+      this.scene.events.emit("playerHit"); // Вызываем событие смерти игрока
     }
   }
 
   /**
    * Обновляет состояние лазерной пушки
    * @param player Ссылка на спрайт игрока
-   * @param delta Время с последнего кадра в миллисекундах
    */
-  update(player: Phaser.GameObjects.Sprite, delta: number) {
-    if (this.active) {
-      // Проверяем столкновение с игроком
-      this.checkCollision(player);
-    }
+  update(player: Phaser.GameObjects.Sprite) {
+    this.checkCollision(player);
   }
 
   /**
@@ -214,6 +217,6 @@ export class LaserCannon {
    */
   destroy() {
     this.destroyWarning(); // Убедитесь, что предупреждения уничтожены
-    this.laser.destroy();
+    this.laserCannon.destroy();
   }
 }

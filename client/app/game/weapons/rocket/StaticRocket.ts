@@ -6,11 +6,6 @@ export class StaticRocket extends Rocket {
     super(scene, x, y, "staticRocketTexture", null, speed);
   }
 
-  /**
-   * Метод обновления ракеты
-   * @param player Ссылка на игрока
-   * @param delta Время с последнего кадра в миллисекундах
-   */
   update() {
     super.update();
     // Дополнительное поведение не требуется; ракета движется влево с фиксированной скоростью

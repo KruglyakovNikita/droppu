@@ -30,11 +30,6 @@ export class DynamicRocket extends Rocket {
     this.baseY = getY();
   }
 
-  /**
-   * Метод обновления ракеты с волнообразным движением и ограничением по Y
-   * @param player Ссылка на игрока
-   * @param delta Время с последнего кадра в миллисекундах
-   */
   update() {
     super.update();
     if (this.active) {
