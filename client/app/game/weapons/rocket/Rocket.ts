@@ -114,9 +114,8 @@ export class Rocket extends Phaser.Physics.Matter.Sprite {
   /**
    * Метод обновления ракеты
    * @param player Ссылка на игрока
-   * @param delta Время с последнего кадра в миллисекундах
    */
-  update(player: Phaser.GameObjects.Sprite, delta: number) {
+  update(player: Phaser.GameObjects.Sprite, delta?: number) {
     this.checkCollisionWithPlayer(player);
     this.addTrail();
   }

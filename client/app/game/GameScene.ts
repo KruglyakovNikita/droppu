@@ -107,16 +107,6 @@ class GameScene extends Phaser.Scene {
     // Установка начальной постоянной скорости вправо
     this.player.setVelocityX(PLAYER_SPEED);
 
-    // Инициализация очереди пресетов
-    for (let i = 0; i < 3; i++) {
-      this.enqueuePreset();
-    }
-
-    // Добавление начальных пресетов
-    for (let i = 0; i < 3; i++) {
-      this.addPresetFromQueue();
-    }
-
     // Обработка столкновений
     this.matter.world.on("collisionstart", this.handleCollision, this);
 
@@ -134,17 +124,28 @@ class GameScene extends Phaser.Scene {
     this.background1.setOrigin(0, 0).setScrollFactor(0).setDepth(-Infinity);
     this.background2.setOrigin(0, 0).setScrollFactor(0).setDepth(-Infinity);
 
+    //СОЗДАНИЕ ПРЕПЯТСТВИЙ
     // Запускаем генерацию ракет каждые 5 секунд
     // this.generateRocketsByTimer();
     // Start generating Laser Cannons every 15 seconds (adjust as needed)
     this.generateLaserCannonsByTimer();
+
+    // // Инициализация очереди пресетов
+    // for (let i = 0; i < 3; i++) {
+    //   this.enqueuePreset();
+    // }
+
+    // // Добавление начальных пресетов
+    // for (let i = 0; i < 3; i++) {
+    //   this.addPresetFromQueue();
+    // }
 
     this.events.on("playerHit", this.handlePlayerHit, this);
   }
 
   generateLaserCannonsByTimer() {
     this.generateLaserCannonTimer = this.time.addEvent({
-      delay: 15000, // Every 15 seconds (adjust as needed)
+      delay: 8000, // Every 15 seconds (adjust as needed)
       callback: this.generateLaserCannon,
       callbackScope: this,
       loop: true,
@@ -482,9 +483,6 @@ class GameScene extends Phaser.Scene {
     // Убираем красный цвет игрока и возобновляем мир
     this.player.clearTint();
     this.matter.world.resume();
-
-    // Очищаем массив от уничтоженных лазеров
-    console.log(this.lasers[0]?.x);
 
     this.lasers = this.lasers.filter((laser) => {
       if (laser.x < this.lastPlatformX) {

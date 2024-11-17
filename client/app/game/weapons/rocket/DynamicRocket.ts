@@ -39,7 +39,7 @@ export class DynamicRocket extends Rocket {
    * @param delta Время с последнего кадра в миллисекундах
    */
   update(player: Phaser.GameObjects.Sprite, delta: number) {
-    super.update(player, delta);
+    super.update(player);
     if (this.active) {
       this.time += delta / 1000; // Преобразуем delta из мс в секунды
       const waveOffsetY =

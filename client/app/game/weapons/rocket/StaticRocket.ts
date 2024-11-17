@@ -11,8 +11,8 @@ export class StaticRocket extends Rocket {
    * @param player Ссылка на игрока
    * @param delta Время с последнего кадра в миллисекундах
    */
-  update(player: Phaser.GameObjects.Sprite, delta: number) {
-    super.update(player, delta);
+  update(player: Phaser.GameObjects.Sprite) {
+    super.update(player);
     // Дополнительное поведение не требуется; ракета движется влево с фиксированной скоростью
   }
 }
