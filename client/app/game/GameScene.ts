@@ -71,7 +71,8 @@ class GameScene extends Phaser.Scene {
 
     // Warning triangle (if required)
     this.load.image("warningTriangle", "/blocks/warningTriangle.png");
-
+    this.load.image("laserGun", "/blocks/laser_gun.png");
+    this.load.image("laserPlazm", "/blocks/laser_plazm.png");
     // Assets for Laser Cannon
     this.load.audio("laserCannonWarning", "/audio/laser_cannon_start.mp3");
     this.load.audio("laserCannonActivate", "/audio/laser_cannon_touch.mp3");
@@ -127,7 +128,7 @@ class GameScene extends Phaser.Scene {
     // СОЗДАНИЕ ПРЕПЯТСТВИЙ
     // Запускаем генерацию ракет каждые 5 секунд
     // this.generateRocketsByTimer();
-    // Start generating Laser Cannons every 15 seconds (adjust as needed)
+    // Start generating Laser Cannons every 5 секунд (adjust as needed)
     this.generateLaserCannonsByTimer();
 
     // // Инициализация очереди пресетов
@@ -145,7 +146,7 @@ class GameScene extends Phaser.Scene {
 
   generateLaserCannonsByTimer() {
     this.generateLaserCannonTimer = this.time.addEvent({
-      delay: 5000, // Every 8 seconds (adjust as needed)
+      delay: 10000, // Every 5 seconds (adjust as needed)
       callback: this.generateLaserCannon,
       callbackScope: this,
       loop: true,
@@ -383,12 +384,13 @@ class GameScene extends Phaser.Scene {
     // Обновляем позицию последнего пресета
     this.lastPlatformX += maxOffsetX + MIN_DISTANCE_BETWEEN_PRESETS;
   }
+
   /**
    * Метод обработки столкновений
    * @param event Событие столкновения
    */
   handleCollision(event: Phaser.Physics.Matter.Events.CollisionStartEvent) {
-    console.log("YEEE");
+    console.log("Collision detected!");
 
     event.pairs.forEach((pair) => {
       const { bodyA, bodyB } = pair;
@@ -401,53 +403,52 @@ class GameScene extends Phaser.Scene {
         return;
       }
 
-      // Проверяем столкновение между игроком и лазером
+      // Проверяем столкновение между игроком и лазерами
       if (
         (gameObjectA === this.player &&
-          gameObjectB instanceof Phaser.Physics.Matter.Image &&
-          this.lasers.includes(gameObjectB)) ||
+          this.lasers.includes(gameObjectB as Phaser.Physics.Matter.Image)) ||
         (gameObjectB === this.player &&
-          gameObjectA instanceof Phaser.Physics.Matter.Image &&
-          this.lasers.includes(gameObjectA))
+          this.lasers.includes(gameObjectA as Phaser.Physics.Matter.Image))
       ) {
+        console.log("Player hit by laser!");
         this.handlePlayerHit();
+        return; // Нет необходимости проверять дальше, если уже нашли столкновение
       }
 
-      // Проверяем столкновение между игроком и ракетой
+      // Проверяем столкновение между игроком и ракетами
       if (
         (gameObjectA === this.player &&
           gameObjectB instanceof Rocket &&
-          gameObjectB.active) ||
+          (gameObjectB as Rocket).active) ||
         (gameObjectB === this.player &&
           gameObjectA instanceof Rocket &&
-          gameObjectA.active)
+          (gameObjectA as Rocket).active)
       ) {
+        console.log("Player hit by rocket!");
         this.handlePlayerHit();
+        return;
       }
 
-      // Проверяем столкновение между игроком и лазерной пушкой (если нужно)
-      // Здесь мы подразумеваем, что лазерная пушка имеет физическое тело
+      // Проверяем столкновение игрока с сегментами лазерной плазмы
       const laserCannons = this.objectManager.getObjectsByType("laserCannon");
+
       laserCannons.forEach((cannonObj) => {
         const cannon = cannonObj.instance as LaserCannon;
 
-        // Добавляем проверку на физическое тело у LaserCannon, если требуется
-        if (
-          (gameObjectA === this.player &&
-            gameObjectB instanceof LaserCannon &&
-            gameObjectB === cannon) ||
-          (gameObjectB === this.player &&
-            gameObjectA instanceof LaserCannon &&
-            gameObjectA === cannon)
-        ) {
-          this.handlePlayerHit();
-        }
+        cannon.laserPlasma.forEach((segment) => {
+          if (
+            (gameObjectA === this.player && gameObjectB === segment) ||
+            (gameObjectB === this.player && gameObjectA === segment)
+          ) {
+            this.handlePlayerHit();
+          }
+        });
       });
     });
   }
 
   handlePlayerHit() {
-    console.log("asdasd");
+    console.log("Player hit detected!");
 
     if (this.isStoped) return; // Prevent multiple triggers
 
@@ -485,7 +486,9 @@ class GameScene extends Phaser.Scene {
       })
       .setInteractive({ useHandCursor: true });
 
+    // Добавляем логирование для отладки
     restartText.on("pointerdown", () => {
+      console.log("Restart button clicked.");
       this.isStoped = false;
       // Remove all modal elements
       modal.destroy();
@@ -493,15 +496,15 @@ class GameScene extends Phaser.Scene {
       continueText.destroy();
 
       // Clean up weapons and other resources
-      this.objectManager.objects.forEach((obj) =>
-        this.objectManager.removeObject(obj.instance)
-      );
+      this.objectManager.removeAllObjects();
 
       // Restart the scene
       this.scene.restart();
     });
 
     continueText.on("pointerdown", () => {
+      console.log("Continue button clicked.");
+      this.objectManager.removeAllObjects();
       this.isStoped = false;
       this.generateRocketsByTimer();
       this.generateLaserCannonsByTimer();

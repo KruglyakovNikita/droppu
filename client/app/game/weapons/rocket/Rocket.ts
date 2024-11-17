@@ -30,6 +30,7 @@ export class Rocket extends Phaser.Physics.Matter.Sprite {
     this.setIgnoreGravity(true);
     this.setFrictionAir(0); // Отключаем сопротивление воздуха
     this.setFriction(0); // Отключаем трение
+    this.setFixedRotation();
   }
 
   /**
@@ -39,8 +40,6 @@ export class Rocket extends Phaser.Physics.Matter.Sprite {
    */
   setWarning(getX: () => number, getY: () => number) {
     this.isWarning = true; // Устанавливаем флаг
-
-    console.log("Rocket setWarning called:", this);
 
     // Создаём треугольник-предупреждение
     const warningTriangle = this.scene.add.image(
@@ -73,7 +72,6 @@ export class Rocket extends Phaser.Physics.Matter.Sprite {
     this.warningDelayedCall = this.scene.time.delayedCall(
       3000,
       () => {
-        console.log("Delayed call executed for Rocket:", this);
         if (this.scene && this.updateWarningPosition) {
           this.scene.events.off("update", this.updateWarningPosition);
           this.updateWarningPosition = null;

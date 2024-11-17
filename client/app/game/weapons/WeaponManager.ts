@@ -1,4 +1,3 @@
-// WeaponManager.ts
 export class WeaponManager {
   scene: Phaser.Scene;
   objects: { type: string; instance: any; state: any }[];
@@ -27,17 +26,27 @@ export class WeaponManager {
     instance.destroy();
   }
 
+  /**
+   * Метод для удаления всех объектов
+   */
+  removeAllObjects() {
+    this.objects.forEach((obj) => {
+      if (obj.instance.destroy) {
+        obj.instance.destroy();
+      }
+    });
+    console.log("All objects removed from WeaponManager.");
+    this.objects = [];
+  }
+
   update(player: Phaser.GameObjects.Sprite) {
     this.objects = this.objects.filter((obj) => {
-      if (!obj.instance || !obj.instance.body) {
+      if (!obj.instance) {
         // Удаляем объект, если его больше нет
         return false;
       }
 
-      const isRocket = obj.type === "rocket";
-      const isWarning = isRocket && obj.instance.isWarning;
-
-      if (!isWarning) {
+      if (obj.instance.body) {
         const camera = this.scene.cameras.main;
         // Удаляем объекты, если они вышли за границы видимой области камеры
         if (
@@ -46,7 +55,6 @@ export class WeaponManager {
           obj.instance.y <= camera.scrollY || // Верхний край за пределами камеры
           obj.instance.y >= camera.scrollY + camera.height // Нижний край за пределами камеры
         ) {
-          console.log("Удаление объекта за пределами камеры:", obj.type);
           this.removeObject(obj.instance);
           return false;
         }
@@ -54,7 +62,7 @@ export class WeaponManager {
 
       // Обновляем объект, если у него есть метод update
       if (obj.instance.update) {
-        obj.instance.update(player); // Pass both player and delta
+        obj.instance.update(player); // Передаем игрока для обновления
       }
 
       return true;
@@ -67,6 +75,7 @@ export class WeaponManager {
    * @returns Массив объектов заданного типа
    */
   getObjectsByType(type: string) {
-    return this.objects.filter((obj) => obj.type === type);
+    const filteredObjects = this.objects.filter((obj) => obj.type === type);
+    return filteredObjects;
   }
 }
