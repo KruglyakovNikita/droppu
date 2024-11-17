@@ -10,7 +10,7 @@ export class WeaponManager {
 
   /**
    * Метод для добавления объекта (например, ракеты или лазера)
-   * @param type Тип объекта (например, "rocket", "laser")
+   * @param type Тип объекта (например, "rocket", "laserCannon")
    * @param instance Экземпляр объекта
    * @param state Дополнительное состояние объекта
    */
@@ -59,7 +59,7 @@ export class WeaponManager {
 
       // Обновляем объект, если у него есть метод update
       if (obj.instance.update) {
-        obj.instance.update(player, delta);
+        obj.instance.update(player, delta); // Pass both player and delta
       }
 
       return true;
