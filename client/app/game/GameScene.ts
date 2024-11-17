@@ -1,4 +1,3 @@
-// GameScene.ts
 "use client";
 
 import Phaser from "phaser";
@@ -8,6 +7,8 @@ import { DynamicRocket } from "./weapons/Rocket/DynamicRocket";
 import { HomingRocket } from "./weapons/Rocket/HomingRocket";
 import { StaticRocket } from "./weapons/Rocket/StaticRocket";
 import { WeaponManager } from "./weapons/WeaponManager";
+import { LaserCannon } from "./weapons/Laser/LaserCannon"; // Add this import
+import { Rocket } from "./weapons/Rocket/Rocket";
 
 // Константы игры
 export const PLAYER_SPEED = 2; // Постоянная скорость вправо
@@ -40,18 +41,20 @@ class GameScene extends Phaser.Scene {
 
   objectManager!: WeaponManager;
   generateRockettimer!: Phaser.Time.TimerEvent | null;
+  generateLaserCannonTimer!: Phaser.Time.TimerEvent | null;
 
   constructor() {
     super({ key: "GameScene" });
   }
 
   preload() {
+    // Existing preload assets...
     this.load.image("laser", "/blocks/laser.png");
     this.load.image("player", "/player/player.png");
     this.load.image("background", "/map/background2.jpg");
     this.load.image("background2", "/map/background2.jpg");
 
-    // Текстуры для ракет
+    // Textures for rockets
     this.load.image("homingRocketTexture", "/blocks/rocket_default_homing.png");
     this.load.image("staticRocketTexture", "/blocks/rocket_default.png");
     this.load.image(
@@ -59,15 +62,21 @@ class GameScene extends Phaser.Scene {
       "/blocks/rocket_default_dynamic.png"
     );
 
-    // Текстура для дыма
-    this.load.image("smoke", "/blocks/smoke.png"); // Убедитесь, что путь корректен
+    // Texture for smoke
+    this.load.image("smoke", "/blocks/smoke.png"); // Ensure the path is correct
 
-    // Звуки
+    // Sounds
     this.load.audio("rocketLaunch", "/audio/rocket_start.mp3");
     this.load.audio("playerHit", "/audio/rocket_touch.mp3");
 
-    // Предупреждающий треугольник (если требуется)
+    // Warning triangle (if required)
     this.load.image("warningTriangle", "/blocks/warningTriangle.png");
+    this.load.image("laserGun", "/blocks/laser_gun.png");
+    this.load.image("laserPlazm", "/blocks/laser_plazm.png");
+    // Assets for Laser Cannon
+    this.load.audio("laserCannonWarning", "/audio/laser_cannon_start.mp3");
+    this.load.audio("laserCannonActivate", "/audio/laser_cannon_touch.mp3");
+    this.load.audio("laserCannonDeactivate", "/audio/laser_cannon_start.mp3");
   }
 
   create() {
@@ -99,16 +108,6 @@ class GameScene extends Phaser.Scene {
     // Установка начальной постоянной скорости вправо
     this.player.setVelocityX(PLAYER_SPEED);
 
-    // Инициализация очереди пресетов
-    for (let i = 0; i < 3; i++) {
-      this.enqueuePreset();
-    }
-
-    // Добавление начальных пресетов
-    for (let i = 0; i < 3; i++) {
-      this.addPresetFromQueue();
-    }
-
     // Обработка столкновений
     this.matter.world.on("collisionstart", this.handleCollision, this);
 
@@ -126,13 +125,42 @@ class GameScene extends Phaser.Scene {
     this.background1.setOrigin(0, 0).setScrollFactor(0).setDepth(-Infinity);
     this.background2.setOrigin(0, 0).setScrollFactor(0).setDepth(-Infinity);
 
+    // СОЗДАНИЕ ПРЕПЯТСТВИЙ
     // Запускаем генерацию ракет каждые 5 секунд
     this.generateRocketsByTimer();
+    // Start generating Laser Cannons every 5 секунд (adjust as needed)
+    this.generateLaserCannonsByTimer();
+
+    // Инициализация очереди пресетов
+    for (let i = 0; i < 3; i++) {
+      this.enqueuePreset();
+    }
+
+    // Добавление начальных пресетов
+    for (let i = 0; i < 3; i++) {
+      this.addPresetFromQueue();
+    }
+
+    this.events.on("playerHit", this.handlePlayerHit, this);
+  }
+
+  generateLaserCannonsByTimer() {
+    this.generateLaserCannonTimer = this.time.addEvent({
+      delay: 10000, // Every 10 seconds (adjust as needed)
+      callback: this.generateLaserCannon,
+      callbackScope: this,
+      loop: true,
+    });
+  }
+
+  generateLaserCannon() {
+    const laserCannon = new LaserCannon(this);
+    this.objectManager.addObject("laserCannon", laserCannon, {});
   }
 
   generateRocketsByTimer() {
     this.generateRockettimer = this.time.addEvent({
-      delay: 5000, // 5 секунд
+      delay: 8000, // 8 секунд
       callback: this.generateRocket,
       callbackScope: this,
       loop: true,
@@ -142,24 +170,23 @@ class GameScene extends Phaser.Scene {
   /**
    * Метод обновления сцены
    * @param time Текущее время
-   * @param delta Время с последнего кадра в миллисекундах
    */
-  update(time: number, delta: number) {
+  update() {
     if (this.isStoped) {
       this.time.removeAllEvents();
       return;
     }
 
-    // Обновляем все объекты оружия, передавая player и delta
+    // Update all weapon objects, passing the player and delta
     if (this.objectManager) {
-      this.objectManager.update(this.player, delta);
+      this.objectManager.update(this.player);
     }
 
-    // Обновление фона для бесконечной прокрутки
+    // Update the background for infinite scrolling
     this.background1.x -= 1;
     this.background2.x -= 1;
 
-    // Перемещение фона для создания эффекта бесконечной прокрутки
+    // Move backgrounds to create infinite scrolling effect
     if (this.background1.x <= -this.background1.width) {
       this.background1.x = this.background2.x + this.background2.width;
     }
@@ -167,14 +194,18 @@ class GameScene extends Phaser.Scene {
       this.background2.x = this.background1.x + this.background1.width;
     }
 
-    // Устанавливаем постоянную скорость вправо
+    // Set constant speed to the right
     this.player.setVelocityX(PLAYER_SPEED);
 
-    // Управление джетпаком
-    if (this.cursors.up.isDown || this.cursors.space.isDown) {
+    // Jetpack control: handle keyboard (up arrow, space) and screen tap
+    if (
+      this.cursors.up.isDown || // Up arrow key
+      this.cursors.space.isDown || // Space key
+      this.input.activePointer.isDown // Screen tap
+    ) {
       const newVelocityY = Math.max(
         (this.player.body?.velocity.y ?? 0) + ASCENT_FORCE,
-        MAX_ASCENTT_SPEED
+        MAX_ASCENT_SPEED
       );
       this.player.setVelocityY(newVelocityY);
     } else {
@@ -185,10 +216,10 @@ class GameScene extends Phaser.Scene {
       this.player.setVelocityY(newVelocityY);
     }
 
-    // Добавление пресетов из очереди
+    // Add presets from the queue
     this.addPresetFromQueue();
 
-    // Удаление лазеров за пределами экрана
+    // Remove static lasers that are out of the screen
     this.lasers = this.lasers.filter((laser) => {
       if (
         laser &&
@@ -201,7 +232,7 @@ class GameScene extends Phaser.Scene {
       return true;
     });
 
-    // Ограничение движения игрока по вертикали
+    // Clamp player movement vertically
     if (this.player.y < MIN_Y) {
       this.player.setPosition(this.player.x, MIN_Y);
       this.player.setVelocityY(0);
@@ -210,7 +241,7 @@ class GameScene extends Phaser.Scene {
       this.player.setVelocityY(0);
     }
 
-    // Обновление счета
+    // Update score
     const currentScore = Math.max(this.score, Math.floor(this.player.x - 100));
     if (currentScore !== this.score) {
       this.score = currentScore;
@@ -222,8 +253,7 @@ class GameScene extends Phaser.Scene {
    * Метод генерации ракеты
    */
   generateRocket() {
-    // const rocketTypes = ["homing", "static", "dynamic"];
-    const rocketTypes = ["dynamic"];
+    const rocketTypes = ["homing", "static", "dynamic"];
     const rocketType = Phaser.Utils.Array.GetRandom(rocketTypes);
 
     let rocket;
@@ -253,8 +283,7 @@ class GameScene extends Phaser.Scene {
           yPosition,
           this.player,
           4,
-          20,
-          2
+          20
         ); // Амплитуда 20 пикселей
         rocket.setWarning(
           () => this.cameras.main.scrollX + this.cameras.main.width - 20,
@@ -361,6 +390,8 @@ class GameScene extends Phaser.Scene {
    * @param event Событие столкновения
    */
   handleCollision(event: Phaser.Physics.Matter.Events.CollisionStartEvent) {
+    console.log("Collision detected!");
+
     event.pairs.forEach((pair) => {
       const { bodyA, bodyB } = pair;
 
@@ -372,72 +403,120 @@ class GameScene extends Phaser.Scene {
         return;
       }
 
-      // Проверяем, что происходит столкновение между игроком и лазером
+      // Проверяем столкновение между игроком и лазерами
       if (
         (gameObjectA === this.player &&
           this.lasers.includes(gameObjectB as Phaser.Physics.Matter.Image)) ||
         (gameObjectB === this.player &&
           this.lasers.includes(gameObjectA as Phaser.Physics.Matter.Image))
       ) {
-        this.playerTouchLaser();
+        console.log("Player hit by laser!");
+        this.handlePlayerHit();
+        return; // Нет необходимости проверять дальше, если уже нашли столкновение
       }
+
+      // Проверяем столкновение между игроком и ракетами
+      if (
+        (gameObjectA === this.player &&
+          gameObjectB instanceof Rocket &&
+          (gameObjectB as Rocket).active) ||
+        (gameObjectB === this.player &&
+          gameObjectA instanceof Rocket &&
+          (gameObjectA as Rocket).active)
+      ) {
+        console.log("Player hit by rocket!");
+        this.handlePlayerHit();
+        return;
+      }
+
+      // Проверяем столкновение игрока с сегментами лазерной плазмы
+      const laserCannons = this.objectManager.getObjectsByType("laserCannon");
+
+      laserCannons.forEach((cannonObj) => {
+        const cannon = cannonObj.instance as LaserCannon;
+
+        cannon.laserPlasma.forEach((segment) => {
+          if (
+            (gameObjectA === this.player && gameObjectB === segment) ||
+            (gameObjectB === this.player && gameObjectA === segment)
+          ) {
+            this.handlePlayerHit();
+          }
+        });
+      });
     });
   }
 
-  /**
-   * Метод вызывается при столкновении игрока с лазером
-   */
-  playerTouchLaser() {
-    // Приостанавливаем мир и окрашиваем игрока в красный цвет при столкновении
+  handlePlayerHit() {
+    console.log("Player hit detected!");
+
+    if (this.isStoped) return; // Prevent multiple triggers
+
+    this.isStoped = true;
+
+    // Pause the game world
     this.matter.world.pause();
     this.player.setTint(0xff0000);
 
-    // Получаем центр текущего положения камеры
+    // Remove all active warning triangles from weapons
+    this.objectManager.objects.forEach((obj) => {
+      if (typeof obj.instance.destroyWarning === "function") {
+        obj.instance.destroyWarning();
+      }
+    });
+
+    // Get the center of the current camera view
     const centerX = this.cameras.main.worldView.x + this.cameras.main.width / 2;
     const centerY =
       this.cameras.main.worldView.y + this.cameras.main.height / 2;
 
-    // Отображаем модальное окно
+    // Display modal window
     const modal = this.add.rectangle(centerX, centerY, 300, 200, 0x000000, 0.8);
     const restartText = this.add
       .text(centerX - 70, centerY - 30, "Начать заново", {
         fontSize: "20px",
         color: "#ffffff",
       })
-      .setInteractive({ useHandCursor: true }); // Устанавливаем курсор "рука"
+      .setInteractive({ useHandCursor: true });
 
     const continueText = this.add
       .text(centerX - 60, centerY + 30, "Продолжить", {
         fontSize: "20px",
         color: "#ffffff",
       })
-      .setInteractive({ useHandCursor: true }); // Устанавливаем курсор "рука"
+      .setInteractive({ useHandCursor: true });
 
+    // Добавляем логирование для отладки
     restartText.on("pointerdown", () => {
+      console.log("Restart button clicked.");
       this.isStoped = false;
-      // Удаляем все элементы модального окна
+      // Remove all modal elements
       modal.destroy();
       restartText.destroy();
       continueText.destroy();
 
-      // Убедимся, что лазеры и другие ресурсы очищаются
-      this.lasers.forEach((laser) => laser.destroy());
-      this.lasers = [];
+      // Clean up weapons and other resources
+      this.objectManager.removeAllObjects();
 
-      // Перезапуск сцены
+      // Restart the scene
       this.scene.restart();
     });
 
     continueText.on("pointerdown", () => {
+      console.log("Continue button clicked.");
+      this.objectManager.removeAllObjects();
       this.isStoped = false;
       this.generateRocketsByTimer();
+      this.generateLaserCannonsByTimer();
 
+      // Remove modal elements
       modal.destroy();
       restartText.destroy();
       continueText.destroy();
-      this.continueGame(); // Продолжение игры
+
+      // Continue the game
+      this.continueGame();
     });
-    this.isStoped = true;
   }
 
   /**
@@ -447,9 +526,6 @@ class GameScene extends Phaser.Scene {
     // Убираем красный цвет игрока и возобновляем мир
     this.player.clearTint();
     this.matter.world.resume();
-
-    // Очищаем массив от уничтоженных лазеров
-    console.log(this.lasers[0]?.x);
 
     this.lasers = this.lasers.filter((laser) => {
       if (laser.x < this.lastPlatformX) {

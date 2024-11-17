@@ -30,6 +30,7 @@ export class Rocket extends Phaser.Physics.Matter.Sprite {
     this.setIgnoreGravity(true);
     this.setFrictionAir(0); // Отключаем сопротивление воздуха
     this.setFriction(0); // Отключаем трение
+    this.setFixedRotation();
   }
 
   /**
@@ -39,8 +40,6 @@ export class Rocket extends Phaser.Physics.Matter.Sprite {
    */
   setWarning(getX: () => number, getY: () => number) {
     this.isWarning = true; // Устанавливаем флаг
-
-    console.log("Rocket setWarning called:", this);
 
     // Создаём треугольник-предупреждение
     const warningTriangle = this.scene.add.image(
@@ -73,7 +72,6 @@ export class Rocket extends Phaser.Physics.Matter.Sprite {
     this.warningDelayedCall = this.scene.time.delayedCall(
       3000,
       () => {
-        console.log("Delayed call executed for Rocket:", this);
         if (this.scene && this.updateWarningPosition) {
           this.scene.events.off("update", this.updateWarningPosition);
           this.updateWarningPosition = null;
@@ -97,7 +95,7 @@ export class Rocket extends Phaser.Physics.Matter.Sprite {
     console.log("Rocket activate called:", this);
 
     // Устанавливаем начальную позицию ракеты
-    this.setPosition(getX(), getY());
+    this.setPosition(getX() + 50, getY());
 
     // Делаем ракету видимой и активной
     this.setVisible(true);
@@ -114,28 +112,9 @@ export class Rocket extends Phaser.Physics.Matter.Sprite {
   /**
    * Метод обновления ракеты
    * @param player Ссылка на игрока
-   * @param delta Время с последнего кадра в миллисекундах
    */
-  update(player: Phaser.GameObjects.Sprite, delta: number) {
-    this.checkCollisionWithPlayer(player);
+  update() {
     this.addTrail();
-  }
-
-  /**
-   * Метод для проверки столкновений с игроком
-   * @param player Ссылка на игрока
-   */
-  checkCollisionWithPlayer(player: Phaser.GameObjects.Sprite) {
-    if (
-      Phaser.Geom.Intersects.RectangleToRectangle(
-        this.getBounds(),
-        player.getBounds()
-      )
-    ) {
-      // Смертельное столкновение
-      this.scene.events.emit("playerHit");
-      this.destroy();
-    }
   }
 
   /**

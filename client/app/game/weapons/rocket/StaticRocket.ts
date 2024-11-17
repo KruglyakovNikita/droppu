@@ -6,13 +6,8 @@ export class StaticRocket extends Rocket {
     super(scene, x, y, "staticRocketTexture", null, speed);
   }
 
-  /**
-   * Метод обновления ракеты
-   * @param player Ссылка на игрока
-   * @param delta Время с последнего кадра в миллисекундах
-   */
-  update(player: Phaser.GameObjects.Sprite, delta: number) {
-    super.update(player, delta);
+  update() {
+    super.update();
     // Дополнительное поведение не требуется; ракета движется влево с фиксированной скоростью
   }
 }
