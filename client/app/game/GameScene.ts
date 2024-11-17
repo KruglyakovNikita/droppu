@@ -170,7 +170,7 @@ class GameScene extends Phaser.Scene {
    * @param time Текущее время
    * @param delta Время с последнего кадра в миллисекундах
    */
-  update(time: number, delta: number) {
+  update(delta: number) {
     if (this.isStoped) {
       this.time.removeAllEvents();
       return;
@@ -196,8 +196,12 @@ class GameScene extends Phaser.Scene {
     // Set constant speed to the right
     this.player.setVelocityX(PLAYER_SPEED);
 
-    // Jetpack control
-    if (this.cursors.up.isDown || this.cursors.space.isDown) {
+    // Jetpack control: handle keyboard (up arrow, space) and screen tap
+    if (
+      this.cursors.up.isDown || // Up arrow key
+      this.cursors.space.isDown || // Space key
+      this.input.activePointer.isDown // Screen tap
+    ) {
       const newVelocityY = Math.max(
         (this.player.body?.velocity.y ?? 0) + ASCENT_FORCE,
         MAX_ASCENT_SPEED
