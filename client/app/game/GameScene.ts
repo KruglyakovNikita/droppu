@@ -127,26 +127,26 @@ class GameScene extends Phaser.Scene {
 
     // СОЗДАНИЕ ПРЕПЯТСТВИЙ
     // Запускаем генерацию ракет каждые 5 секунд
-    // this.generateRocketsByTimer();
+    this.generateRocketsByTimer();
     // Start generating Laser Cannons every 5 секунд (adjust as needed)
     this.generateLaserCannonsByTimer();
 
-    // // Инициализация очереди пресетов
-    // for (let i = 0; i < 3; i++) {
-    //   this.enqueuePreset();
-    // }
+    // Инициализация очереди пресетов
+    for (let i = 0; i < 3; i++) {
+      this.enqueuePreset();
+    }
 
-    // // Добавление начальных пресетов
-    // for (let i = 0; i < 3; i++) {
-    //   this.addPresetFromQueue();
-    // }
+    // Добавление начальных пресетов
+    for (let i = 0; i < 3; i++) {
+      this.addPresetFromQueue();
+    }
 
     this.events.on("playerHit", this.handlePlayerHit, this);
   }
 
   generateLaserCannonsByTimer() {
     this.generateLaserCannonTimer = this.time.addEvent({
-      delay: 10000, // Every 5 seconds (adjust as needed)
+      delay: 10000, // Every 10 seconds (adjust as needed)
       callback: this.generateLaserCannon,
       callbackScope: this,
       loop: true,
@@ -160,7 +160,7 @@ class GameScene extends Phaser.Scene {
 
   generateRocketsByTimer() {
     this.generateRockettimer = this.time.addEvent({
-      delay: 5000, // 5 секунд
+      delay: 8000, // 8 секунд
       callback: this.generateRocket,
       callbackScope: this,
       loop: true,
