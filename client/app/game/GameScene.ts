@@ -43,6 +43,11 @@ class GameScene extends Phaser.Scene {
   generateRockettimer!: Phaser.Time.TimerEvent | null;
   generateLaserCannonTimer!: Phaser.Time.TimerEvent | null;
 
+  //Coin
+  coins: Phaser.Physics.Matter.Image[] = [];
+  coinCount: number = 0;
+  coinText!: Phaser.GameObjects.Text;
+
   constructor() {
     super({ key: "GameScene" });
   }
@@ -77,6 +82,9 @@ class GameScene extends Phaser.Scene {
     this.load.audio("laserCannonWarning", "/audio/laser_cannon_start.mp3");
     this.load.audio("laserCannonActivate", "/audio/laser_cannon_touch.mp3");
     this.load.audio("laserCannonDeactivate", "/audio/laser_cannon_start.mp3");
+
+    //Coin
+    this.load.image("coin", "/blocks/coin.png");
   }
 
   create() {
@@ -127,9 +135,9 @@ class GameScene extends Phaser.Scene {
 
     // СОЗДАНИЕ ПРЕПЯТСТВИЙ
     // Запускаем генерацию ракет каждые 5 секунд
-    this.generateRocketsByTimer();
+    // this.generateRocketsByTimer();
     // Start generating Laser Cannons every 5 секунд (adjust as needed)
-    this.generateLaserCannonsByTimer();
+    // this.generateLaserCannonsByTimer();
 
     // Инициализация очереди пресетов
     for (let i = 0; i < 3; i++) {
@@ -142,6 +150,13 @@ class GameScene extends Phaser.Scene {
     }
 
     this.events.on("playerHit", this.handlePlayerHit, this);
+
+    ///Coins
+    this.coinText = this.add.text(16, 46, "Coins: 0", {
+      fontSize: "24px",
+      color: "#ffffff",
+    });
+    this.coinText.setScrollFactor(0);
   }
 
   generateLaserCannonsByTimer() {
@@ -224,7 +239,7 @@ class GameScene extends Phaser.Scene {
       if (
         laser &&
         this.cameras?.main?.scrollX !== undefined &&
-        laser.x < this.cameras.main.scrollX - 100
+        laser?.x < this.cameras.main.scrollX - 100
       ) {
         laser.destroy();
         return false;
@@ -247,6 +262,14 @@ class GameScene extends Phaser.Scene {
       this.score = currentScore;
       this.scoreText.setText("Score: " + this.score);
     }
+
+    this.coins = this.coins?.filter((coin) => {
+      if (coin && coin?.x < this.cameras.main.scrollX - 100) {
+        coin.destroy();
+        return false;
+      }
+      return true;
+    });
   }
 
   /**
@@ -381,6 +404,26 @@ class GameScene extends Phaser.Scene {
       maxOffsetX = Math.max(maxOffsetX, laserConfig.x);
     });
 
+    if (preset.coins) {
+      preset.coins.forEach((coinConfig) => {
+        const x = this.lastPlatformX + coinConfig.x;
+        const y = coinConfig.y;
+
+        // Create the coin as a Matter image
+        const coin = this.matter.add.image(x, y, "coin", undefined, {
+          isStatic: true,
+        });
+
+        coin.setOrigin(0.5, 0.5);
+        coin.setDisplaySize(25, 25); // Adjust size as needed
+        coin.setSensor(true); // Coins are sensors to detect overlap
+        coin.setIgnoreGravity(true); // Ensure coins don't fall
+        coin.setDepth(1);
+
+        this.coins.push(coin);
+      });
+    }
+
     // Обновляем позицию последнего пресета
     this.lastPlatformX += maxOffsetX + MIN_DISTANCE_BETWEEN_PRESETS;
   }
@@ -400,6 +443,19 @@ class GameScene extends Phaser.Scene {
 
       // Проверяем, что объекты существуют перед доступом к ним
       if (!gameObjectA || !gameObjectB) {
+        return;
+      }
+
+      // Check for collision between player and coin
+      if (
+        (gameObjectA === this.player &&
+          this.coins.includes(gameObjectB as Phaser.Physics.Matter.Image)) ||
+        (gameObjectB === this.player &&
+          this.coins.includes(gameObjectA as Phaser.Physics.Matter.Image))
+      ) {
+        this.handleCoinCollect(
+          gameObjectA === this.player ? gameObjectB : gameObjectA
+        );
         return;
       }
 
@@ -445,6 +501,18 @@ class GameScene extends Phaser.Scene {
         });
       });
     });
+  }
+
+  handleCoinCollect(coinObject: Phaser.GameObjects.GameObject) {
+    // Remove the coin from the scene
+    coinObject.destroy();
+
+    // Remove the coin from the coins array
+    this.coins = this.coins.filter((coin) => coin !== coinObject);
+
+    // Increment the coin count
+    this.coinCount += 1;
+    this.coinText.setText("Coins: " + this.coinCount);
   }
 
   handlePlayerHit() {
@@ -495,6 +563,13 @@ class GameScene extends Phaser.Scene {
       restartText.destroy();
       continueText.destroy();
 
+      this.coinCount = 0;
+      this.lasers = this.lasers.filter((laser) => {
+        laser.destroy();
+        return false;
+      });
+      this.destroyCoin();
+
       // Clean up weapons and other resources
       this.objectManager.removeAllObjects();
 
@@ -515,10 +590,19 @@ class GameScene extends Phaser.Scene {
       continueText.destroy();
 
       // Continue the game
+
+      this.destroyCoin();
+
       this.continueGame();
     });
   }
 
+  destroyCoin() {
+    this.coins = this.coins.filter((coin) => {
+      coin.destroy();
+      return false;
+    });
+  }
   /**
    * Метод продолжения игры после столкновения
    */
@@ -528,15 +612,16 @@ class GameScene extends Phaser.Scene {
     this.matter.world.resume();
 
     this.lasers = this.lasers.filter((laser) => {
-      if (laser.x < this.lastPlatformX) {
+      if (laser?.x < this.lastPlatformX) {
         laser.destroy();
         return false;
       }
       return true;
     });
+    this.destroyCoin();
 
     // Обновляем генерацию пресетов, начиная с текущей позиции игрока
-    this.lastPlatformX = this.player.x + 500; // Устанавливаем для новой генерации пресетов
+    this.lastPlatformX = this.player.x + 300; // Устанавливаем для новой генерации пресетов
   }
 }
 

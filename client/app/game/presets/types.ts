@@ -5,7 +5,13 @@ export type LaserConfig = {
   length?: number;
 };
 
-export type Preset = {
+export interface CoinConfig {
+  x: number;
+  y: number;
+}
+
+export interface Preset {
   lasers: LaserConfig[];
-  difficulty: "easy" | "medium" | "hard" | "ultra-hard";
-};
+  coins?: CoinConfig[];
+  difficulty: string;
+}

@@ -1,5 +1,6 @@
 import { Preset } from "./presets/types";
 import { easyPresets } from "./presets/easy-presets";
+import { coinsPresets } from "./presets/coins-preset";
 import { mediumPresets } from "./presets/medium-presets";
 import { hardPresets } from "./presets/hard-presets";
 import { ultraHardPresets } from "./presets/ultra-hard-presets";
@@ -55,9 +56,9 @@ export function getPresetPool(
   // }
   switch (difficulty) {
     case "easy":
-      return easyPresets;
+      return coinsPresets;
     default:
-      return easyPresets;
+      return coinsPresets;
   }
 }
 //
