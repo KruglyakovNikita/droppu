@@ -7,6 +7,9 @@ export class LaserCannon {
   laserPlasma: Phaser.Physics.Matter.Image[] = [];
   leftGun: Phaser.GameObjects.Image;
   rightGun: Phaser.GameObjects.Image;
+
+  warningRight: Phaser.GameObjects.Image | undefined;
+  warningLeft: Phaser.GameObjects.Image | undefined;
   active: boolean = false;
   timers: Phaser.Time.TimerEvent[] = [];
   private updateLaserPosition: (() => void) | null = null;
@@ -34,35 +37,35 @@ export class LaserCannon {
    */
   startSequence() {
     // Отображаем предупреждающие треугольники
-    const warningLeft = this.scene.add.image(
+    this.warningLeft = this.scene.add.image(
       CAMER_GAP,
       this.scene.scale.height / 2,
       "warningTriangle"
     );
-    const warningRight = this.scene.add.image(
+    this.warningRight = this.scene.add.image(
       this.scene.cameras.main.width - CAMER_GAP,
       this.scene.scale.height / 2,
       "warningTriangle"
     );
-    warningLeft.setScale(0.5);
-    warningRight.setScale(0.5);
-    warningLeft.setAlpha(0.8);
-    warningRight.setAlpha(0.8);
-    warningLeft.setVisible(true);
-    warningRight.setVisible(true);
-    warningLeft.setDepth(2);
-    warningRight.setDepth(2);
+    this.warningLeft.setScale(0.5);
+    this.warningRight.setScale(0.5);
+    this.warningLeft.setAlpha(0.8);
+    this.warningRight.setAlpha(0.8);
+    this.warningLeft.setVisible(true);
+    this.warningRight.setVisible(true);
+    this.warningLeft.setDepth(2);
+    this.warningRight.setDepth(2);
 
     // Отключаем прокрутку треугольников
-    warningLeft.setScrollFactor(0);
-    warningRight.setScrollFactor(0);
+    this.warningLeft.setScrollFactor(0);
+    this.warningRight.setScrollFactor(0);
 
     // Воспроизводим звук предупреждения
     this.scene.sound.play("laserCannonWarning");
 
     // Добавляем мигание треугольникам
     this.scene.tweens.add({
-      targets: [warningLeft, warningRight],
+      targets: [this.warningLeft, this.warningRight],
       alpha: { from: 0.8, to: 0 },
       ease: "Linear",
       duration: 300,
@@ -74,8 +77,8 @@ export class LaserCannon {
     const warningTimer = this.scene.time.delayedCall(
       3000, // 3 секунды
       () => {
-        warningLeft.destroy();
-        warningRight.destroy();
+        this.warningLeft?.destroy();
+        this.warningRight?.destroy();
 
         // Активируем лазеры
         this.fireLaser();
@@ -243,6 +246,9 @@ export class LaserCannon {
     this.laserPlasma = [];
     this.leftGun.destroy();
     this.rightGun.destroy();
+
+    this.warningLeft?.destroy();
+    this.warningRight?.destroy();
   }
 
   /**
