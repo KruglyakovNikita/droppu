@@ -220,11 +220,8 @@ export class LaserCannon {
     // Воспроизводим звук деактивации лазера
     this.scene.sound.play("laserCannonDeactivate");
 
-    // Перезапускаем последовательность
-    this.startSequence();
-
     // Дополнительно уничтожаем LaserCannon, если нужно
-    // this.destroy();
+    this.destroy();
   }
 
   /**
