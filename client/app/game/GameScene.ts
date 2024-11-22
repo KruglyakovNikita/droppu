@@ -172,7 +172,7 @@ class GameScene extends Phaser.Scene {
 
   generateLaserCannonsByTimer() {
     this.generateLaserCannonTimer = this.time.addEvent({
-      delay: 4000, // Every 10 seconds (adjust as needed)
+      delay: 8000, // Every 10 seconds (adjust as needed)
       callback: this.generateLaserCannon,
       callbackScope: this,
       loop: true,
@@ -185,7 +185,7 @@ class GameScene extends Phaser.Scene {
 
     const laserCannonTypes = ["static", "homing", "dynamic"];
     // const type = Phaser.Utils.Array.GetRandom(laserCannonTypes);
-    const type = "homing";
+    const type = "dynamic";
 
     const laserCannon = new LaserCannon(this, type, this.player);
     this.objectManager.addObject("laserCannon", laserCannon, { type });
