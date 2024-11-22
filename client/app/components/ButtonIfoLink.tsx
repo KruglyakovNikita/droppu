@@ -8,6 +8,7 @@ interface ButtonIfoLinkProps {
   description: string;
   onClick: () => void;
   startIcon?: ReactNode;
+  width?: string;
   endIcon?: ReactNode;
   descriptionFontSize?: string;
   titleFontSize?: string;
@@ -19,6 +20,7 @@ export const ButtonIfoLink: FC<ButtonIfoLinkProps> = ({
   onClick,
   startIcon,
   endIcon,
+  width="165px",
   descriptionFontSize = "9px",
   titleFontSize = "14px",
 }) => {
@@ -27,7 +29,7 @@ export const ButtonIfoLink: FC<ButtonIfoLinkProps> = ({
       startColor="#793BC7"
       endColor="#C2D2FF"
       strokeWidth={1.5}
-      w="165px"
+      w={width}
       h="45px"
     >
       <Card
@@ -48,7 +50,7 @@ export const ButtonIfoLink: FC<ButtonIfoLinkProps> = ({
             color={colors.primaryText}
             fontFamily="'PixelifySans-Bold', sans-serif"
             fontWeight="bold"
-            mb={-1.25}
+            mb={-1.5}
           >
             {title}
           </Heading>

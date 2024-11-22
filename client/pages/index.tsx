@@ -254,7 +254,7 @@ const Home: React.FC = () => {
           <Card
             onClick={() => {
               window.Telegram.WebApp.HapticFeedback.impactOccurred("soft");
-              window.location.href = "/roulette";
+              window.location.href = "/inventory";
             }}
             direction="row"
             alignItems="center"
