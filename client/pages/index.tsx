@@ -9,7 +9,6 @@ import {
   Image,
   Heading,
 } from "@chakra-ui/react";
-import type { TelegramWebApps } from 'telegram-webapps-types-new';
 import { keyframes } from "@emotion/react";
 import GradientBorderWrapper from "../app/components/GradientBorderWrapper";
 import { useEffect, useState } from "react";
@@ -20,7 +19,7 @@ import { ButtonIfoLink } from "@/app/components/ButtonIfoLink";
 
 declare global {
   interface Window {
-    TgWebApp?: TelegramWebApps.WebApp;
+    Telegram?: any;
   }
 }
 
@@ -49,8 +48,8 @@ const Home: React.FC = () => {
     document.body.appendChild(script);
 
     script.onload = () => {
-      if (window.TgWebApp) {
-        const tg = window.TgWebApp;
+      if (window.Telegram && window.Telegram.WebApp) {
+        const tg = window.Telegram.WebApp;
         if (tg.initDataUnsafe) {
           setTelegramUser(tg.initDataUnsafe.user);
           console.log(tg.initDataUnsafe);
@@ -62,7 +61,7 @@ const Home: React.FC = () => {
           tg.expand();
           tg.setHeaderColor("#0D1478");
           tg.HapticFeedback.notificationOccurred("warning");
-          window.TgWebApp.disableVerticalSwipes();
+          window.Telegram.WebApp.disableVerticalSwipes();
         }
       }
     };
@@ -73,15 +72,15 @@ const Home: React.FC = () => {
   }, []);
 
   const inviteFriendsLink = () => {
-    window.TgWebApp?.HapticFeedback.impactOccurred("soft");
-    window.TgWebApp?.openTelegramLink(
+    window.Telegram.WebApp.HapticFeedback.impactOccurred("soft");
+    window.Telegram.WebApp.openTelegramLink(
       `https://t.me/share/url?url=https://t.me/DroppuBot/start?startapp=${telegramUser?.id}&text=%0A%0A🚀 Jump into action with @Droppu's jetpack game and earn $JET tokens soon!%0A🌟 Get a 750 rating boost just for joining!%0A💥 Premium players score a massive 1000 rating boost!`
     );
   };
 
   const chanelLink = () => {
-    window.TgWebApp?.HapticFeedback.impactOccurred("soft");
-    window.TgWebApp?.openTelegramLink(`https://t.me/droppu`);
+    window.Telegram.WebApp.HapticFeedback.impactOccurred("soft");
+    window.Telegram.WebApp.openTelegramLink(`https://t.me/droppu`);
   };
 
   const floatAnimation = keyframes`
@@ -253,7 +252,7 @@ const Home: React.FC = () => {
         >
           <Card
             onClick={() => {
-              window.TgWebApp?.HapticFeedback.impactOccurred("soft");
+              window.Telegram.WebApp.HapticFeedback.impactOccurred("soft");
               window.location.href = "/inventory";
             }}
             direction="row"
@@ -298,7 +297,7 @@ const Home: React.FC = () => {
         >
           <Card
             onClick={() => {
-              window.TgWebApp?.HapticFeedback.impactOccurred("soft");
+              window.Telegram.WebApp.HapticFeedback.impactOccurred("soft");
               window.location.href = "/stats";
             }}
             direction="row"
