@@ -174,7 +174,7 @@ class GameScene extends Phaser.Scene {
 
     const laserCannonTypes = ["static", "homing", "dynamic"];
     // const type = Phaser.Utils.Array.GetRandom(laserCannonTypes);
-    const type = "dynamic";
+    const type = "static";
 
     const laserCannon = new LaserCannon(this, type, this.player);
     this.objectManager.addObject("laserCannon", laserCannon, { type });
