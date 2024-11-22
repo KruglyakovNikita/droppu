@@ -2,7 +2,7 @@ import Phaser from "phaser";
 
 // Константы для временных интервалов и настроек
 const WARNING_DURATION = 3000; // Длительность предупреждающих треугольников в миллисекундах
-const GUN_APPEAR_DURATION = 500; // Время появления пушек
+const GUN_APPEAR_DURATION = 800; // Время появления пушек
 const LASER_DURATION = 2000; // Длительность действия плазмы
 const GUN_DISAPPEAR_DURATION = 500; // Время исчезновения пушек
 const CAMER_GAP = 25;
@@ -165,7 +165,6 @@ export class LaserCannon {
       duration: GUN_APPEAR_DURATION,
       ease: "Power1",
       onComplete: () => {
-        // После завершения анимации выстреливаем плазмой
         this.fireLaser();
       },
     });
