@@ -7,16 +7,18 @@ import {
   Button,
   Stack,
   Image,
+  useToast,
+  Spinner,
 } from "@chakra-ui/react";
 import { keyframes } from "@emotion/react";
 import GradientBorderWrapper from "../app/components/GradientBorderWrapper";
 import TaskPopup from "../app/components/TaskPop";
 import { useEffect, useState } from "react";
 import colors from "../theme/colors";
-import { getTasks } from "../app/lib/api/tasks"; // API для получения задач
-import { useStore } from "../app/lib/store/store"; // Подключаем управление состоянием
+import { getTasks } from "../app/lib/api/tasks"; // API for tasks
+import { useStore } from "../app/lib/store/store"; // State management
 
-// Анимация для звездочек
+// Animation for floating stars
 const floatAnimation = keyframes`
   0% { transform: translateY(0px) rotate(0deg); }
   50% { transform: translateY(-5px) rotate(10deg); }
@@ -26,19 +28,21 @@ const floatAnimation = keyframes`
 const Earn: React.FC = () => {
   const [tasks, setTasks] = useState<any[]>([]);
   const [filteredTasks, setFilteredTasks] = useState<any[]>([]);
-  const [selectedCategory, setSelectedCategory] = useState("New Socials");
+  const [selectedCategory, setSelectedCategory] = useState("New");
   const [isRewardPopupOpen, setIsRewardPopupOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isChecked, setIsChecked] = useState(false);
+  const toast = useToast();
 
-  // Получаем задачи и записываем их в состояние
+  // Fetch tasks on component mount
   useEffect(() => {
     const fetchTasks = async () => {
       try {
         const response = await getTasks();
         if (response?.data) {
-          console.log(response.data);
           setTasks(response.data);
-          // filterTasks("New Socials", tasks.);
+          filterTasks("New", response.data); // Filter for "New" tab by default
         }
       } catch (error) {
         console.error("Error fetching tasks:", error);
@@ -47,20 +51,38 @@ const Earn: React.FC = () => {
     fetchTasks();
   }, []);
 
-  // Фильтруем задачи по категориям
+  // Filter tasks based on the selected category
   const filterTasks = (category: string, taskList = tasks) => {
     setSelectedCategory(category);
     const filtered = taskList.filter((task) => task.type === category);
     setFilteredTasks(filtered);
   };
 
-  // Открытие попапа с деталями задачи
+  // Open the task popup
   const openRewardPopup = (task: any) => {
     setSelectedTask(task);
     setIsRewardPopupOpen(true);
+    setIsLoading(false); // Reset loading state
+    setIsChecked(false); // Reset checked state
   };
 
+  // Close the task popup
   const closeRewardPopup = () => setIsRewardPopupOpen(false);
+
+  // Handle the Subscribe button click
+  const handleSubscribe = () => {
+    setIsLoading(true);
+    setTimeout(() => {
+      setIsLoading(false);
+      setIsChecked(true);
+    }, 6000);
+  };
+
+  // Handle the Check button click
+  const handleCheck = () => {
+    closeRewardPopup();
+    // Add additional request logic here (e.g., API call)
+  };
 
   return (
     <Flex
@@ -71,7 +93,7 @@ const Earn: React.FC = () => {
       minH="100vh"
       p={4}
     >
-      {/* Заголовок Weekly */}
+      {/* Weekly Header */}
       <Box w="90%" maxW="360px" alignSelf="flex-start" mb={4}>
         <Heading
           fontSize="20px"
@@ -84,7 +106,7 @@ const Earn: React.FC = () => {
         </Heading>
       </Box>
 
-      {/* Карточка Earn for checking socials */}
+      {/* Card for checking socials */}
       <GradientBorderWrapper
         width="360px"
         height="110px"
@@ -143,7 +165,7 @@ const Earn: React.FC = () => {
         </Box>
       </GradientBorderWrapper>
 
-      {/* Навигационная панель */}
+      {/* Navigation Bar */}
       <Flex
         w="90%"
         maxW="500px"
@@ -171,7 +193,7 @@ const Earn: React.FC = () => {
         ))}
       </Flex>
 
-      {/* Список задач */}
+      {/* Task List */}
       <Grid templateColumns="1fr" gap={4} w="100%" maxW="360px">
         {filteredTasks.map((task, index) => (
           <GradientBorderWrapper
@@ -227,7 +249,7 @@ const Earn: React.FC = () => {
         ))}
       </Grid>
 
-      {/* Попап с задачей */}
+     {/* Task Popup */}
       {selectedTask && (
         <TaskPopup
           icon="/icons/star_icon.svg"
@@ -237,7 +259,11 @@ const Earn: React.FC = () => {
           button1Text="Subscribe"
           button1Link={selectedTask.link}
           button2Text="Check"
-          onCheck={() => alert("Checking subscription...")}
+          category={selectedCategory} // Pass the selected category
+          onSubscribe={handleSubscribe}
+          isLoading={isLoading}
+          isChecked={isChecked}
+          onCheck={handleCheck}
           isOpen={isRewardPopupOpen}
           onClose={closeRewardPopup}
         />
