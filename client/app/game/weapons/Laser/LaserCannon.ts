@@ -2,7 +2,7 @@ import Phaser from "phaser";
 
 // Константы для временных интервалов и настроек
 const WARNING_DURATION = 3000; // Длительность предупреждающих треугольников в миллисекундах
-const GUN_APPEAR_DURATION = 800; // Время появления пушек
+const GUN_APPEAR_DURATION = 500; // Время появления пушек
 const LASER_DURATION = 2000; // Длительность действия плазмы
 const GUN_DISAPPEAR_DURATION = 500; // Время исчезновения пушек
 const CAMER_GAP = 25;
@@ -23,6 +23,9 @@ export class LaserCannon {
   private updateWarningPosition: (() => void) | null = null;
   type: "static" | "homing" | "dynamic";
   initialY: number;
+
+  // Новая переменная для хранения Y-координаты плазмы
+  private plasmaY: number | null = null;
 
   constructor(
     scene: Phaser.Scene,
@@ -147,10 +150,12 @@ export class LaserCannon {
     );
     this.timers.push(warningTimer);
   }
-
   activateLaser() {
     this.active = true;
 
+    // Запоминаем текущее положение Y, чтобы пушки и плазма оставались согласованными
+    const fixedY = this.initialY;
+    this.plasmaY = fixedY;
     // Анимируем выезд пушек на экран
     const leftGunTargetX = 0;
     const rightGunTargetX = this.scene.cameras.main.width;
@@ -158,32 +163,33 @@ export class LaserCannon {
     // Смещаем пушки внутрь экрана на заданное расстояние
     const leftGunFinalX = leftGunTargetX + GUN_MOVE_DISTANCE;
     const rightGunFinalX = rightGunTargetX - GUN_MOVE_DISTANCE;
+    this.leftGun.setY(fixedY);
+    this.rightGun.setY(fixedY);
 
     this.scene.tweens.add({
       targets: this.leftGun,
       x: leftGunFinalX,
+      y: fixedY, // Устанавливаем фиксированное положение Y
       duration: GUN_APPEAR_DURATION,
       ease: "Power1",
       onComplete: () => {
-        this.fireLaser();
+        // После завершения анимации запускаем лазер
+        this.fireLaser(fixedY);
       },
     });
 
     this.scene.tweens.add({
       targets: this.rightGun,
       x: rightGunFinalX,
+      y: fixedY, // Устанавливаем фиксированное положение Y
       duration: GUN_APPEAR_DURATION,
       ease: "Power1",
-      offset: 0, // Начинаем одновременно
     });
   }
 
-  fireLaser() {
+  fireLaser(fixedY: number) {
     // Создаем лазерную плазму
-
-    // Позиции пушек уже должны быть на финальных позициях
     const cameraScrollX = this.scene.cameras.main.scrollX;
-    const cameraScrollY = this.scene.cameras.main.scrollY;
 
     const leftGunX = this.leftGun.x + cameraScrollX;
     const rightGunX = this.rightGun.x + cameraScrollX;
@@ -193,16 +199,19 @@ export class LaserCannon {
 
     // Создаем один большой сегмент плазмы между пушками
     const x = leftGunX + this.leftGun.displayWidth / 2 + laserLength / 2;
-    const y = this.initialY + cameraScrollY;
 
-    const segment = this.scene.matter.add.image(x, y, "laserPlazm", undefined, {
-      isSensor: true,
-      isStatic: true,
-    });
+    const segment = this.scene.matter.add.image(
+      x,
+      fixedY,
+      "laserPlazm",
+      undefined,
+      {
+        isSensor: true,
+        isStatic: true,
+      }
+    );
     segment.setDisplaySize(laserLength, plasmaHeight);
     segment.setDepth(1);
-    // Не привязываем плазму к камере
-    // segment.setScrollFactor(0); // Убираем эту строку
 
     this.laserPlasma.push(segment);
 
@@ -232,6 +241,7 @@ export class LaserCannon {
     const leftGunExitX = -GUN_MOVE_DISTANCE;
     const rightGunExitX = this.scene.cameras.main.width + GUN_MOVE_DISTANCE;
 
+    // Создаём tween для левой пушки
     this.scene.tweens.add({
       targets: this.leftGun,
       x: leftGunExitX,
@@ -239,6 +249,7 @@ export class LaserCannon {
       ease: "Power1",
     });
 
+    // Создаём tween для правой пушки
     this.scene.tweens.add({
       targets: this.rightGun,
       x: rightGunExitX,
@@ -249,7 +260,7 @@ export class LaserCannon {
         this.destroy();
       },
     });
-
+    this.plasmaY = null;
     // Воспроизводим звук деактивации
     this.scene.sound.play("laserCannonDeactivate");
   }
@@ -265,33 +276,29 @@ export class LaserCannon {
       this.leftGun.setY(this.initialY);
       this.rightGun.setY(this.initialY);
 
-      // Обновляем позицию плазмы, чтобы она визуально оставалась на месте относительно камеры
-      this.laserPlasma.forEach((segment) => {
-        const desiredX = PLASMA_SCREEN_X;
-        const desiredY = PLASMA_SCREEN_Y;
-        const cameraScrollX = this.scene.cameras.main.scrollX;
-        const cameraScrollY = this.scene.cameras.main.scrollY;
-        const newX = cameraScrollX + desiredX;
-        const newYPos = this.initialY + cameraScrollY; // Или используйте desiredY, если хотите фиксированную Y
-        segment.setPosition(
-          newX + (this.scene.cameras.main.width - PLASMA_SCREEN_X * 2) / 2,
-          newYPos
-        );
-      });
+      // Если плазма уже создана, фиксируем её позицию
+      if (this.plasmaY !== null) {
+        this.laserPlasma.forEach((segment) => {
+          const newX =
+            this.scene.cameras.main.scrollX +
+            PLASMA_SCREEN_X +
+            (this.scene.cameras.main.width - 2 * PLASMA_SCREEN_X) / 2;
+          const newYPos = this.plasmaY! + this.scene.cameras.main.scrollY;
+          segment.setPosition(newX, newYPos);
+        });
+      }
     } else {
       // Если не 'dynamic', просто фиксируем плазму на месте относительно камеры
-      this.laserPlasma.forEach((segment) => {
-        const desiredX = PLASMA_SCREEN_X;
-        const desiredY = this.initialY; // Или PLASMA_SCREEN_Y
-        const cameraScrollX = this.scene.cameras.main.scrollX;
-        const cameraScrollY = this.scene.cameras.main.scrollY;
-        const newX = cameraScrollX + desiredX;
-        const newYPos = desiredY + cameraScrollY;
-        segment.setPosition(
-          newX + (this.scene.cameras.main.width - PLASMA_SCREEN_X * 2) / 2,
-          newYPos
-        );
-      });
+      if (this.plasmaY !== null) {
+        this.laserPlasma.forEach((segment) => {
+          const newX =
+            this.scene.cameras.main.scrollX +
+            PLASMA_SCREEN_X +
+            (this.scene.cameras.main.width - 2 * PLASMA_SCREEN_X) / 2;
+          const newYPos = this.plasmaY! + this.scene.cameras.main.scrollY;
+          segment.setPosition(newX, newYPos);
+        });
+      }
     }
   }
 
