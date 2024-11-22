@@ -44,7 +44,7 @@ const Inventory: React.FC = () => {
   const [selectedRarity, setSelectedRarity] = useState("Comon");
 
   const chanelLink = () => {
-    window.Telegram.WebApp.HapticFeedback.impactOccurred("soft");
+    window.TgWebApp?.HapticFeedback.impactOccurred("soft");
   };
 
   // Фильтруем предметы по редкости

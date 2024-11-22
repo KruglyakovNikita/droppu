@@ -10,8 +10,19 @@ import {
 import GradientBorderWrapper from "../app/components/GradientBorderWrapper";
 import colors from "@/theme/colors";
 import WebApp from "@twa-dev/sdk";
+import { useStore } from "../app/lib/store/store";
 
 export default function Invites() {
+
+  const userInfo = useStore((state) => state.user);
+
+  const inviteFriendsLink = () => {
+    window.TgWebApp?.HapticFeedback.impactOccurred("soft");
+    window.TgWebApp?.openTelegramLink(
+      `https://t.me/share/url?url=https://t.me/DroppuBot/start?startapp=${userInfo?.tg_id}&text=%0A%0A🚀 Jump into action with @Droppu's jetpack game and earn $JET tokens soon!%0A🌟 Get a 750 rating boost just for joining!%0A💥 Premium players score a massive 1000 rating boost!`
+    );
+  };
+
   return (
     <Flex
       direction="column"
@@ -200,6 +211,7 @@ export default function Invites() {
         zIndex="2"
       >
         <Flex
+          onClick={inviteFriendsLink}
           direction="row"
           alignItems="center"
           justifyContent="space-between"

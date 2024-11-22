@@ -29,19 +29,10 @@ const TaskPop = ({
 }) => {
   const toast = useToast();
 
-  // Determine if only the "Check" button should be shown
   const showOnlyCheckButton = ["Frens", "Farming"].includes(category);
 
   const handleCheck = () => {
-    toast({
-      title: "Task complete!",
-      description: `You completed the task "${name}"`,
-      status: "success",
-      duration: 3000,
-      isClosable: true,
-      position: "top",
-    });
-    onCheck(); // Call the passed function (e.g., an API request)
+    onCheck(); 
   };
 
   return (

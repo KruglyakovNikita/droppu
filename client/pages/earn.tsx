@@ -15,10 +15,9 @@ import GradientBorderWrapper from "../app/components/GradientBorderWrapper";
 import TaskPopup from "../app/components/TaskPop";
 import { useEffect, useState } from "react";
 import colors from "../theme/colors";
-import { getTasks } from "../app/lib/api/tasks"; // API for tasks
-import { useStore } from "../app/lib/store/store"; // State management
+import { getTasks, completeTask } from "../app/lib/api/tasks"; 
+import { useStore } from "../app/lib/store/store"; 
 
-// Animation for floating stars
 const floatAnimation = keyframes`
   0% { transform: translateY(0px) rotate(0deg); }
   50% { transform: translateY(-5px) rotate(10deg); }
@@ -35,14 +34,14 @@ const Earn: React.FC = () => {
   const [isChecked, setIsChecked] = useState(false);
   const toast = useToast();
 
-  // Fetch tasks on component mount
+
   useEffect(() => {
     const fetchTasks = async () => {
       try {
         const response = await getTasks();
         if (response?.data) {
           setTasks(response.data);
-          filterTasks("New", response.data); // Filter for "New" tab by default
+          filterTasks("New", response.data);
         }
       } catch (error) {
         console.error("Error fetching tasks:", error);
@@ -51,25 +50,21 @@ const Earn: React.FC = () => {
     fetchTasks();
   }, []);
 
-  // Filter tasks based on the selected category
   const filterTasks = (category: string, taskList = tasks) => {
     setSelectedCategory(category);
     const filtered = taskList.filter((task) => task.type === category);
     setFilteredTasks(filtered);
   };
 
-  // Open the task popup
   const openRewardPopup = (task: any) => {
     setSelectedTask(task);
     setIsRewardPopupOpen(true);
-    setIsLoading(false); // Reset loading state
-    setIsChecked(false); // Reset checked state
+    setIsLoading(false);
+    setIsChecked(false);
   };
 
-  // Close the task popup
   const closeRewardPopup = () => setIsRewardPopupOpen(false);
 
-  // Handle the Subscribe button click
   const handleSubscribe = () => {
     setIsLoading(true);
     setTimeout(() => {
@@ -80,8 +75,28 @@ const Earn: React.FC = () => {
 
   // Handle the Check button click
   const handleCheck = () => {
-    closeRewardPopup();
-    // Add additional request logic here (e.g., API call)
+    if (selectedTask.category === 'New' || selectedTask.category === 'Socials'){
+      closeRewardPopup();
+      completeTask(selectedTask.id);
+
+      toast({
+        title: "Task complete!",
+        description: `You completed the task "${selectedTask.name}"`,
+        status: "success",
+        duration: 3000,
+        isClosable: true,
+        position: "top",
+      });
+    }
+    else{
+      toast({
+        title: "Task not complete!",
+        status: "error",
+        duration: 3000,
+        isClosable: true,
+        position: "top",
+      });
+    }
   };
 
   return (
@@ -259,7 +274,7 @@ const Earn: React.FC = () => {
           button1Text="Subscribe"
           button1Link={selectedTask.link}
           button2Text="Check"
-          category={selectedCategory} // Pass the selected category
+          category={selectedCategory}
           onSubscribe={handleSubscribe}
           isLoading={isLoading}
           isChecked={isChecked}

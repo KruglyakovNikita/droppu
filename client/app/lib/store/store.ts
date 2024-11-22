@@ -26,6 +26,5 @@ export const useStore = create<StoreState>((set) => ({
   setInventory: (inventory) => set({ inventory }),
   setAchievements: (achievements) => set({ achievements }),
   setInvitedUsers: (invitedUsers) => set({ invitedUsers }),
-  setTotalTokensFromInvited: (tokens) =>
-    set({ totalTokensFromInvited: tokens }),
+  setTotalTokensFromInvited: (tokens) => set({ totalTokensFromInvited: tokens }),
 }));

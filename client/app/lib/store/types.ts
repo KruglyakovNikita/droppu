@@ -1,5 +1,6 @@
 export type User = {
   id: number;
+  tg_id: string;
   username: string;
   coins: number;
   tokens: number;
