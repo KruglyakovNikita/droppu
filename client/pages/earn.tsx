@@ -75,7 +75,8 @@ const Earn: React.FC = () => {
 
   // Handle the Check button click
   const handleCheck = () => {
-    if (selectedTask.category == 'New' || selectedTask.category == 'Socials'){
+    if (selectedTask.type === 'New' || selectedTask.type === 'Socials'){
+      console.log(selectedTask.type)
       closeRewardPopup();
       completeTask(selectedTask.id);
 
