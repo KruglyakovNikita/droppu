@@ -72,7 +72,6 @@ class ApiService {
     if (this.accessToken) {
       headers.Authorization = `Bearer ${this.accessToken}`;
     }
-    headers.Authorization = `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIyIiwiZXhwIjoxNzMyMzA0MTQyfQ.3OxcELA1clrcceVKDvH1d7MLO4nbgplHuDY-8VTJYyo`;
     return headers;
   }
 }
