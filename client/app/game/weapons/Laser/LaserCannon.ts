@@ -4,18 +4,35 @@ const CAMER_GAP = 25;
 
 export class LaserCannon {
   scene: Phaser.Scene;
+  player: Phaser.Physics.Matter.Sprite;
   laserPlasma: Phaser.Physics.Matter.Image[] = [];
   leftGun: Phaser.GameObjects.Image;
   rightGun: Phaser.GameObjects.Image;
-
-  warningRight: Phaser.GameObjects.Image | undefined;
   warningLeft: Phaser.GameObjects.Image | undefined;
+  warningRight: Phaser.GameObjects.Image | undefined;
   active: boolean = false;
   timers: Phaser.Time.TimerEvent[] = [];
+  private updateWarningPosition: (() => void) | null = null;
   private updateLaserPosition: (() => void) | null = null;
+  type: string;
+  initialY: number;
 
-  constructor(scene: Phaser.Scene) {
+  constructor(
+    scene: Phaser.Scene,
+    type: string,
+    player: Phaser.Physics.Matter.Sprite
+  ) {
     this.scene = scene;
+    this.type = type;
+    this.player = player;
+
+    // Устанавливаем начальную позицию Y в зависимости от типа
+    if (this.type === "static") {
+      this.initialY = Phaser.Math.Between(50, this.scene.scale.height - 50);
+    } else {
+      // Для 'homing' и 'dynamic' будем следить за игроком
+      this.initialY = this.player.y;
+    }
 
     // Создаем лазерные пушки
     this.leftGun = this.scene.add.image(0, 0, "laserGun");
@@ -24,27 +41,24 @@ export class LaserCannon {
     this.rightGun.setScale(0.5);
     this.leftGun.setVisible(false);
     this.rightGun.setVisible(false);
-    this.rightGun.setFlipX(true); // Зеркально разворачиваем правую пушку
+    this.rightGun.setFlipX(true);
     this.leftGun.setDepth(2);
     this.rightGun.setDepth(2);
 
-    // Запускаем последовательность активации
+    // Запускаем последовательность
     this.startSequence();
   }
 
-  /**
-   * Запускает последовательность предупреждения и активации лазерной пушки
-   */
   startSequence() {
     // Отображаем предупреждающие треугольники
     this.warningLeft = this.scene.add.image(
       CAMER_GAP,
-      this.scene.scale.height / 2,
+      this.initialY,
       "warningTriangle"
     );
     this.warningRight = this.scene.add.image(
       this.scene.cameras.main.width - CAMER_GAP,
-      this.scene.scale.height / 2,
+      this.initialY,
       "warningTriangle"
     );
     this.warningLeft.setScale(0.5);
@@ -56,14 +70,14 @@ export class LaserCannon {
     this.warningLeft.setDepth(2);
     this.warningRight.setDepth(2);
 
-    // Отключаем прокрутку треугольников
+    // Фиксируем предупреждения на экране
     this.warningLeft.setScrollFactor(0);
     this.warningRight.setScrollFactor(0);
 
     // Воспроизводим звук предупреждения
     this.scene.sound.play("laserCannonWarning");
 
-    // Добавляем мигание треугольникам
+    // Анимация мигания предупреждений
     this.scene.tweens.add({
       targets: [this.warningLeft, this.warningRight],
       alpha: { from: 0.8, to: 0 },
@@ -73,15 +87,43 @@ export class LaserCannon {
       yoyo: true,
     });
 
-    // Через 3 секунды удаляем предупреждения и готовимся к выстрелу
+    // Для 'homing' и 'dynamic' следим за игроком
+    if (this.type === "homing" || this.type === "dynamic") {
+      this.updateWarningPosition = () => {
+        this.initialY = this.player.y;
+        this.warningLeft?.setY(this.initialY);
+        this.warningRight?.setY(this.initialY);
+      };
+      this.scene.events.on("update", this.updateWarningPosition);
+    }
+
+    // Через 3 секунды убираем предупреждения и готовимся стрелять
     const warningTimer = this.scene.time.delayedCall(
-      3000, // 3 секунды
+      3000,
       () => {
         this.warningLeft?.destroy();
         this.warningRight?.destroy();
 
-        // Активируем лазеры
-        this.fireLaser();
+        if (this.updateWarningPosition) {
+          this.scene.events.off("update", this.updateWarningPosition);
+          this.updateWarningPosition = null;
+        }
+
+        if (this.type === "homing" || this.type === "dynamic") {
+          // Ждем 0.5 секунды перед выстрелом
+          const fireDelayTimer = this.scene.time.delayedCall(
+            500,
+            () => {
+              this.fireLaser();
+            },
+            [],
+            this
+          );
+          this.timers.push(fireDelayTimer);
+        } else {
+          // Для 'static' стреляем сразу
+          this.fireLaser();
+        }
       },
       [],
       this
@@ -89,9 +131,6 @@ export class LaserCannon {
     this.timers.push(warningTimer);
   }
 
-  /**
-   * Активирует лазер, заполняя его "плазмой"
-   */
   fireLaser() {
     this.active = true;
 
@@ -100,26 +139,23 @@ export class LaserCannon {
     this.rightGun.setVisible(true);
 
     // Создаем лазерную плазму
-    const plasmaWidth = 40; // Ширина одного сегмента плазмы
-    const plasmaHeight = 20; // Высота сегмента плазмы
-    const laserLength = this.scene.cameras.main.width - 100; // Длина лазера
+    const plasmaWidth = 40;
+    const plasmaHeight = 20;
+    const laserLength = this.scene.cameras.main.width - 100;
 
-    // Расчет количества сегментов и оставшегося пространства
     const segmentCount = Math.floor(laserLength / plasmaWidth);
     const remainingSpace = laserLength % plasmaWidth;
 
-    // Удаляем старую плазму, если она есть
     this.laserPlasma.forEach((segment) => segment.destroy());
     this.laserPlasma = [];
 
-    // Добавляем новые сегменты плазмы с физическими телами
     for (let i = 0; i < segmentCount; i++) {
       const x =
         this.scene.cameras.main.scrollX +
         50 +
         i * plasmaWidth +
         plasmaWidth / 2;
-      const y = this.scene.scale.height / 2;
+      const y = this.initialY;
 
       const segment = this.scene.matter.add.image(
         x,
@@ -127,8 +163,8 @@ export class LaserCannon {
         "laserPlazm",
         undefined,
         {
-          isSensor: true, // Сенсорное тело, чтобы не блокировать движение
-          isStatic: true, // Неподвижное тело
+          isSensor: true,
+          isStatic: true,
         }
       );
       segment.setDisplaySize(plasmaWidth, plasmaHeight);
@@ -137,14 +173,13 @@ export class LaserCannon {
       this.laserPlasma.push(segment);
     }
 
-    // Добавляем дополнительный сегмент, если есть оставшееся пространство
     if (remainingSpace > 0) {
       const x =
         this.scene.cameras.main.scrollX +
         50 +
         segmentCount * plasmaWidth +
         remainingSpace / 2;
-      const y = this.scene.scale.height / 2;
+      const y = this.initialY;
 
       const segment = this.scene.matter.add.image(
         x,
@@ -162,32 +197,31 @@ export class LaserCannon {
       this.laserPlasma.push(segment);
     }
 
-    // Воспроизводим звук активации лазера
+    // Воспроизводим звук активации
     this.scene.sound.play("laserCannonActivate");
 
-    // Постоянное обновление позиций пушек и плазмы
+    // Обновляем позиции лазерных пушек и плазмы
     this.updateLaserPosition = () => {
       const scrollX = this.scene.cameras.main.scrollX;
-      const centerY = this.scene.scale.height / 2;
 
       // Обновляем позиции пушек
-      this.leftGun?.setPosition(scrollX + 50, centerY);
+      this.leftGun?.setPosition(scrollX + 50, this.initialY);
       this.rightGun?.setPosition(
         scrollX + this.scene.cameras.main.width - 50,
-        centerY
+        this.initialY
       );
 
-      // Обновляем позиции сегментов плазмы
+      // Обновляем позиции плазмы
       this.laserPlasma?.forEach((segment, i) => {
         const x = scrollX + 50 + i * plasmaWidth + plasmaWidth / 2;
-        segment?.setPosition(x, centerY);
+        segment?.setPosition(x, this.initialY);
       });
     };
     this.scene.events.on("update", this.updateLaserPosition);
 
-    // Убираем лазер через 4 секунды
+    // Через 4 секунды деактивируем лазер
     const removeTimer = this.scene.time.delayedCall(
-      4000, // 4 секунды
+      4000,
       () => {
         this.deactivateLaser();
       },
@@ -197,9 +231,6 @@ export class LaserCannon {
     this.timers.push(removeTimer);
   }
 
-  /**
-   * Деактивирует лазер и запускает новую последовательность
-   */
   deactivateLaser() {
     this.active = false;
 
@@ -217,24 +248,24 @@ export class LaserCannon {
       this.updateLaserPosition = null;
     }
 
-    // Воспроизводим звук деактивации лазера
+    // Воспроизводим звук деактивации
     this.scene.sound.play("laserCannonDeactivate");
 
-    // Дополнительно уничтожаем LaserCannon, если нужно
+    // Уничтожаем экземпляр LaserCannon
     this.destroy();
   }
 
-  /**
-   * Обновляет состояние лазерной пушки
-   * @param player Ссылка на спрайт игрока
-   */
   update(player: Phaser.Physics.Matter.Sprite) {
-    //Update
+    if (this.type === "dynamic" && this.active) {
+      // Двигаем лазерную пушку вверх и вниз в пределах 20 пикселей
+      const time = this.scene.time.now / 1000;
+      const waveOffsetY = 10 * Math.sin(time * 2 * Math.PI);
+      let newY = this.initialY + waveOffsetY;
+      newY = Phaser.Math.Clamp(newY, 0 + 50, this.scene.scale.height - 50);
+      this.initialY = newY;
+    }
   }
 
-  /**
-   * Очищает все таймеры и игровые объекты
-   */
   destroy() {
     this.timers.forEach((timer) => timer.remove(false));
     this.timers = [];
@@ -248,11 +279,12 @@ export class LaserCannon {
     this.warningRight?.destroy();
   }
 
-  /**
-   * Метод для уничтожения активных предупреждений
-   */
   destroyWarning() {
-    // В данном классе нет предупреждений, так как они уничтожаются в startSequence
-    // Если в будущем добавите предупреждения, реализуйте их уничтожение здесь
+    this.warningLeft?.destroy();
+    this.warningRight?.destroy();
+    if (this.updateWarningPosition) {
+      this.scene.events.off("update", this.updateWarningPosition);
+      this.updateWarningPosition = null;
+    }
   }
 }

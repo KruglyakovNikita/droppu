@@ -137,31 +137,31 @@ class GameScene extends Phaser.Scene {
     // Запускаем генерацию ракет каждые 5 секунд
     // this.generateRocketsByTimer();
     // Start generating Laser Cannons every 5 секунд (adjust as needed)
-    // this.generateLaserCannonsByTimer();
+    this.generateLaserCannonsByTimer();
 
     // Инициализация очереди пресетов
-    for (let i = 0; i < 3; i++) {
-      this.enqueuePreset();
-    }
+    // for (let i = 0; i < 3; i++) {
+    //   this.enqueuePreset();
+    // }
 
-    // Добавление начальных пресетов
-    for (let i = 0; i < 3; i++) {
-      this.addPresetFromQueue();
-    }
+    // // Добавление начальных пресетов
+    // for (let i = 0; i < 3; i++) {
+    //   this.addPresetFromQueue();
+    // }
 
     this.events.on("playerHit", this.handlePlayerHit, this);
 
     ///Coins
-    this.coinText = this.add.text(16, 46, "Coins: 0", {
-      fontSize: "24px",
-      color: "#ffffff",
-    });
-    this.coinText.setScrollFactor(0);
+    // this.coinText = this.add.text(16, 46, "Coins: 0", {
+    //   fontSize: "24px",
+    //   color: "#ffffff",
+    // });
+    // this.coinText.setScrollFactor(0);
   }
 
   generateLaserCannonsByTimer() {
     this.generateLaserCannonTimer = this.time.addEvent({
-      delay: 10000, // Every 10 seconds (adjust as needed)
+      delay: 4000, // Every 10 seconds (adjust as needed)
       callback: this.generateLaserCannon,
       callbackScope: this,
       loop: true,
@@ -169,8 +169,15 @@ class GameScene extends Phaser.Scene {
   }
 
   generateLaserCannon() {
-    const laserCannon = new LaserCannon(this);
-    this.objectManager.addObject("laserCannon", laserCannon, {});
+    // const laserCannon = new LaserCannon(this);
+    // this.objectManager.addObject("laserCannon", laserCannon, {});
+
+    const laserCannonTypes = ["static", "homing", "dynamic"];
+    // const type = Phaser.Utils.Array.GetRandom(laserCannonTypes);
+    const type = "dynamic";
+
+    const laserCannon = new LaserCannon(this, type, this.player);
+    this.objectManager.addObject("laserCannon", laserCannon, { type });
   }
 
   generateRocketsByTimer() {
