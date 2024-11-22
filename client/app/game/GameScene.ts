@@ -84,10 +84,21 @@ class GameScene extends Phaser.Scene {
     this.load.audio("laserCannonDeactivate", "/audio/laser_cannon_start.mp3");
 
     //Coin
-    this.load.image("coin", "/blocks/coin.png");
+    // this.load.image("coin", "/blocks/coin.png");
+
+    this.load.spritesheet("coin", "/blocks/coin-sprite.png", {
+      frameWidth: 20, // Ширина одного кадра
+      frameHeight: 20, // Высота одного кадра
+    });
   }
 
   create() {
+    this.anims.create({
+      key: "spin", // Уникальное имя анимации
+      frames: this.anims.generateFrameNumbers("coin", { start: 0, end: 7 }), // Все кадры
+      frameRate: 10, // Скорость анимации
+      repeat: -1, // Анимация бесконечно повторяется
+    });
     this.objectManager = new WeaponManager(this);
 
     // Создаем игрока с физикой Matter
@@ -140,23 +151,23 @@ class GameScene extends Phaser.Scene {
     this.generateLaserCannonsByTimer();
 
     // Инициализация очереди пресетов
-    // for (let i = 0; i < 3; i++) {
-    //   this.enqueuePreset();
-    // }
+    for (let i = 0; i < 3; i++) {
+      this.enqueuePreset();
+    }
 
-    // // Добавление начальных пресетов
-    // for (let i = 0; i < 3; i++) {
-    //   this.addPresetFromQueue();
-    // }
+    // Добавление начальных пресетов
+    for (let i = 0; i < 3; i++) {
+      this.addPresetFromQueue();
+    }
 
     this.events.on("playerHit", this.handlePlayerHit, this);
 
-    ///Coins
-    // this.coinText = this.add.text(16, 46, "Coins: 0", {
-    //   fontSize: "24px",
-    //   color: "#ffffff",
-    // });
-    // this.coinText.setScrollFactor(0);
+    // //Coins
+    this.coinText = this.add.text(16, 46, "Coins: 0", {
+      fontSize: "24px",
+      color: "#ffffff",
+    });
+    this.coinText.setScrollFactor(0);
   }
 
   generateLaserCannonsByTimer() {
@@ -174,7 +185,7 @@ class GameScene extends Phaser.Scene {
 
     const laserCannonTypes = ["static", "homing", "dynamic"];
     // const type = Phaser.Utils.Array.GetRandom(laserCannonTypes);
-    const type = "static";
+    const type = "homing";
 
     const laserCannon = new LaserCannon(this, type, this.player);
     this.objectManager.addObject("laserCannon", laserCannon, { type });
@@ -416,16 +427,15 @@ class GameScene extends Phaser.Scene {
         const x = this.lastPlatformX + coinConfig.x;
         const y = coinConfig.y;
 
-        // Create the coin as a Matter image
-        const coin = this.matter.add.image(x, y, "coin", undefined, {
-          isStatic: true,
-        });
-
-        coin.setOrigin(0.5, 0.5);
-        coin.setDisplaySize(25, 25); // Adjust size as needed
-        coin.setSensor(true); // Coins are sensors to detect overlap
-        coin.setIgnoreGravity(true); // Ensure coins don't fall
+        // Создаем коин как Matter.Sprite
+        const coin = this.matter.add.sprite(x, y, "coin");
+        coin.setDisplaySize(20, 20); // Размер спрайта
+        coin.setSensor(true); // Делаем его сенсором
+        coin.setIgnoreGravity(true); // Отключаем гравитацию для коинов
         coin.setDepth(1);
+
+        // Запускаем анимацию вращения
+        coin.play("spin");
 
         this.coins.push(coin);
       });
