@@ -1,10 +1,24 @@
 "use client";
 
-import React, { useEffect, useRef } from "react";
+import React, { FC, useEffect, useRef } from "react";
 import GameScene from "../game/GameScene";
 import Phaser from "phaser";
 
-const Game = () => {
+export interface GameSceneData {
+  gameId: string;
+  booster: number;
+  userSkinUrl: string;
+  userSpriteUrl: string;
+  onGameEnd: () => void;
+}
+
+const Game: FC<GameSceneData> = ({
+  gameId,
+  booster = 0,
+  userSkinUrl,
+  userSpriteUrl,
+  onGameEnd,
+}) => {
   const gameRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -21,7 +35,7 @@ const Game = () => {
       type: Phaser.AUTO,
       parent: gameRef.current,
       width: 600, // Ширина экрана
-      height: 400, // Высота экрана
+      height: 420, // Высота экрана
       physics: {
         default: "matter",
         matter: {
