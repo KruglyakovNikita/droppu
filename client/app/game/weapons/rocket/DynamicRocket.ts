@@ -1,4 +1,3 @@
-// DynamicRocket.ts
 import { Rocket } from "./Rocket";
 
 export class DynamicRocket extends Rocket {
