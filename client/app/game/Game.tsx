@@ -78,7 +78,6 @@ const Game: FC<GameSceneData> = ({
     }
 
     const { gameWidth, gameHeight } = calculateGameDimensions();
-    console.log(gameWidth, gameHeight);
 
     const config: Phaser.Types.Core.GameConfig = {
       type: Phaser.AUTO,
@@ -107,7 +106,6 @@ const Game: FC<GameSceneData> = ({
     };
   }, []);
 
-  console.log("isHorizontal", isHorizontal);
   return (
     <div
       style={{
