@@ -1,18 +1,16 @@
 import Phaser from "phaser";
 
 // Константы для временных интервалов и настроек
-const WARNING_DURATION = 3000; // Длительность предупреждающих треугольников в миллисекундах
-const GUN_APPEAR_DURATION = 500; // Время появления пушек
-const LASER_DURATION = 2000; // Длительность действия плазмы
-const GUN_DISAPPEAR_DURATION = 500; // Время исчезновения пушек
+const WARNING_DURATION = 3000;
+const GUN_APPEAR_DURATION = 500;
+const LASER_DURATION = 2000;
+const GUN_DISAPPEAR_DURATION = 500;
 const CAMER_GAP = 25;
-const GUN_MOVE_DISTANCE = 50; // Насколько пушки заезжают в центр экрана
-const PLASMA_SCREEN_X = 100; // Расстояние от левого края экрана до начала плазмы
 
 // Константы для осцилляций динамических пушек
-const DYNAMIC_OSCILLATION_AMPLITUDE = 15; // Амплитуда колебаний по Y (в пикселях)
-const DYNAMIC_OSCILLATION_FREQUENCY = 2; // Частота колебаний (Гц)
-const DYNAMIC_OSCILLATION_DURATION = 3000; // Длительность осцилляций в миллисекундах (3 секунды)
+const DYNAMIC_OSCILLATION_AMPLITUDE = 15;
+const DYNAMIC_OSCILLATION_FREQUENCY = 2;
+const DYNAMIC_OSCILLATION_DURATION = 3000;
 
 export class LaserCannon {
   scene: Phaser.Scene;
@@ -36,6 +34,10 @@ export class LaserCannon {
   private oscillationStartTime: number = 0;
   private baseY: number = 0;
 
+  // Адаптивные константы
+  GUN_MOVE_DISTANCE!: number;
+  PLASMA_SCREEN_X!: number;
+
   constructor(
     scene: Phaser.Scene,
     type: "static" | "homing" | "dynamic",
@@ -45,22 +47,25 @@ export class LaserCannon {
     this.type = type;
     this.player = player;
 
-    // Устанавливаем начальную позицию Y в зависимости от типа
+    // Устанавливаем адаптивные константы
+    this.GUN_MOVE_DISTANCE = this.scene.scale.width * 0.1;
+    this.PLASMA_SCREEN_X = this.scene.scale.width * 0.2;
+
+    // Устанавливаем начальную позицию Y
     if (this.type === "static") {
       this.initialY = Phaser.Math.Between(50, this.scene.scale.height - 50);
     } else {
-      // Для 'homing' и 'dynamic' будем следить за игроком
       this.initialY = this.player.y;
     }
 
-    // Создаем лазерные пушки и позиционируем их за пределами экрана
+    // Создаем лазерные пушки
     this.leftGun = this.scene.add.image(
-      -GUN_MOVE_DISTANCE,
+      -this.GUN_MOVE_DISTANCE,
       this.initialY,
       "laserGun"
     );
     this.rightGun = this.scene.add.image(
-      this.scene.cameras.main.width + GUN_MOVE_DISTANCE,
+      this.scene.cameras.main.width + this.GUN_MOVE_DISTANCE,
       this.initialY,
       "laserGun"
     );
@@ -127,10 +132,7 @@ export class LaserCannon {
       this.scene.events.on("update", this.updateWarningPosition);
     }
 
-    // Для 'dynamic' пушки начинают осциллировать только после активации лазера
-    // Начинаем отсчёт времени для осцилляции после активации лазера
-
-    // Через WARNING_DURATION миллисекунд убираем предупреждения и готовимся стрелять
+    // Через WARNING_DURATION миллисекунд убираем предупреждения
     const warningTimer = this.scene.time.delayedCall(
       WARNING_DURATION,
       () => {
@@ -167,7 +169,7 @@ export class LaserCannon {
   activateLaser() {
     this.active = true;
 
-    // Запоминаем текущее положение Y, чтобы пушки и плазма оставались согласованными
+    // Запоминаем текущее положение Y
     const fixedY = this.initialY;
     this.baseY = fixedY;
     this.plasmaY = fixedY;
@@ -177,8 +179,8 @@ export class LaserCannon {
     const rightGunTargetX = this.scene.cameras.main.width;
 
     // Смещаем пушки внутрь экрана на заданное расстояние
-    const leftGunFinalX = leftGunTargetX + GUN_MOVE_DISTANCE;
-    const rightGunFinalX = rightGunTargetX - GUN_MOVE_DISTANCE;
+    const leftGunFinalX = leftGunTargetX + this.GUN_MOVE_DISTANCE;
+    const rightGunFinalX = rightGunTargetX - this.GUN_MOVE_DISTANCE;
 
     // Устанавливаем фиксированное положение Y
     this.leftGun.setY(fixedY);
@@ -187,11 +189,10 @@ export class LaserCannon {
     this.scene.tweens.add({
       targets: this.leftGun,
       x: leftGunFinalX,
-      y: fixedY, // Устанавливаем фиксированное положение Y
+      y: fixedY,
       duration: GUN_APPEAR_DURATION,
       ease: "Power1",
       onComplete: () => {
-        // После завершения анимации запускаем лазер
         this.fireLaser(fixedY);
       },
     });
@@ -199,7 +200,7 @@ export class LaserCannon {
     this.scene.tweens.add({
       targets: this.rightGun,
       x: rightGunFinalX,
-      y: fixedY, // Устанавливаем фиксированное положение Y
+      y: fixedY,
       duration: GUN_APPEAR_DURATION,
       ease: "Power1",
     });
@@ -257,7 +258,7 @@ export class LaserCannon {
     this.oscillating = true;
     this.oscillationStartTime = this.scene.time.now;
 
-    // Запускаем таймер для окончания осцилляции через DYNAMIC_OSCILLATION_DURATION
+    // Запускаем таймер для окончания осцилляции
     const oscillationTimer = this.scene.time.delayedCall(
       DYNAMIC_OSCILLATION_DURATION,
       () => {
@@ -273,10 +274,10 @@ export class LaserCannon {
     this.active = false;
 
     // Анимируем уход пушек за экран
-    const leftGunExitX = -GUN_MOVE_DISTANCE;
-    const rightGunExitX = this.scene.cameras.main.width + GUN_MOVE_DISTANCE;
+    const leftGunExitX = -this.GUN_MOVE_DISTANCE;
+    const rightGunExitX =
+      this.scene.cameras.main.width + this.GUN_MOVE_DISTANCE;
 
-    // Создаём tween для левой пушки
     this.scene.tweens.add({
       targets: this.leftGun,
       x: leftGunExitX,
@@ -284,14 +285,12 @@ export class LaserCannon {
       ease: "Power1",
     });
 
-    // Создаём tween для правой пушки
     this.scene.tweens.add({
       targets: this.rightGun,
       x: rightGunExitX,
       duration: GUN_DISAPPEAR_DURATION,
       ease: "Power1",
       onComplete: () => {
-        // После завершения анимации уничтожаем пушки
         this.destroy();
       },
     });
@@ -306,7 +305,7 @@ export class LaserCannon {
     if (this.type === "dynamic") {
       if (this.active && this.oscillating) {
         const elapsedTime =
-          (this.scene.time.now - this.oscillationStartTime) / 1000; // Время в секундах
+          (this.scene.time.now - this.oscillationStartTime) / 1000;
         const waveOffsetY =
           DYNAMIC_OSCILLATION_AMPLITUDE *
           Math.sin(2 * Math.PI * DYNAMIC_OSCILLATION_FREQUENCY * elapsedTime);
@@ -327,8 +326,8 @@ export class LaserCannon {
 
         const newX =
           cameraScrollX +
-          PLASMA_SCREEN_X +
-          (this.scene.cameras.main.width - 2 * PLASMA_SCREEN_X) / 2;
+          this.PLASMA_SCREEN_X +
+          (this.scene.cameras.main.width - 2 * this.PLASMA_SCREEN_X) / 2;
         const newYPos = clampedY + cameraScrollY;
 
         this.laserPlasma.forEach((segment) => {
@@ -347,8 +346,8 @@ export class LaserCannon {
 
       const newX =
         cameraScrollX +
-        PLASMA_SCREEN_X +
-        (this.scene.cameras.main.width - 2 * PLASMA_SCREEN_X) / 2;
+        this.PLASMA_SCREEN_X +
+        (this.scene.cameras.main.width - 2 * this.PLASMA_SCREEN_X) / 2;
       const newYPos = this.plasmaY + cameraScrollY;
 
       this.laserPlasma.forEach((segment) => {
@@ -371,7 +370,8 @@ export class LaserCannon {
   }
 
   destroyWarning() {
-    // В данном классе нет предупреждений, так как они уничтожаются в startSequence
-    // Если в будущем добавите предупреждения, реализуйте их уничтожение здесь
+    // Если есть предупреждения, уничтожаем их
+    this.warningLeft?.destroy();
+    this.warningRight?.destroy();
   }
 }
