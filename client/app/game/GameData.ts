@@ -18,6 +18,7 @@ class GameData {
       userSpriteUrl: "/player/granny2.png",
       onGameEnd: () => {
         console.log("WATAFAC");
+        window?.Telegram?.WebApp?.exitFullscreen();
       },
     };
   }

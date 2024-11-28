@@ -6,7 +6,6 @@ const Game = dynamic(() => import("../app/game/Game"), { ssr: false });
 export default function GamePage() {
   return (
     <Box p={4} textAlign="center">
-      <Heading>Game Page</Heading>
       <Game
         gameId="unique-game-id-123"
         booster={1}

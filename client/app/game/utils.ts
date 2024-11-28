@@ -40,11 +40,13 @@ export function getRandomDifficulty(
 }
 
 export function getPresetPool(
-  difficulty: "easy" | "medium" | "hard" | "ultra-hard"
+  difficulty: "easy" | "medium" | "hard" | "ultra-hard" | "easy-coin"
 ): Preset[] {
   // switch (difficulty) {
   //   case "easy":
   //     return easyPresets;
+  //   case "easy-coin":
+  //     return coinsPresets;
   //   case "medium":
   //     return mediumPresets;
   //   case "hard":
@@ -56,9 +58,27 @@ export function getPresetPool(
   // }
   switch (difficulty) {
     case "easy":
-      return coinsPresets;
+      return easyPresets;
     default:
-      return coinsPresets;
+      return easyPresets;
   }
 }
-//
+
+// utils.ts
+
+/**
+ * Преобразует абсолютные координаты в относительные.
+ * @param coord Абсолютные координаты { x: number, y: number }
+ * @returns Относительные координаты { x: number, y: number }
+ */
+export function getCoordinates(coord: { x: number; y: number }): {
+  x: number;
+  y: number;
+} {
+  const BASE_WIDTH = 600;
+  const BASE_HEIGHT = 400;
+  return {
+    x: Number((coord.x / BASE_WIDTH).toFixed(4)),
+    y: Number((coord.y / BASE_HEIGHT).toFixed(4)),
+  };
+}
