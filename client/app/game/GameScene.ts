@@ -60,7 +60,7 @@ class GameScene extends Phaser.Scene {
   MAX_ASCENT_SPEED!: number;
 
   //Back
-  backgroundSwitchDistance: number = 5000;
+  backgroundSwitchDistance: number = 1000;
   currentBackgroundSet: number = 1;
 
   constructor() {
@@ -652,7 +652,7 @@ class GameScene extends Phaser.Scene {
       this.player.x >=
       this.backgroundSwitchDistance * this.currentBackgroundSet
     ) {
-      this.switchBackgrounds();
+      // this.switchBackgrounds();
     }
 
     // Постоянная скорость вправо
@@ -762,34 +762,51 @@ class GameScene extends Phaser.Scene {
   /**
    * Метод переключения на новый набор фонов
    */
-  switchBackgrounds() {
-    if (this.currentBackgroundSet === 1) {
-      // Уничтожаем старые фоны
-      this.background1.destroy();
-      this.background2.destroy();
+  // switchBackgrounds() {
+  //   if (this.currentBackgroundSet === 1) {
+  //     // Создаем новые фоны для второго набора за пределами экрана справа
+  //     this.background3 = this.add.image(
+  //       this.background2.x + this.background2.displayWidth + 400,
+  //       0,
+  //       "back3"
+  //     );
+  //     this.background3.setDisplaySize(this.scale.width, this.scale.height);
+  //     this.background4 = this.add.image(
+  //       this.background3.displayWidth,
+  //       0,
+  //       "back4"
+  //     );
 
-      // Создаем новые фоны для второго набора
-      this.background3 = this.add.image(0, 0, "back3");
-      // Масштабируем и устанавливаем параметры
-      this.background3.setDisplaySize(this.scale.width, this.scale.height);
+  //     // Масштабируем изображения до размеров экрана
+  //     this.background4.setDisplaySize(this.scale.width, this.scale.height);
 
-      this.background4 = this.add.image(
-        this.background3.displayWidth,
-        0,
-        "back4"
-      );
-      this.background4.setDisplaySize(this.scale.width, this.scale.height);
+  //     // Устанавливаем оба изображения в верхний левый угол и закрепляем на заднем плане
+  //     this.background3.setOrigin(0, 0).setScrollFactor(0).setDepth(-Infinity);
+  //     this.background4.setOrigin(0, 0).setScrollFactor(0).setDepth(-Infinity);
 
-      this.background3.setOrigin(0, 0).setScrollFactor(0).setDepth(-Infinity);
-      this.background4.setOrigin(0, 0).setScrollFactor(0).setDepth(-Infinity);
+  //     // Обновляем текущий набор фонов
+  //     this.currentBackgroundSet = 2;
 
-      // Обновляем текущий набор фонов
-      this.currentBackgroundSet = 2;
-    } else if (this.currentBackgroundSet === 2) {
-      // Аналогично переключаемся на следующий набор или возвращаемся к первому
-      // ...
-    }
-  }
+  //     console.log("Switched to Background Set 2");
+  //   } else if (this.currentBackgroundSet === 2) {
+  //     // Создаем новые фоны для первого набора за пределами экрана справа
+  //     this.background1 = this.add.image(this.scale.width, 0, "back1");
+  //     this.background2 = this.add.image(this.scale.width * 2, 0, "back2");
+
+  //     // Масштабируем изображения до размеров экрана
+  //     this.background1.setDisplaySize(this.scale.width, this.scale.height);
+  //     this.background2.setDisplaySize(this.scale.width, this.scale.height);
+
+  //     // Устанавливаем оба изображения в верхний левый угол и закрепляем на заднем плане
+  //     this.background1.setOrigin(0, 0).setScrollFactor(0).setDepth(-Infinity);
+  //     this.background2.setOrigin(0, 0).setScrollFactor(0).setDepth(-Infinity);
+
+  //     // Обновляем текущий набор фонов
+  //     this.currentBackgroundSet = 1;
+
+  //     console.log("Switched to Background Set 1");
+  //   }
+  // }
 }
 
 export default GameScene;
