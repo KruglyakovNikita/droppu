@@ -9,9 +9,35 @@ import {
 } from "@chakra-ui/react";
 import GradientBorderWrapper from "../app/components/GradientBorderWrapper";
 import colors from "@/theme/colors";
-import WebApp from "@twa-dev/sdk";
 
 export default function Invites() {
+
+  const inviteFriendsLink = () => {
+    window.Telegram.WebApp.HapticFeedback.impactOccurred("soft");
+    window.Telegram.WebApp.openTelegramLink(
+      `https://t.me/share/url?url=https://t.me/DroppuBot/start?startapp=${telegramUser?.id}&text=%0A%0A🚀 Jump into action with @Droppu's jetpack game and earn $JET tokens soon!%0A🌟 Get a 750 rating boost just for joining!%0A💥 Premium players score a massive 1000 rating boost!`
+    );
+  };
+  const friends = [
+    // { name: "Alice", points: 1200 },
+    // { name: "Bob", points: 850 },
+    // { name: "Charlie", points: 950 },
+  ];
+  const steps = [
+    {
+      title: "Share your referral link",
+      subtitle: "Get a points and tickets for each friend",
+    },
+    {
+      title: "Your friends join DROPPU",
+      subtitle: "And start farming points",
+    },
+    {
+      title: "Receive 10% from friends",
+      subtitle: "Plus an additional 2.5% from their referrals",
+    },
+  ];
+
   return (
     <Flex
       direction="column"
@@ -129,62 +155,115 @@ export default function Invites() {
         Score 10% from buddies <br /> Plus an extra 8.5% from their referrals
       </Text>
 
-      {/* Контейнер для списка друзей с ограниченной высотой и прокруткой */}
-      <Box w="100%" maxW="360px" flex="1" overflowY="auto" mb={4} maxH={300}>
-        <Stack spacing={4} w="100%">
-          {[...Array(10)].map((_, index) => (
-            <Flex
-              key={index}
-              borderRadius="12px"
-              h="60px"
-              bg={colors.frensPlateBackground}
-              align="center"
-              justify="space-between"
-              p={4}
-              px={6}
-            >
-              <Flex align="center">
-                <Box
-                  w="30px"
-                  h="30px"
-                  bgGradient="linear(45deg, #793BC7, #C2D2FF)"
-                  borderRadius="full"
-                  mr={4}
-                />
+      {/* Conditional Rendering of Friends List or Steps */}
+      {friends.length > 0 ? (
+        // Friends List
+        <Box
+          w="100%"
+          maxW="360px"
+          flex="1"
+          overflowY="auto"
+          mb={4}
+          maxH={300}
+        >
+          <Stack spacing={4} w="100%">
+            {friends.map((friend, index) => (
+              <Flex
+                key={index}
+                borderRadius="12px"
+                h="60px"
+                bg={colors.frensPlateBackground}
+                align="center"
+                justify="space-between"
+                p={4}
+                px={6}
+              >
+                <Flex align="center">
+                  <Box
+                    w="30px"
+                    h="30px"
+                    bgGradient="linear(45deg, #793BC7, #C2D2FF)"
+                    borderRadius="full"
+                    mr={4}
+                  />
+                  <Stack spacing={0}>
+                    <Text
+                      fontFamily="'PixelifySans-Bold', sans-serif"
+                      fontSize="16px"
+                      mb={-2}
+                    >
+                      {friend.name}
+                    </Text>
+                    <Text fontSize="12px" color={colors.secondaryText}>
+                      +10
+                    </Text>
+                  </Stack>
+                </Flex>
                 <Stack spacing={0}>
                   <Text
                     fontFamily="'PixelifySans-Bold', sans-serif"
                     fontSize="16px"
+                    color={colors.primaryText}
                     mb={-2}
                   >
-                    NoName
+                    {friend.points}
                   </Text>
-                  <Text fontSize="12px" color={colors.secondaryText}>
-                    +10
+                  <Text
+                    fontFamily="'PixelifySans-Bold', sans-serif"
+                    fontSize="12px"
+                    color={colors.secondaryText}
+                  >
+                    points
                   </Text>
                 </Stack>
               </Flex>
-              <Stack spacing={0}>
-                <Text
-                  fontFamily="'PixelifySans-Bold', sans-serif"
-                  fontSize="16px"
-                  color={colors.primaryText}
-                  mb={-2}
+            ))}
+          </Stack>
+        </Box>
+      ) : (
+        // Steps when Friends List is empty
+        <Box w="100%" maxW="360px" mb={4}>
+          <Heading
+            fontSize="20px"
+            fontFamily="'PixelifySans-Bold', sans-serif"
+            mb={4}
+            textAlign="center"
+          >
+            How it works
+          </Heading>
+          <Stack spacing={6}>
+            {steps.map((step, index) => (
+              <Flex key={index} align="center">
+                <Box
+                  minW="30px"
+                  h="30px"
+                  bgGradient="linear(45deg, #793BC7, #C2D2FF)"
+                  borderRadius="full"
+                  mr={4}
+                  display="flex"
+                  alignItems="center"
+                  justifyContent="center"
                 >
-                  123486
-                </Text>
-                <Text
-                  fontFamily="'PixelifySans-Bold', sans-serif"
-                  fontSize="12px"
-                  color={colors.secondaryText}
-                >
-                  points
-                </Text>
-              </Stack>
-            </Flex>
-          ))}
-        </Stack>
-      </Box>
+                  <Text fontSize="16px" fontWeight="bold">
+                    {index + 1}
+                  </Text>
+                </Box>
+                <Stack spacing={0}>
+                  <Text
+                    fontFamily="'PixelifySans-Bold', sans-serif"
+                    fontSize="16px"
+                  >
+                    {step.title}
+                  </Text>
+                  <Text fontSize="12px" color={colors.secondaryText}>
+                    {step.subtitle}
+                  </Text>
+                </Stack>
+              </Flex>
+            ))}
+          </Stack>
+        </Box>
+      )}
 
       {/* Кнопка Invite Friend */}
       <GradientBorderWrapper
@@ -195,11 +274,12 @@ export default function Invites() {
         startColor="#793BC7"
         endColor="#C2D2FF"
         strokeWidth={1.5}
-        w="165px"
-        h="45px"
+        w="200px"
+        h="50px"
         zIndex="2"
       >
         <Flex
+          onClick={inviteFriendsLink}
           direction="row"
           alignItems="center"
           justifyContent="space-between"
@@ -210,22 +290,22 @@ export default function Invites() {
         >
           <Stack spacing={0}>
             <Heading
-              fontSize="16px"
+              fontSize="18px"
               color={colors.primaryText}
               fontFamily="'PixelifySans-Bold', sans-serif"
               fontWeight="bold"
-              mb={-1.5}
+              mb={-1}
             >
-              Invite Friend
+              Invite Friends
             </Heading>
-            <Text fontSize="8px" color={colors.secondaryText}>
+            <Text fontSize="10px" color={colors.secondaryText}>
               Get more tickets and points
             </Text>
           </Stack>
           <Image
             src="/icons/frens_icon.svg"
             alt="Invite Friend Icon"
-            boxSize="23px"
+            boxSize="30px"
             mr={2}
           />
         </Flex>
