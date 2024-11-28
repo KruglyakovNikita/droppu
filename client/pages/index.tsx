@@ -337,7 +337,7 @@ const Home: React.FC = () => {
       <Box
         onClick={() => {
           window.location.href = "/game";
-          window.Telegram.WebApp.isFullscreen(true);
+          window.Telegram.WebApp.requestFullscreen();
 
         }}
         mt={30}
