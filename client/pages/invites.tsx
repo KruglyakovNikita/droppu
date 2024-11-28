@@ -195,7 +195,7 @@ export default function Invites() {
                       fontSize="16px"
                       mb={-2}
                     >
-                      {friend.name}
+                      
                     </Text>
                     <Text fontSize="12px" color={colors.secondaryText}>
                       +10
@@ -209,7 +209,7 @@ export default function Invites() {
                     color={colors.primaryText}
                     mb={-2}
                   >
-                    {friend.points}
+
                   </Text>
                   <Text
                     fontFamily="'PixelifySans-Bold', sans-serif"
