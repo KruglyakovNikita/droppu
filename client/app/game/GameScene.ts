@@ -25,6 +25,8 @@ class GameScene extends Phaser.Scene {
   score!: number;
   background1!: Phaser.GameObjects.Image;
   background2!: Phaser.GameObjects.Image;
+  background3!: Phaser.GameObjects.Image;
+  background4!: Phaser.GameObjects.Image;
 
   scoreText!: Phaser.GameObjects.Text;
   lastPlatformX: number = 300;
@@ -56,6 +58,10 @@ class GameScene extends Phaser.Scene {
   DESCENT_ACCELERATION!: number;
   MAX_DESCENT_SPEED!: number;
   MAX_ASCENT_SPEED!: number;
+
+  //Back
+  backgroundSwitchDistance: number = 5000;
+  currentBackgroundSet: number = 1;
 
   constructor() {
     super({ key: "GameScene" });
@@ -98,8 +104,10 @@ class GameScene extends Phaser.Scene {
 
     // Загрузка других ресурсов
     this.load.image("laser", "/blocks/laser.png");
-    this.load.image("background", "/map/background.webp");
-    this.load.image("background2", "/map/background.webp");
+    this.load.image("back1", "/map/back1.webp"); // Замените пути на ваши файлы
+    this.load.image("back2", "/map/back2.webp");
+    this.load.image("back3", "/map/back3.webp");
+    this.load.image("back4", "/map/back4.webp");
 
     // Текстуры для ракет
     this.load.image("homingRocketTexture", "/blocks/rocket_default_homing.png");
@@ -196,11 +204,16 @@ class GameScene extends Phaser.Scene {
     this.matter.world.on("collisionstart", this.handleCollision, this);
 
     // Создаем два изображения для плавной бесконечной прокрутки
-    this.background1 = this.add.image(0, 0, "background");
-    this.background2 = this.add.image(this.background1.width, 0, "background2");
-
+    // Создаем два изображения для плавной бесконечной прокрутки
+    this.background1 = this.add.image(0, 0, "back1");
     // Масштабируем изображения до размеров экрана
     this.background1.setDisplaySize(this.scale.width, this.scale.height);
+
+    this.background2 = this.add.image(
+      +this.background1.displayWidth,
+      0,
+      "back2"
+    );
     this.background2.setDisplaySize(this.scale.width, this.scale.height);
 
     // Устанавливаем оба изображения в верхний левый угол и закрепляем на заднем плане
@@ -632,15 +645,14 @@ class GameScene extends Phaser.Scene {
     }
 
     // Обновляем фон для бесконечной прокрутки
-    this.background1.x -= 1;
-    this.background2.x -= 1;
+    this.scrollBackgrounds();
 
-    // Перемещаем фон для эффекта бесконечной прокрутки
-    if (this.background1.x <= -this.background1.width) {
-      this.background1.x = this.background2.x + this.background2.width;
-    }
-    if (this.background2.x <= -this.background2.width) {
-      this.background2.x = this.background1.x + this.background1.width;
+    // Проверка на переключение фонов
+    if (
+      this.player.x >=
+      this.backgroundSwitchDistance * this.currentBackgroundSet
+    ) {
+      this.switchBackgrounds();
     }
 
     // Постоянная скорость вправо
@@ -705,6 +717,78 @@ class GameScene extends Phaser.Scene {
       }
       return true;
     });
+  }
+
+  /**
+   * Метод прокрутки текущего набора фонов.
+   * Фоны будут перемещаться вправо, заменяя друг друга циклично.
+   */
+  scrollBackgrounds() {
+    let bg1: Phaser.GameObjects.Image;
+    let bg2: Phaser.GameObjects.Image;
+
+    if (this.currentBackgroundSet === 1) {
+      bg1 = this.background1;
+      bg2 = this.background2;
+    } else if (this.currentBackgroundSet === 2) {
+      bg1 = this.background3;
+      bg2 = this.background4;
+    } else {
+      // Добавьте дополнительные наборы фонов, если необходимо
+      return;
+    }
+
+    const scrollSpeed = 1; // Скорость прокрутки. Настройте по необходимости.
+
+    // Перемещаем фоны влево
+    bg1.x -= scrollSpeed;
+    bg2.x -= scrollSpeed;
+
+    // Используем displayWidth для корректного расчета
+    const bg1DisplayWidth = bg1.displayWidth;
+    const bg2DisplayWidth = bg2.displayWidth;
+
+    // Если первый фон полностью вышел за левый край экрана, перемещаем его за второй фон
+    if (bg1.x + bg1DisplayWidth <= 0) {
+      bg1.x = bg2.x + bg2DisplayWidth;
+    }
+
+    // Если второй фон полностью вышел за левый край экрана, перемещаем его за первым фоном
+    if (bg2.x + bg2DisplayWidth <= 0) {
+      bg2.x = bg1.x + bg1DisplayWidth;
+    }
+  }
+
+  /**
+   * Метод переключения на новый набор фонов
+   */
+  switchBackgrounds() {
+    if (this.currentBackgroundSet === 1) {
+      // Уничтожаем старые фоны
+      this.background1.destroy();
+      this.background2.destroy();
+
+      // Создаем новые фоны для второго набора
+      this.background3 = this.add.image(0, 0, "back3");
+      // Масштабируем и устанавливаем параметры
+      this.background3.setDisplaySize(this.scale.width, this.scale.height);
+
+      this.background4 = this.add.image(
+        this.background3.displayWidth,
+        0,
+        "back4"
+      );
+      this.background4.setDisplaySize(this.scale.width, this.scale.height);
+
+      this.background3.setOrigin(0, 0).setScrollFactor(0).setDepth(-Infinity);
+      this.background4.setOrigin(0, 0).setScrollFactor(0).setDepth(-Infinity);
+
+      // Обновляем текущий набор фонов
+      this.currentBackgroundSet = 2;
+    } else if (this.currentBackgroundSet === 2) {
+      // Аналогично переключаемся на следующий набор или возвращаемся к первому
+      // ...
+    }
   }
 }
 
