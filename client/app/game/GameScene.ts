@@ -599,22 +599,23 @@ class GameScene extends Phaser.Scene {
       this.cameras.main.width,
       this.cameras.main.height,
       0x000000,
-      0.5
+      0.75
     );
     modalElements.push(overlay);
 
-    // Создаем модальное окно с обводкой
-    const modalWidth = 500;
-    const modalHeight = 350;
-    const modal = this.add.rectangle(
-      centerX,
-      centerY,
-      modalWidth,
-      modalHeight,
-      0xffffff
-    );
-    modal.setStrokeStyle(4, 0x333333);
-    modalElements.push(modal);
+    // // Создаем модальное окно с обводкой
+    // const modalWidth = 500;
+    // const modalHeight = 350;
+    // const modal = this.add.rectangle(
+    //   centerX,
+    //   centerY,
+    //   undefined,
+    //   undefined,
+    //   0x0b0b0b, // Темно-серый цвет
+    //   0.75 // Устанавливаем прозрачность (0.9 - почти непрозрачно)
+    // );
+    // modal.setStrokeStyle(4, 0x0b0b0b, 0.8);
+    // modalElements.push(modal);
 
     // Создаем градиентную текстуру для кнопки "Продолжить"
 

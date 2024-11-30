@@ -1,8 +1,10 @@
+// Game.tsx
 "use client";
 
-import React, { CSSProperties, FC, useEffect, useRef, useState } from "react";
+import React, { FC, useEffect, useRef, useState } from "react";
 import GameScene from "../game/GameScene";
 import Phaser from "phaser";
+import GameData from "./GameData";
 
 export interface GameSceneData {
   gameId: string;
@@ -10,6 +12,7 @@ export interface GameSceneData {
   userSkinUrl: string;
   userSpriteUrl: string;
   onGameEnd: () => void;
+  onPurchaseAttempt: (cost: number) => Promise<"ok" | "canceled">;
 }
 
 const Game: FC<GameSceneData> = ({
@@ -18,13 +21,16 @@ const Game: FC<GameSceneData> = ({
   userSkinUrl,
   userSpriteUrl,
   onGameEnd,
+  onPurchaseAttempt,
 }) => {
   const gameRef = useRef<HTMLDivElement>(null);
+  const phaserGameRef = useRef<Phaser.Game | null>(null);
   const [isHorizontal, setIsHorizontal] = useState(
     window.innerHeight < window.innerWidth
   );
   const [gameWidth, setGameWidth] = useState(600);
   const [gameHeight, setGameHeight] = useState(400);
+  const [isGameOver, setIsGameOver] = useState(false);
 
   const calculateGameDimensions = () => {
     const maxWidth = 600;
@@ -77,6 +83,22 @@ const Game: FC<GameSceneData> = ({
       return;
     }
 
+    const handleGameEnd = () => {
+      setIsGameOver(true);
+      if (onGameEnd) {
+        onGameEnd();
+      }
+    };
+
+    GameData.instance.setData({
+      gameId,
+      booster,
+      userSkinUrl,
+      userSpriteUrl,
+      onGameEnd: handleGameEnd,
+      onPurchaseAttempt,
+    });
+
     const { gameWidth, gameHeight } = calculateGameDimensions();
 
     const config: Phaser.Types.Core.GameConfig = {
@@ -97,22 +119,34 @@ const Game: FC<GameSceneData> = ({
     };
 
     const game = new Phaser.Game(config);
+    phaserGameRef.current = game;
 
     window.addEventListener("orientationchange", resizeGame);
 
     return () => {
       window.removeEventListener("orientationchange", resizeGame);
-      game.destroy(true);
+      if (phaserGameRef.current) {
+        phaserGameRef.current.destroy(true);
+        phaserGameRef.current = null;
+      }
     };
   }, []);
+
+  useEffect(() => {
+    if (isGameOver) {
+      if (phaserGameRef.current) {
+        phaserGameRef.current.scene.pause("GameScene");
+      }
+    }
+  }, [isGameOver]);
 
   return (
     <div
       style={{
         position: "fixed",
-        backgroundImage: "url('/map/gameSceneBackground.png')", // Указываем путь к изображению
-        backgroundRepeat: "repeat", // Повторяем фон
-        backgroundSize: "auto", // Размер изображения по умолчанию
+        backgroundImage: "url('/map/gameSceneBackground.png')",
+        backgroundRepeat: "repeat",
+        backgroundSize: "auto",
         width: "100vw",
         height: "100vh",
         margin: 0,
@@ -121,39 +155,37 @@ const Game: FC<GameSceneData> = ({
         left: 0,
       }}
     >
-      <div
-        style={{
-          position: "absolute",
-          ...(isHorizontal
-            ? { top: `calc((100vh - ${gameHeight}px) / 2)` }
-            : { top: `calc((100vh - ${gameHeight}px) / 2)` }),
-          ...(isHorizontal
-            ? { left: `calc((100vw - ${gameWidth}px) / 2)` }
-            : { right: `calc((100vw - ${gameWidth}px) / 2)` }),
-          width: gameWidth,
-          height: gameHeight,
-          overflow: "hidden",
-          transform: isHorizontal ? "none" : "rotate(90deg)",
-          margin: 0,
-          padding: 0,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          zIndex: 2,
-          outline: "8px ridge rgba(100, 150, 220, .9)",
-          borderRadius: "2rem",
-        }}
-      >
+      {!isGameOver && (
         <div
-          className="game"
-          ref={gameRef}
           style={{
-            outlineWidth: "3px",
-            outlineColor: "green",
-            outlineOffset: "3px",
+            position: "absolute",
+            top: `calc((100vh - ${gameHeight}px) / 2)`,
+            left: `calc((100vw - ${gameWidth}px) / 2)`,
+            width: gameWidth,
+            height: gameHeight,
+            overflow: "hidden",
+            transform: isHorizontal ? "none" : "rotate(90deg)",
+            margin: 0,
+            padding: 0,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 2,
+            outline: "8px ridge rgba(100, 150, 220, .9)",
+            borderRadius: "2rem",
           }}
-        />
-      </div>
+        >
+          <div
+            className="game"
+            ref={gameRef}
+            style={{
+              outlineWidth: "3px",
+              outlineColor: "green",
+              outlineOffset: "3px",
+            }}
+          />
+        </div>
+      )}
     </div>
   );
 };

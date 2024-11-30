@@ -14,6 +14,10 @@ export default function GamePage() {
         onGameEnd={() => {
           console.log("FOFOFOFOSAFASFAS");
         }}
+        onPurchaseAttempt={async (num: number) => {
+          console.log("YOUUOUO");
+          return "ok";
+        }}
       />
     </Box>
   );
