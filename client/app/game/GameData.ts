@@ -4,6 +4,7 @@ export interface GameSceneData {
   userSkinUrl: string;
   userSpriteUrl: string;
   onGameEnd: () => void;
+  onPurchaseAttempt: (cost: number) => Promise<"ok" | "canceled">;
 }
 
 class GameData {
@@ -19,6 +20,17 @@ class GameData {
       onGameEnd: () => {
         console.log("WATAFAC");
         window?.Telegram?.WebApp?.exitFullscreen();
+      },
+      onPurchaseAttempt: async (num: number) => {
+        await new Promise((resolve) =>
+          setTimeout(() => {
+            console.log("TIMEOUT");
+            resolve("ok");
+          }, 1000)
+        );
+
+        console.log("WATAFAC");
+        return "ok";
       },
     };
   }
