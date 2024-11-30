@@ -737,6 +737,55 @@ class GameScene extends Phaser.Scene {
       loop: true,
     });
 
+    // === Кнопка "Закончить игру" ===
+
+    const finishButtonWidth = 200;
+    const finishButtonHeight = 50;
+    const finishButtonX = centerX;
+    const finishButtonY = centerY + 50; // Располагаем ниже кнопки "Продолжить"
+
+    const finishButton = this.add.rectangle(
+      finishButtonX,
+      finishButtonY,
+      finishButtonWidth,
+      finishButtonHeight,
+      0x808080 // Серый цвет для менее привлекательной кнопки
+    );
+    finishButton.setInteractive({ useHandCursor: true });
+    modalElements.push(finishButton);
+
+    // Обводка для кнопки "Закончить игру"
+    const finishButtonBorder = this.add.graphics();
+    finishButtonBorder.lineStyle(2, 0x333333, 1);
+    finishButtonBorder.strokeRect(
+      finishButtonX - finishButtonWidth / 2,
+      finishButtonY - finishButtonHeight / 2,
+      finishButtonWidth,
+      finishButtonHeight
+    );
+    modalElements.push(finishButtonBorder);
+
+    // Текст на кнопке "Закончить игру"
+    const finishButtonText = this.add
+      .text(finishButtonX, finishButtonY, "Закончить игру", {
+        fontSize: "20px",
+        color: "#ffffff",
+      })
+      .setOrigin(0.5);
+    modalElements.push(finishButtonText);
+
+    // Обработчик нажатия на кнопку "Закончить игру"
+    finishButton.on("pointerdown", () => {
+      this.closeModal(modalElements);
+      this.onGameEnd(
+        this.score,
+        this.coinCount,
+        this.continueCount,
+        this.gameId
+      );
+      this.isStoped = true;
+    });
+
     this.clearGame();
     // Обработчик нажатия на кнопку "Продолжить"
     continueButton.on("pointerdown", async () => {
