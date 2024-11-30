@@ -364,13 +364,12 @@ export class LaserCannon {
     this.laserPlasma = [];
     this.leftGun.destroy();
     this.rightGun.destroy();
+    this.leftGun;
 
-    this.warningLeft?.destroy();
-    this.warningRight?.destroy();
+    this.destroyWarning();
   }
 
   destroyWarning() {
-    // Если есть предупреждения, уничтожаем их
     this.warningLeft?.destroy();
     this.warningRight?.destroy();
   }

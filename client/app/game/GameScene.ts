@@ -628,6 +628,8 @@ class GameScene extends Phaser.Scene {
 
     // Обновляем позицию для новых пресетов
     this.lastPlatformX = this.player.x + 300;
+    this.generateRocketsByTimer();
+    this.generateLaserCannonsByTimer();
   }
 
   /**

@@ -6,6 +6,7 @@ export class Rocket extends Phaser.Physics.Matter.Sprite {
 
   private updateWarningPosition: (() => void) | null = null;
   private warningDelayedCall: Phaser.Time.TimerEvent | null = null;
+  private warningTriangle: Phaser.GameObjects.Image | null = null;
 
   constructor(
     scene: Phaser.Scene,
@@ -42,18 +43,18 @@ export class Rocket extends Phaser.Physics.Matter.Sprite {
     this.isWarning = true; // Устанавливаем флаг
 
     // Создаём треугольник-предупреждение
-    const warningTriangle = this.scene.add.image(
+    this.warningTriangle = this.scene.add.image(
       getX(),
       getY(),
       "warningTriangle"
     );
-    warningTriangle.setScale(0.5);
-    warningTriangle.setAlpha(0.8);
-    warningTriangle.setDepth(1); // Убедимся, что треугольник выше других элементов
+    this.warningTriangle?.setScale(0.5);
+    this.warningTriangle?.setAlpha(0.8);
+    this.warningTriangle?.setDepth(1); // Убедимся, что треугольник выше других элементов
 
     // Добавляем мигание треугольника
     this.scene.tweens.add({
-      targets: warningTriangle,
+      targets: this.warningTriangle,
       alpha: { start: 0.8, to: 0 },
       ease: "Linear",
       duration: 300,
@@ -63,8 +64,8 @@ export class Rocket extends Phaser.Physics.Matter.Sprite {
 
     // Обновляем позицию треугольника при обновлении сцены
     this.updateWarningPosition = () => {
-      warningTriangle.setX(getX());
-      warningTriangle.setY(getY());
+      this.warningTriangle?.setX(getX());
+      this.warningTriangle?.setY(getY());
     };
     this.scene.events.on("update", this.updateWarningPosition);
 
@@ -76,7 +77,7 @@ export class Rocket extends Phaser.Physics.Matter.Sprite {
           this.scene.events.off("update", this.updateWarningPosition);
           this.updateWarningPosition = null;
         }
-        warningTriangle.destroy();
+        this.warningTriangle?.destroy();
         this.activate(getX, getY); // Активируем ракету с установкой позиции
       },
       [],
@@ -142,7 +143,7 @@ export class Rocket extends Phaser.Physics.Matter.Sprite {
     }
 
     console.log("Rocket destroyed:", this);
-
+    this.warningTriangle?.destroy();
     // Вызываем базовый метод destroy
     super.destroy(fromScene);
   }
