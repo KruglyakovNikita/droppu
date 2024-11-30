@@ -1,13 +1,14 @@
-import Phaser from "phaser";
+// LaserCannon.ts
 
-// Константы для временных интервалов и настроек
+import Phaser from "phaser";
+import { ObstacleVariantType } from "../../presets/types";
+
 const WARNING_DURATION = 3000;
 const GUN_APPEAR_DURATION = 500;
 const LASER_DURATION = 2000;
 const GUN_DISAPPEAR_DURATION = 500;
 const CAMER_GAP = 25;
 
-// Константы для осцилляций динамических пушек
 const DYNAMIC_OSCILLATION_AMPLITUDE = 15;
 const DYNAMIC_OSCILLATION_FREQUENCY = 2;
 const DYNAMIC_OSCILLATION_DURATION = 3000;
@@ -23,25 +24,23 @@ export class LaserCannon {
   active: boolean = false;
   timers: Phaser.Time.TimerEvent[] = [];
   private updateWarningPosition: (() => void) | null = null;
-  type: "static" | "homing" | "dynamic";
+  type: ObstacleVariantType;
   initialY: number;
 
-  // Новая переменная для хранения Y-координаты плазмы
   private plasmaY: number | null = null;
 
-  // Переменные для осцилляции
   private oscillating: boolean = false;
   private oscillationStartTime: number = 0;
   private baseY: number = 0;
 
-  // Адаптивные константы
   GUN_MOVE_DISTANCE!: number;
   PLASMA_SCREEN_X!: number;
 
   constructor(
     scene: Phaser.Scene,
-    type: "static" | "homing" | "dynamic",
-    player: Phaser.Physics.Matter.Sprite
+    type: ObstacleVariantType,
+    player: Phaser.Physics.Matter.Sprite,
+    initialY?: number
   ) {
     this.scene = scene;
     this.type = type;
@@ -53,12 +52,13 @@ export class LaserCannon {
 
     // Устанавливаем начальную позицию Y
     if (this.type === "static") {
-      this.initialY = Phaser.Math.Between(50, this.scene.scale.height - 50);
+      this.initialY =
+        initialY ?? Phaser.Math.Between(50, this.scene.scale.height - 50);
     } else {
       this.initialY = this.player.y;
     }
 
-    // Создаем лазерные пушки
+    // Создаём лазерные пушки
     this.leftGun = this.scene.add.image(
       -this.GUN_MOVE_DISTANCE,
       this.initialY,
@@ -145,7 +145,7 @@ export class LaserCannon {
         }
 
         if (this.type === "homing" || this.type === "dynamic") {
-          // Ждем 0.5 секунды перед началом анимации пушек
+          // Ждём 0.5 секунды перед началом анимации пушек
           const fireDelayTimer = this.scene.time.delayedCall(
             500,
             () => {
@@ -207,7 +207,7 @@ export class LaserCannon {
   }
 
   fireLaser(fixedY: number) {
-    // Создаем лазерную плазму
+    // Создаём лазерную плазму
     const cameraScrollX = this.scene.cameras.main.scrollX;
     const cameraScrollY = this.scene.cameras.main.scrollY;
 
@@ -217,7 +217,7 @@ export class LaserCannon {
     const plasmaHeight = 20;
     const laserLength = rightGunX - leftGunX - this.leftGun.displayWidth;
 
-    // Создаем один большой сегмент плазмы между пушками
+    // Создаём один большой сегмент плазмы между пушками
     const x = leftGunX + this.leftGun.displayWidth / 2 + laserLength / 2;
     const y = fixedY + cameraScrollY;
 
@@ -364,7 +364,6 @@ export class LaserCannon {
     this.laserPlasma = [];
     this.leftGun.destroy();
     this.rightGun.destroy();
-    this.leftGun;
 
     this.destroyWarning();
   }

@@ -1,19 +1,21 @@
-// presets/coinsPresets.ts
-
+import { getCoordinates } from "../utils/coordinates";
 import { Preset } from "./types";
-import { getCoordinates } from "../utils"; // Убедитесь, что путь правильный
 
-export const coinsPresets: Preset[] = [
-  {
-    lasers: [
-      // Пресеты лазеров для easy-coin уровня, если они понадобятся
-    ],
-    coins: [
-      getCoordinates({ x: 150, y: 200 }), // { x: 0.25, y: 0.5 }
-      getCoordinates({ x: 250, y: 200 }), // { x: 0.4167, y: 0.5 }
-      getCoordinates({ x: 350, y: 200 }), // { x: 0.5833, y: 0.5 }
-      getCoordinates({ x: 450, y: 200 }), // { x: 0.75, y: 0.5 }
-    ],
+export const coinsPresets: Preset[] = [];
+
+// Generate 30 coin presets
+for (let i = 0; i < 30; i++) {
+  const coins: Array<{ x: number; y: number }> = [];
+  for (let j = 0; j < 10; j++) {
+    const x = 100 + j * 50; // Spacing coins horizontally
+    const y = Phaser.Math.Between(50, 350); // Random vertical position
+    const coordinates = getCoordinates({ x, y });
+
+    coins.push(coordinates);
+  }
+  coinsPresets.push({
+    lasers: [],
+    coins,
     difficulty: "easy-coin",
-  },
-];
+  });
+}

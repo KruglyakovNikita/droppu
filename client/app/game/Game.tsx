@@ -149,6 +149,8 @@ const Game: FC<GameSceneData> = ({
         backgroundSize: "auto",
         width: "100vw",
         height: "100vh",
+        maxWidth: "800px",
+        maxHeight: "600px",
         margin: 0,
         padding: 0,
         top: 0,

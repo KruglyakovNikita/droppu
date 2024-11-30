@@ -1,16 +1,25 @@
 "use client";
 
 import Phaser from "phaser";
-import { Preset } from "./presets/types";
-import { getPresetPool, getRandomDifficulty } from "./utils";
+import {
+  DifficultyLevel,
+  ObstacleConfig,
+  Preset,
+  PresetDifficulty,
+} from "./presets/types";
 import { DynamicRocket } from "./weapons/Rocket/DynamicRocket";
 import { HomingRocket } from "./weapons/Rocket/HomingRocket";
 import { StaticRocket } from "./weapons/Rocket/StaticRocket";
 import { WeaponManager } from "./weapons/WeaponManager";
 import { LaserCannon } from "./weapons/Laser/LaserCannon";
 import { Rocket } from "./weapons/Rocket/Rocket";
-import { GameSceneData } from "./Game";
 import GameData from "./GameData";
+import { coinsPresets } from "./presets/coins-preset";
+import { easyPresets } from "./presets/easy-presets";
+import { mediumPresets } from "./presets/medium-presets";
+import { hardPresets } from "./presets/hard-presets";
+import { ultraHardPresets } from "./presets/ultra-hard-presets";
+import { getCurrentDifficultyLevel } from "./utils/difficultyLevels";
 
 // Константы игры
 export const PLAYER_SPEED = 2; // Постоянная скорость вправо
@@ -73,6 +82,11 @@ class GameScene extends Phaser.Scene {
   purchaseTimeLeft: number = 10;
   purchaseTimeout: number = 10;
   modalTimeoutDuration: number = 30;
+
+  //For hardes game
+  lastObstacleTime: number = 0;
+  obstacleCooldown: number = 3000; // 3 seconds cooldown between obstacles
+  nextObstacleTime: number = 0;
 
   constructor() {
     super({ key: "GameScene" });
@@ -253,6 +267,7 @@ class GameScene extends Phaser.Scene {
     );
     this.coinText.setScrollFactor(0);
 
+    // СОЗДАНИЕ ПРЕПЯТСТВИЙ
     // Инициализация очереди пресетов
     for (let i = 0; i < 3; i++) {
       this.enqueuePreset();
@@ -262,95 +277,15 @@ class GameScene extends Phaser.Scene {
     for (let i = 0; i < 3; i++) {
       this.addPresetFromQueue();
     }
-    // СОЗДАНИЕ ПРЕПЯТСТВИЙ
-    // Запускаем генерацию ракет каждые 8 секунд
-    this.generateRocketsByTimer();
-    // Запускаем генерацию лазерных пушек каждые 8 секунд (можно изменить по необходимости)
-    this.generateLaserCannonsByTimer();
 
     this.events.on("playerHit", this.handlePlayerHit, this);
-  }
 
-  generateLaserCannonsByTimer() {
-    this.generateLaserCannonTimer = this.time.addEvent({
-      delay: 8000, // Каждые 8 секунд
-      callback: this.generateLaserCannon,
-      callbackScope: this,
-      loop: true,
-    });
-  }
-
-  generateLaserCannon() {
-    const laserCannonTypes = ["static", "homing", "dynamic"];
-    // const type = Phaser.Utils.Array.GetRandom(laserCannonTypes);
-    const type = "dynamic"; // Для тестирования всегда создаём 'dynamic'
-
-    const laserCannon = new LaserCannon(this, type, this.player);
-    this.objectManager.addObject("laserCannon", laserCannon, { type });
-  }
-
-  generateRocketsByTimer() {
-    this.generateRockettimer = this.time.addEvent({
-      delay: 12000, // 8 секунд
-      callback: this.generateRocket,
-      callbackScope: this,
-      loop: true,
-    });
-  }
-
-  /**
-   * Метод генерации ракеты
-   */
-  generateRocket() {
-    const rocketTypes = ["homing", "static", "dynamic"];
-    const rocketType = Phaser.Utils.Array.GetRandom(rocketTypes);
-
-    let rocket;
-    const initialX = this.cameras.main.scrollX + this.cameras.main.width + 100; // X-координата ракеты справа от экрана
-    const yPosition = this.player.y; // Для homing и dynamic rockets
-
-    switch (rocketType) {
-      case "homing":
-        rocket = new HomingRocket(this, initialX, yPosition, this.player, 5);
-        rocket.setWarning(
-          () => this.cameras.main.scrollX + this.cameras.main.width - 20,
-          () => this.player.y // Динамическое отслеживание Y игрока
-        );
-        break;
-      case "static":
-        const fixedY = Phaser.Math.Between(50, 350);
-        rocket = new StaticRocket(this, initialX, fixedY, 3);
-        rocket.setWarning(
-          () => this.cameras.main.scrollX + this.cameras.main.width - 20,
-          () => fixedY // Фиксированное Y
-        );
-        break;
-      case "dynamic":
-        rocket = new DynamicRocket(
-          this,
-          initialX,
-          yPosition,
-          this.player,
-          4,
-          20
-        ); // Амплитуда 20 пикселей
-        rocket.setWarning(
-          () => this.cameras.main.scrollX + this.cameras.main.width - 20,
-          () => this.player.y // Динамическое отслеживание Y игрока
-        );
-        break;
-      default:
-        console.warn(`Unknown rocket type: ${rocketType}`);
-        return;
-    }
-
-    if (rocket) {
-      this.objectManager.addObject("rocket", rocket, {
-        type: rocketType,
-        x: rocket.x,
-        y: rocket.y,
-      });
-    }
+    // Инициализация таймера препятствий
+    const currentDifficulty = getCurrentDifficultyLevel(this.score);
+    const baseDelay = 10000;
+    this.nextObstacleTime =
+      this.time.now +
+      baseDelay / currentDifficulty.obstacles.spawnRateMultiplier;
   }
 
   /**
@@ -358,29 +293,245 @@ class GameScene extends Phaser.Scene {
    */
   enqueuePreset() {
     const distance = this.player?.x ?? 0;
-    const difficulty = getRandomDifficulty(distance);
-    const presetPool = getPresetPool(difficulty);
-    let preset: Preset | null = null;
+    const score = Math.floor(distance - 100);
+    const currentDifficulty = getCurrentDifficultyLevel(score);
 
-    for (let i = 0; i < presetPool.length; i++) {
-      if (this.testInd === i) {
-        preset = presetPool[i];
-        this.testInd = i + 1;
+    // Решаем, добавить ли пресет с монетами на основе частоты
+    if (Phaser.Math.Between(1, currentDifficulty.coinPresetFrequency) === 1) {
+      // Добавляем пресет монет
+      const preset = Phaser.Utils.Array.GetRandom(coinsPresets);
+      if (preset) {
+        this.presetQueue.push(preset);
       }
-    }
-    if (!preset) {
-      const harderPresetPool = getPresetPool("hard");
-      preset = Phaser.Utils.Array.GetRandom(harderPresetPool);
+      return;
     }
 
-    if (!preset) {
-      preset = Phaser.Utils.Array.GetRandom(presetPool);
-    }
-
+    // Добавляем пресет, соответствующий текущей сложности
+    const presetPool = this.getPresetPool(currentDifficulty.presetTypes);
+    const preset = Phaser.Utils.Array.GetRandom(presetPool);
     if (preset) {
       this.presetQueue.push(preset);
-    } else {
-      console.error("No presets available to enqueue.");
+    }
+  }
+
+  /**
+   * Метод получения пула пресетов на основе типов сложности
+   */
+  getPresetPool(difficulties: PresetDifficulty[]): Preset[] {
+    let pool: Preset[] = [];
+
+    difficulties.forEach((difficulty) => {
+      switch (difficulty) {
+        case "easy":
+          pool = pool.concat(easyPresets);
+          break;
+        case "medium":
+          pool = pool.concat(mediumPresets);
+          break;
+        case "hard":
+          pool = pool.concat(hardPresets);
+          break;
+        case "ultra-hard":
+          pool = pool.concat(ultraHardPresets);
+          break;
+        default:
+          break;
+      }
+    });
+
+    return pool;
+  }
+
+  generateObstacle(currentDifficulty: DifficultyLevel) {
+    if (!currentDifficulty.obstacles.obstacleConfigs.length) {
+      return; // Нет препятствий на этом уровне сложности
+    }
+
+    // Убедимся, что прошло достаточно времени с последнего препятствия
+    if (this.time.now - this.lastObstacleTime < this.obstacleCooldown) {
+      return;
+    }
+
+    this.lastObstacleTime = this.time.now;
+
+    // Настройка задержки для следующего препятствия
+    const baseDelay = 10000; // Базовая задержка в миллисекундах
+    const adjustedDelay =
+      baseDelay / currentDifficulty.obstacles.spawnRateMultiplier;
+    this.nextObstacleTime = this.time.now + adjustedDelay;
+
+    // Выбираем конфигурацию препятствия случайным образом на основе весов
+    const obstacleConfigs = currentDifficulty.obstacles.obstacleConfigs;
+    const totalWeight = obstacleConfigs.reduce(
+      (sum, config) => sum + config.weight,
+      0
+    );
+    const rand = Phaser.Math.Between(1, totalWeight);
+    let accumulatedWeight = 0;
+    let selectedConfig: ObstacleConfig | null = null;
+
+    for (const config of obstacleConfigs) {
+      accumulatedWeight += config.weight;
+      if (rand <= accumulatedWeight) {
+        selectedConfig = config;
+        break;
+      }
+    }
+
+    if (!selectedConfig) {
+      console.warn("Конфигурация препятствия не выбрана");
+      return;
+    }
+
+    // Генерируем препятствие в соответствии с выбранной конфигурацией
+    switch (selectedConfig.obstacleType) {
+      case "rocket":
+        this.generateRocketObstacle(selectedConfig);
+        break;
+      case "laserCannon":
+        this.generateLaserCannonObstacle(selectedConfig);
+        break;
+      default:
+        console.warn(
+          `Неизвестный тип препятствия: ${selectedConfig.obstacleType}`
+        );
+        break;
+    }
+  }
+
+  generateRocketObstacle(config: ObstacleConfig) {
+    config.variants.forEach((variant) => {
+      const rocketType = variant.type;
+      const initialX =
+        this.cameras.main.scrollX + this.cameras.main.width + 100;
+      let yPosition: number;
+
+      if (variant.position && variant.position.y) {
+        yPosition = this.getYPosition(variant.position.y);
+      } else {
+        yPosition = Phaser.Math.Between(this.MIN_Y, this.MAX_Y);
+      }
+
+      let rocket: Rocket | null = null;
+
+      switch (rocketType) {
+        case "static":
+          // Если конфигурация подразумевает двойные статичные ракеты сверху и снизу
+          if (config.name.includes("double")) {
+            rocket = new StaticRocket(this, initialX, yPosition, 3);
+          } else {
+            // Одиночная статичная ракета
+            rocket = new StaticRocket(this, initialX, yPosition, 3);
+          }
+          break;
+        case "homing":
+          // Одиночная homing ракета, отслеживающая игрока
+          rocket = new HomingRocket(this, initialX, yPosition, this.player, 5);
+          break;
+        case "dynamic":
+          // Одиночная динамическая ракета, отслеживающая игрока
+          rocket = new DynamicRocket(
+            this,
+            initialX,
+            yPosition,
+            this.player,
+            4,
+            20
+          );
+          break;
+        default:
+          console.warn(`Неизвестный тип ракеты: ${rocketType}`);
+          break;
+      }
+
+      if (rocket) {
+        // Устанавливаем предупреждение для ракеты
+        if (rocket instanceof HomingRocket || rocket instanceof DynamicRocket) {
+          // Для homing и dynamic ракет устанавливаем отслеживание
+          rocket.setWarning(
+            () => this.cameras.main.scrollX + this.cameras.main.width - 20,
+            () => this.player.y
+          );
+        } else if (rocket instanceof StaticRocket) {
+          // Для статичных ракет устанавливаем фиксированное Y
+          rocket.setWarning(
+            () => this.cameras.main.scrollX + this.cameras.main.width - 20,
+            () => yPosition
+          );
+        }
+
+        this.objectManager.addObject("rocket", rocket, {
+          type: rocketType,
+          x: rocket.x,
+          y: rocket.y,
+        });
+      }
+    });
+  }
+
+  generateLaserCannonObstacle(config: ObstacleConfig) {
+    const cameraScrollX = this.cameras.main.scrollX;
+
+    config.variants.forEach((variant) => {
+      const laserType = variant.type;
+      let yPosition: number;
+
+      if (variant.position && variant.position.y) {
+        yPosition = this.getYPosition(variant.position.y);
+      } else {
+        yPosition = Phaser.Math.Between(this.MIN_Y, this.MAX_Y);
+      }
+
+      let laserCannon: LaserCannon | null = null;
+
+      if (laserType === "static") {
+        // Если конфигурация подразумевает двойные статичные лазеры сверху и снизу
+        if (config.name.includes("double")) {
+          if (variant.position && typeof variant.position.y === "string") {
+            yPosition = this.getYPosition(variant.position.y);
+            laserCannon = new LaserCannon(
+              this,
+              "static",
+              this.player,
+              yPosition
+            );
+          } else {
+            // Если позиция не указана, выбираем случайную
+            laserCannon = new LaserCannon(this, "static", this.player);
+          }
+        } else {
+          // Одиночный статичный лазер
+          laserCannon = new LaserCannon(this, "static", this.player, yPosition);
+        }
+      } else if (laserType === "dynamic" || laserType === "homing") {
+        // Для динамических и homing пушек создаём одиночные лазеры, отслеживающие игрока
+        laserCannon = new LaserCannon(this, laserType, this.player, yPosition);
+      }
+
+      if (laserCannon) {
+        this.objectManager.addObject("laserCannon", laserCannon, {
+          laserType,
+          y: yPosition,
+        });
+      }
+    });
+  }
+
+  getYPosition(position: number | "top" | "middle" | "bottom"): number {
+    const gameHeight = this.scale.height;
+    switch (position) {
+      case "top":
+        return this.MIN_Y;
+      case "middle":
+        return gameHeight / 2;
+      case "bottom":
+        return this.MAX_Y;
+      default:
+        if (typeof position === "number") {
+          return position;
+        } else {
+          return Phaser.Math.Between(this.MIN_Y, this.MAX_Y);
+        }
     }
   }
 
@@ -897,16 +1048,15 @@ class GameScene extends Phaser.Scene {
     this.player.clearTint();
     this.matter.world.resume();
     // Перезапуск таймеров генерации препятствий
-    this.generateRocketsByTimer();
-    this.generateLaserCannonsByTimer();
+    //////TEST
+    // this.generateRocketsByTimer();
+    // this.generateLaserCannonsByTimer();
   }
   /**
    * Метод обновления сцены
    */
   update() {
     if (this.isStoped) {
-      this.generateRockettimer?.remove();
-      this.generateLaserCannonTimer?.remove();
       return;
     }
 
@@ -915,16 +1065,21 @@ class GameScene extends Phaser.Scene {
       this.objectManager.update(this.player);
     }
 
-    // Обновляем фон для бесконечной прокрутки
-    this.scrollBackgrounds();
+    // Обновляем счёт
+    const distance = this.player?.x ?? 0;
+    const score = Math.floor(distance - 100);
+    this.score = Math.max(this.score, score);
+    this.scoreText.setText("Score: " + this.score);
 
-    // Проверка на переключение фонов
-    if (
-      this.player.x >=
-      this.backgroundSwitchDistance * this.currentBackgroundSet
-    ) {
-      // this.switchBackgrounds();
+    const currentDifficulty = getCurrentDifficultyLevel(this.score);
+
+    // Генерируем препятствия на основе текущей сложности
+    if (this.time.now >= this.nextObstacleTime) {
+      this.generateObstacle(currentDifficulty);
     }
+
+    // Прокручиваем фон
+    this.scrollBackgrounds();
 
     // Постоянная скорость вправо
     this.player.setVelocityX(PLAYER_SPEED);
@@ -973,7 +1128,7 @@ class GameScene extends Phaser.Scene {
       this.player.setVelocityY(0);
     }
 
-    // Обновляем счет
+    // Обновляем счёт
     const currentScore = Math.max(this.score, Math.floor(this.player.x - 100));
     if (currentScore !== this.score) {
       this.score = currentScore;
