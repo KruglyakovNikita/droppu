@@ -71,7 +71,6 @@ class ApiService {
     if (this.accessToken) {
       headers.Authorization = `Bearer ${this.accessToken}`;
     }
-
     return headers;
   }
 }

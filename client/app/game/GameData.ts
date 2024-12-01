@@ -1,27 +1,21 @@
+import { ICreatePurchaseAttempt, IEndGame } from "../lib/api/game";
+
 export interface GameSceneData {
-  gameId: string;
+  session_id: number;
   booster: number;
   userSkinUrl: string;
   userSpriteUrl: string;
-  onGameEnd: () => void;
+  onGameEnd: (body: IEndGame) => void;
+  onPurchaseAttempt: (
+    body: ICreatePurchaseAttempt
+  ) => Promise<"ok" | "canceled">;
 }
 
 class GameData {
   private static _instance: GameData;
   data!: GameSceneData;
 
-  constructor() {
-    this.data = {
-      gameId: "1",
-      booster: 0,
-      userSkinUrl: "/player/granny1.png",
-      userSpriteUrl: "/player/granny2.png",
-      onGameEnd: () => {
-        console.log("WATAFAC");
-        window?.Telegram?.WebApp?.exitFullscreen();
-      },
-    };
-  }
+  private constructor() {}
 
   static get instance(): GameData {
     if (!this._instance) {
@@ -32,6 +26,10 @@ class GameData {
 
   setData(data: GameSceneData): void {
     this.data = data;
+  }
+
+  setProps(data: Partial<GameSceneData>): void {
+    this.data = { ...this.data, ...data };
   }
 
   getData(): GameSceneData {

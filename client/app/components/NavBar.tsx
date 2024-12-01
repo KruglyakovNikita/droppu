@@ -38,7 +38,12 @@ const NavBar = () => {
         {navItems.map((item) => {
           const isActive = router.pathname === item.href;
           return (
-            <Link key={item.href} href={item.href} passHref>
+            <Link
+              key={item.href}
+              href={item.href}
+              passHref
+              onClick={() => router.push(item.href)}
+            >
               <IconButton
                 as="a"
                 aria-label={item.label}

@@ -1,32 +1,46 @@
+// Game.tsx
 "use client";
 
-import React, { CSSProperties, FC, useEffect, useRef, useState } from "react";
+import React, { FC, useEffect, useRef, useState } from "react";
 import GameScene from "../game/GameScene";
 import Phaser from "phaser";
+import GameData from "./GameData";
+import {
+  endGame,
+  ICreatePurchaseAttempt,
+  IEndGame,
+  startGame,
+} from "../lib/api/game";
 import { useStore } from "../lib/store/store";
 
 export interface GameSceneData {
-  gameId: string;
+  session_id: number;
   booster: number;
   userSkinUrl: string;
   userSpriteUrl: string;
   onGameEnd: () => void;
+  onPurchaseAttempt: (
+    body: ICreatePurchaseAttempt
+  ) => Promise<"ok" | "canceled">;
 }
 
 const Game: FC<GameSceneData> = ({
-  gameId,
+  session_id,
   booster = 0,
   userSkinUrl,
   userSpriteUrl,
   onGameEnd,
+  onPurchaseAttempt,
 }) => {
   const setNavbarVisible = useStore((state) => state.setNavbarVisible);
   const gameRef = useRef<HTMLDivElement>(null);
+  const phaserGameRef = useRef<Phaser.Game | null>(null);
   const [isHorizontal, setIsHorizontal] = useState(
     window.innerHeight < window.innerWidth
   );
   const [gameWidth, setGameWidth] = useState(600);
   const [gameHeight, setGameHeight] = useState(400);
+  const [isGameOver, setIsGameOver] = useState(false);
 
   useEffect(() => {
     setNavbarVisible(false);
@@ -75,6 +89,23 @@ const Game: FC<GameSceneData> = ({
     setIsHorizontal((prevState) => !prevState);
   };
 
+  const startGameData = async () => {
+    const data = await startGame({ game_type: "paid" });
+    if (data?.session_id)
+      GameData.instance.setProps({ session_id: data?.session_id });
+    return data?.session_id!;
+  };
+
+  const handleGameEnd = async (body: IEndGame) => {
+    setIsGameOver(true);
+    const data = await endGame(body);
+    if (data?.session_id)
+      GameData.instance.setProps({ session_id: data?.session_id });
+
+    if (onGameEnd) {
+      onGameEnd();
+    }
+  };
   useEffect(() => {
     if (
       typeof window === "undefined" ||
@@ -84,42 +115,68 @@ const Game: FC<GameSceneData> = ({
       return;
     }
 
-    const { gameWidth, gameHeight } = calculateGameDimensions();
+    const initializeGame = async () => {
+      const session_id = await startGameData(); // Дожидаемся завершения startGameData
 
-    const config: Phaser.Types.Core.GameConfig = {
-      type: Phaser.AUTO,
-      parent: gameRef.current,
-      physics: {
-        default: "matter",
-        matter: {
-          gravity: { x: 0, y: 0 },
-          // debug: true,
-          positionIterations: 6,
-          velocityIterations: 4,
+      GameData.instance.setData({
+        session_id,
+        booster,
+        userSkinUrl,
+        userSpriteUrl,
+        onGameEnd: handleGameEnd,
+        onPurchaseAttempt,
+      });
+
+      const { gameWidth, gameHeight } = calculateGameDimensions();
+
+      const config: Phaser.Types.Core.GameConfig = {
+        type: Phaser.AUTO,
+        parent: gameRef.current,
+        physics: {
+          default: "matter",
+          matter: {
+            gravity: { x: 0, y: 0 },
+            positionIterations: 6,
+            velocityIterations: 4,
+          },
         },
-      },
-      scene: GameScene,
-      width: gameWidth,
-      height: gameHeight,
+        scene: GameScene,
+        width: gameWidth,
+        height: gameHeight,
+      };
+
+      const game = new Phaser.Game(config);
+      phaserGameRef.current = game;
+
+      window.addEventListener("orientationchange", resizeGame);
     };
 
-    const game = new Phaser.Game(config);
-
-    window.addEventListener("orientationchange", resizeGame);
+    initializeGame(); // Запускаем асинхронную инициализацию игры
 
     return () => {
       window.removeEventListener("orientationchange", resizeGame);
-      game.destroy(true);
+      if (phaserGameRef.current) {
+        phaserGameRef.current.destroy(true);
+        phaserGameRef.current = null;
+      }
     };
   }, []);
+
+  useEffect(() => {
+    if (isGameOver) {
+      if (phaserGameRef.current) {
+        phaserGameRef.current.scene.pause("GameScene");
+      }
+    }
+  }, [isGameOver]);
 
   return (
     <div
       style={{
         position: "fixed",
-        backgroundImage: "url('/map/gameSceneBackground.png')", // Указываем путь к изображению
-        backgroundRepeat: "repeat", // Повторяем фон
-        backgroundSize: "auto", // Размер изображения по умолчанию
+        backgroundImage: "url('/map/gameSceneBackground.png')",
+        backgroundRepeat: "repeat",
+        backgroundSize: "auto",
         width: "100vw",
         height: "100vh",
         margin: 0,
@@ -128,39 +185,37 @@ const Game: FC<GameSceneData> = ({
         left: 0,
       }}
     >
-      <div
-        style={{
-          position: "absolute",
-          ...(isHorizontal
-            ? { top: `calc((100vh - ${gameHeight}px) / 2)` }
-            : { top: `calc((100vh - ${gameHeight}px) / 2)` }),
-          ...(isHorizontal
-            ? { left: `calc((100vw - ${gameWidth}px) / 2)` }
-            : { right: `calc((100vw - ${gameWidth}px) / 2)` }),
-          width: gameWidth,
-          height: gameHeight,
-          overflow: "hidden",
-          transform: isHorizontal ? "none" : "rotate(90deg)",
-          margin: 0,
-          padding: 0,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          zIndex: 2,
-          outline: "8px ridge rgba(100, 150, 220, .9)",
-          borderRadius: "2rem",
-        }}
-      >
+      {!isGameOver && (
         <div
-          className="game"
-          ref={gameRef}
           style={{
-            outlineWidth: "3px",
-            outlineColor: "green",
-            outlineOffset: "3px",
+            position: "absolute",
+            top: `calc((100vh - ${gameHeight}px) / 2)`,
+            left: `calc((100vw - ${gameWidth}px) / 2)`,
+            width: gameWidth,
+            height: gameHeight,
+            overflow: "hidden",
+            transform: isHorizontal ? "none" : "rotate(90deg)",
+            margin: 0,
+            padding: 0,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 2,
+            outline: "8px ridge rgba(100, 150, 220, .9)",
+            borderRadius: "2rem",
           }}
-        />
-      </div>
+        >
+          <div
+            className="game"
+            ref={gameRef}
+            style={{
+              outlineWidth: "3px",
+              outlineColor: "green",
+              outlineOffset: "3px",
+            }}
+          />
+        </div>
+      )}
     </div>
   );
 };
