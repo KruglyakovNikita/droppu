@@ -31,17 +31,25 @@ const hardPatterns = [
     { x: 300, y: 200, angle: -45 },
     { x: 350, y: 200, angle: 45 },
   ],
+  ////----
+  // Ромб с пересечением по центру
+  {
+    lasers: [
+      getCoordinates({ x: 100, y: 200 }), // { x: 0.25, y: 0.5 }
+      getCoordinates({ x: 200, y: 50 }), // { x: 0.5, y: 0.125 }
+      getCoordinates({ x: 200, y: 350 }), // { x: 0.5, y: 0.875 }
+      getCoordinates({ x: 300, y: 200 }), // { x: 0.75, y: 0.5 }
+    ],
+    difficulty: "medium",
+  },
+  // Ступенчатая структура
+  {
+    lasers: [
+      getCoordinates({ x: 50, y: 50 }), // { x: 0.125, y: 0.125 }
+      getCoordinates({ x: 150, y: 150 }), // { x: 0.375, y: 0.375 }
+      getCoordinates({ x: 250, y: 250 }), // { x: 0.625, y: 0.625 }
+      getCoordinates({ x: 350, y: 350 }), // { x: 0.875, y: 0.875 }
+    ],
+    difficulty: "medium",
+  },
 ];
-
-for (let i = 0; i < 30; i++) {
-  const pattern = hardPatterns[i % hardPatterns.length];
-  const lasers = pattern.map((laser) => ({
-    ...getCoordinates({ x: laser.x, y: laser.y }),
-    angle: laser.angle,
-  }));
-  hardPresets.push({
-    lasers,
-    coins: [],
-    difficulty: "hard",
-  });
-}
