@@ -52,4 +52,54 @@ const hardPatterns = [
     ],
     difficulty: "medium",
   },
+  // Зеркальная структура
+  {
+    lasers: [
+      getCoordinates({ x: 50, y: 50 }), // { x: 0.125, y: 0.125 }
+      getCoordinates({ x: 50, y: 350 }), // { x: 0.125, y: 0.125 }
+      getCoordinates({ x: 200, y: 250 }), // { x: 0.375, y: 0.625 }
+      getCoordinates({ x: 200, y: 150 }), // { x: 0.375, y: 0.375 }
+      getCoordinates({ x: 300, y: 150 }), // { x: 0.625, y: 0.375 }
+      getCoordinates({ x: 300, y: 250 }), // { x: 0.625, y: 0.625 }
+      getCoordinates({ x: 450, y: 50 }), // { x: 0.875, y: 0.125 }
+      getCoordinates({ x: 450, y: 350 }), // { x: 0.875, y: 0.125 }
+    ],
+    difficulty: "medium",
+  },
+
+  // Зигзаг с туннелями
+  {
+    lasers: [
+      getCoordinates({ x: 0, y: 150 }), // { x: 0.0, y: 0.375 }
+      getCoordinates({ x: 100, y: 50 }), // { x: 0.25, y: 0.125 }
+      getCoordinates({ x: 200, y: 350 }), // { x: 0.5, y: 0.875 }
+      { ...getCoordinates({ x: 200, y: 25 }), angle: 90 }, // { x: 0.5, y: 0.375 }
+      getCoordinates({ x: 300, y: 50 }), // { x: 0.75, y: 0.125 }
+      getCoordinates({ x: 400, y: 150 }), // { x: 1.0, y: 0.375 }
+    ],
+    difficulty: "medium",
+  },
+  // Flappy Bird: Трубы с двойными преградами
+  {
+    lasers: [
+      { ...getCoordinates({ x: 100, y: 50 }), angle: -45 },
+      { ...getCoordinates({ x: 175, y: 50 }), angle: 45 },
+      { ...getCoordinates({ x: 100, y: 350 }), angle: 45 },
+      { ...getCoordinates({ x: 175, y: 350 }), angle: -45 },
+
+      { ...getCoordinates({ x: 300, y: 350 }), angle: 45 },
+      { ...getCoordinates({ x: 375, y: 275 }) },
+      { ...getCoordinates({ x: 450, y: 350 }), angle: -45 },
+
+      { ...getCoordinates({ x: 500, y: 50 }), angle: -45 },
+      { ...getCoordinates({ x: 575, y: 125 }) },
+      { ...getCoordinates({ x: 650, y: 50 }), angle: 45 },
+
+      { ...getCoordinates({ x: 775, y: 50 }), angle: -45 },
+      { ...getCoordinates({ x: 850, y: 50 }), angle: 45 },
+      { ...getCoordinates({ x: 775, y: 350 }), angle: 45 },
+      { ...getCoordinates({ x: 850, y: 350 }), angle: -45 },
+    ],
+    difficulty: "medium",
+  },
 ];

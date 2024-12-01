@@ -52,5 +52,19 @@ const ultraHardPatterns = [
   //   ],
   //   difficulty: "medium",
   // },
+  // Зеркальная структура
+  {
+    lasers: [
+      getCoordinates({ x: 50, y: 50 }), // { x: 0.125, y: 0.125 }
+      getCoordinates({ x: 50, y: 350 }), // { x: 0.125, y: 0.125 }
+      getCoordinates({ x: 200, y: 250 }), // { x: 0.375, y: 0.625 }
+      getCoordinates({ x: 200, y: 150 }), // { x: 0.375, y: 0.375 }
+      getCoordinates({ x: 300, y: 150 }), // { x: 0.625, y: 0.375 }
+      getCoordinates({ x: 300, y: 250 }), // { x: 0.625, y: 0.625 }
+      getCoordinates({ x: 450, y: 50 }), // { x: 0.875, y: 0.125 }
+      getCoordinates({ x: 450, y: 350 }), // { x: 0.875, y: 0.125 }
+    ],
+    difficulty: "medium",
+  },
   ///-----
 ];

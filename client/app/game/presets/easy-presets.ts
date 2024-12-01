@@ -1,7 +1,5 @@
-// presets/easy-presets.ts
-
+import { getCoordinates } from "../utils/coordinates";
 import { Preset } from "./types";
-import { getCoordinates } from "../utils"; // Убедитесь, что путь правильный
 
 const MIN_GAP_LASER = 25;
 const ZERO_GAP_LASER = 0;

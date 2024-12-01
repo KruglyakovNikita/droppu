@@ -22,7 +22,7 @@ import { ultraHardPresets } from "./presets/ultra-hard-presets";
 import { getCurrentDifficultyLevel } from "./utils/difficultyLevels";
 
 // Константы игры
-export const PLAYER_SPEED = 2; // Постоянная скорость вправо
+export const PLAYER_SPEED = 2.5; // Постоянная скорость вправо
 
 export const MIN_DISTANCE_BETWEEN_PRESETS = 175; // Минимальное расстояние между пресетами
 
@@ -725,7 +725,19 @@ class GameScene extends Phaser.Scene {
     this.isStoped = true;
 
     // Останавливаем мир
+    // Останавливаем физику мира
     this.matter.world.pause();
+
+    // Сохраняем текущие настройки камеры
+    const cameraX = this.cameras.main.scrollX;
+    const cameraY = this.cameras.main.scrollY;
+
+    // Отключаем автоматическое следование камеры за игроком
+    this.cameras.main.stopFollow();
+
+    // Фиксируем камеру на текущей позиции
+    this.cameras.main.setScroll(cameraX, cameraY);
+    this.clearGame();
     this.player.setTint(0xff0000);
 
     // Убираем предупреждения
@@ -734,7 +746,9 @@ class GameScene extends Phaser.Scene {
         obj.instance.destroyWarning();
       }
     });
-
+    this.showModal();
+  }
+  showModal() {
     // Получаем центр экрана
     const centerX = this.cameras.main.worldView.x + this.cameras.main.width / 2;
     const centerY =
@@ -938,7 +952,6 @@ class GameScene extends Phaser.Scene {
       this.isStoped = true;
     });
 
-    this.clearGame();
     // Обработчик нажатия на кнопку "Продолжить"
     continueButton.on("pointerdown", async () => {
       console.log("Purchase button clicked.");
