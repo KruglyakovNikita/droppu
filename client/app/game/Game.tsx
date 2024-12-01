@@ -93,7 +93,7 @@ const Game: FC<GameSceneData> = ({
     const data = await startGame({ game_type: "paid" });
     if (data?.session_id)
       GameData.instance.setProps({ session_id: data?.session_id });
-    return data?.session_id!;
+    return data?.session_id ?? 100;
   };
 
   const handleGameEnd = async (body: IEndGame) => {
