@@ -18,7 +18,6 @@ import {
 } from "../app/lib/api/referrals";
 import { ReferralUser } from "../app/lib/store/types";
 
-
 export default function Invites() {
   const userInfo = useStore((state) => state.user);
   const [pendingRewards, setPendingRewards] = useState({
@@ -67,7 +66,7 @@ export default function Invites() {
   const inviteFriendsLink = () => {
     window.Telegram.WebApp.HapticFeedback.impactOccurred("soft");
     window.Telegram.WebApp.openTelegramLink(
-      `https://t.me/share/url?url=https://t.me/DroppuBot/start?startapp=${userInfo?.tg_id}&text=%0A%0A🚀 Jump into action with @Droppu's jetpack game and earn $JET tokens soon!%0A🌟 Get a 750 rating boost just for joining!%0A💥 Premium players score a massive 1000 rating boost!`
+      `https://t.me/share/url?url=https://t.me/DroppuBot/app?startapp=${userInfo?.tg_id}&text=%0A%0A🚀 Jump into action with @Droppu's jetpack game and earn $JET tokens soon!%0A🌟 Get a 750 rating boost just for joining!%0A💥 Premium players score a massive 1000 rating boost!`
     );
   };
   const steps = [
@@ -131,7 +130,10 @@ export default function Invites() {
           <Flex w="full" justify="space-around" mb={1} gap={5}>
             {[
               { label: "Points", value: pendingRewards.total_coins.toString() },
-              { label: "Tickets", value: pendingRewards.total_tickets.toString() },
+              {
+                label: "Tickets",
+                value: pendingRewards.total_tickets.toString(),
+              },
               { label: "Frens", value: friends.length.toString() },
             ].map((stat, index) => (
               <GradientBorderWrapper
@@ -186,7 +188,10 @@ export default function Invites() {
             _hover={{ bg: "rgba(255, 255, 255, 0.1)" }}
             color={colors.primaryText}
             onClick={handleClaim}
-            isDisabled={pendingRewards.total_coins === 0 && pendingRewards.total_tickets === 0}
+            isDisabled={
+              pendingRewards.total_coins === 0 &&
+              pendingRewards.total_tickets === 0
+            }
             isLoading={loading}
           >
             Claim
@@ -208,14 +213,7 @@ export default function Invites() {
       {/* Conditional Rendering of Friends List or Steps */}
       {friends.length > 0 ? (
         // Friends List
-        <Box
-          w="100%"
-          maxW="360px"
-          flex="1"
-          overflowY="auto"
-          mb={4}
-          maxH={300}
-        >
+        <Box w="100%" maxW="360px" flex="1" overflowY="auto" mb={4} maxH={300}>
           <Stack spacing={4} w="100%">
             {friends.map((friend, index) => (
               <Flex

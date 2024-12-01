@@ -80,7 +80,7 @@ const Home: React.FC = () => {
   const inviteFriendsLink = () => {
     window.Telegram.WebApp.HapticFeedback.impactOccurred("soft");
     window.Telegram.WebApp.openTelegramLink(
-      `https://t.me/share/url?url=https://t.me/DroppuBot/start?startapp=${telegramUser?.id}&text=%0A%0A🚀 Jump into action with @Droppu's jetpack game and earn $JET tokens soon!%0A🌟 Get a 750 rating boost just for joining!%0A💥 Premium players score a massive 1000 rating boost!`
+      `https://t.me/share/url?url=https://t.me/DroppuBot/app?startapp=${telegramUser?.id}&text=%0A%0A🚀 Jump into action with @Droppu's jetpack game and earn $JET tokens soon!%0A🌟 Get a 750 rating boost just for joining!%0A💥 Premium players score a massive 1000 rating boost!`
     );
   };
 
