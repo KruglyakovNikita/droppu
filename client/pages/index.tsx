@@ -54,21 +54,31 @@ const Home: React.FC = () => {
     script.onload = () => {
       if (window.Telegram && window.Telegram.WebApp) {
         const tg = window.Telegram.WebApp;
+
         if (tg.initDataUnsafe) {
           setTelegramUser(tg.initDataUnsafe.user);
-          console.log(tg.initDataUnsafe);
-          console.log(tg.initData);
-          const startParam = tg.initDataUnsafe.start_param || "";
+
+          console.log("initDataUnsafe:", tg.initDataUnsafe);
+
+          // Получение параметра tgWebAppStartParam из URL
+          const urlParams = new URLSearchParams(window.location.search);
+          const startParam = urlParams.get("tgWebAppStartParam") || "";
+
+          console.log("tgWebAppStartParam:", startParam);
+
+          // Аутентификация с передачей start_param
           authenticate({
             ...JSON.parse(JSON.stringify(tg.initDataUnsafe).replace(/'/g, '"')),
-            start_param: startParam ?? "",
+            start_param: startParam, // Передаем start_param
           });
+
           tg.ready();
           tg.expand();
-          tg.setHeaderColor("#0D1478");
-          tg.HapticFeedback.notificationOccurred("warning");
-          window.Telegram.WebApp.disableVerticalSwipes();
+        } else {
+          console.error("Telegram WebApp initDataUnsafe is not available");
         }
+      } else {
+        console.error("Telegram WebApp is not initialized");
       }
     };
 
