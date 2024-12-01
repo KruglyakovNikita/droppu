@@ -17,12 +17,29 @@ export default function GamePage() {
       console.log("startPurchaseAttemptHandler");
       console.log(data);
       if (data?.payment_url) {
-        const openInvoiceData = await window.Telegram.WebApp.openInvoice(
-          data?.payment_url
-        );
-        console.log("openInvoiceData");
-        console.log(openInvoiceData);
-        return openInvoiceData?.invoiceClosed === "paid" ? "ok" : "canceled";
+        // Open the invoice
+        await window.Telegram.WebApp.openInvoice(data?.payment_url);
+
+        // Wait for the 'invoiceClosed' event
+        const eventData: any = await new Promise((resolve, reject) => {
+          const handler = (eventData) => {
+            // Remove the event listener after receiving the event
+            window.Telegram.WebApp.offEvent("invoiceClosed", handler);
+            resolve(eventData);
+          };
+          window.Telegram.WebApp.onEvent("invoiceClosed", handler);
+        });
+
+        console.log("Invoice closed event data:", eventData);
+
+        // React based on the payment status
+        if (eventData.status === "paid") {
+          // Payment was successful
+          return "ok";
+        } else {
+          // Payment was cancelled or failed
+          return "canceled";
+        }
       }
     } catch (err) {
       console.log(err);
@@ -30,6 +47,7 @@ export default function GamePage() {
     }
     return "canceled";
   };
+
   return (
     <Box p={4} textAlign="center">
       <Game
