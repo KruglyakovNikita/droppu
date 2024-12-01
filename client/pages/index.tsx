@@ -58,7 +58,7 @@ const Home: React.FC = () => {
           setTelegramUser(tg.initDataUnsafe.user);
           console.log(tg.initDataUnsafe);
           console.log(tg.initData);
-          const startParam = tg.start_param;
+          const startParam = tg.initDataUnsafe.start_param || "";
           authenticate({
             ...JSON.parse(JSON.stringify(tg.initDataUnsafe).replace(/'/g, '"')),
             start_param: startParam ?? "",
