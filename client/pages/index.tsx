@@ -17,6 +17,7 @@ import colors from "../theme/colors";
 import { useStore } from "../app/lib/store/store";
 import { initUser } from "@/app/lib/api/user";
 import { ButtonIfoLink } from "@/app/components/ButtonIfoLink";
+import { useRouter } from "next/router";
 
 declare global {
   interface Window {
@@ -25,6 +26,7 @@ declare global {
 }
 
 const Home: React.FC = () => {
+  const router = useRouter();
   const setUser = useStore((state) => state.setUser);
   const userInfo = useStore((state) => state.user);
   const [telegramUser, setTelegramUser] = useState<any>(null);
@@ -336,9 +338,8 @@ const Home: React.FC = () => {
       {/* PLAY BTN */}
       <Box
         onClick={() => {
-          window.location.href = "/game";
+          router.push("/game");
           window.Telegram.WebApp.requestFullscreen();
-
         }}
         mt={30}
         w="360px"

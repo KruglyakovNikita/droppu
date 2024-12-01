@@ -1,5 +1,7 @@
+import { GameType } from "../shared/game";
+
 export type User = {
-  tg_id:string;
+  tg_id: string;
   id: number;
   username: string;
   coins: number;
@@ -8,6 +10,11 @@ export type User = {
   language: string;
   region: string;
   registration_date: string;
+};
+
+export type Game = {
+  session_id: string;
+  type: GameType;
 };
 
 export type InvitedUser = {

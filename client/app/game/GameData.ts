@@ -1,10 +1,14 @@
+import { ICreatePurchaseAttempt, IEndGame } from "../lib/api/game";
+
 export interface GameSceneData {
-  gameId: string;
+  session_id: number;
   booster: number;
   userSkinUrl: string;
   userSpriteUrl: string;
-  onGameEnd: () => void;
-  onPurchaseAttempt: (cost: number) => Promise<"ok" | "canceled">;
+  onGameEnd: (body: IEndGame) => void;
+  onPurchaseAttempt: (
+    body: ICreatePurchaseAttempt
+  ) => Promise<"ok" | "canceled">;
 }
 
 class GameData {
@@ -22,6 +26,10 @@ class GameData {
 
   setData(data: GameSceneData): void {
     this.data = data;
+  }
+
+  setProps(data: Partial<GameSceneData>): void {
+    this.data = { ...this.data, ...data };
   }
 
   getData(): GameSceneData {

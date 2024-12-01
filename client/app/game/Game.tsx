@@ -5,18 +5,26 @@ import React, { FC, useEffect, useRef, useState } from "react";
 import GameScene from "../game/GameScene";
 import Phaser from "phaser";
 import GameData from "./GameData";
+import {
+  endGame,
+  ICreatePurchaseAttempt,
+  IEndGame,
+  startGame,
+} from "../lib/api/game";
 
 export interface GameSceneData {
-  gameId: string;
+  session_id: number;
   booster: number;
   userSkinUrl: string;
   userSpriteUrl: string;
   onGameEnd: () => void;
-  onPurchaseAttempt: (cost: number) => Promise<"ok" | "canceled">;
+  onPurchaseAttempt: (
+    body: ICreatePurchaseAttempt
+  ) => Promise<"ok" | "canceled">;
 }
 
 const Game: FC<GameSceneData> = ({
-  gameId,
+  session_id,
   booster = 0,
   userSkinUrl,
   userSpriteUrl,
@@ -74,6 +82,23 @@ const Game: FC<GameSceneData> = ({
     setIsHorizontal((prevState) => !prevState);
   };
 
+  const startGameData = async () => {
+    const data = await startGame({ game_type: "paid" });
+    if (data?.session_id)
+      GameData.instance.setProps({ session_id: data?.session_id });
+    return data?.session_id!;
+  };
+
+  const handleGameEnd = async (body: IEndGame) => {
+    setIsGameOver(true);
+    const data = await endGame(body);
+    if (data?.session_id)
+      GameData.instance.setProps({ session_id: data?.session_id });
+
+    if (onGameEnd) {
+      onGameEnd();
+    }
+  };
   useEffect(() => {
     if (
       typeof window === "undefined" ||
@@ -83,45 +108,43 @@ const Game: FC<GameSceneData> = ({
       return;
     }
 
-    const handleGameEnd = () => {
-      setIsGameOver(true);
-      if (onGameEnd) {
-        onGameEnd();
-      }
-    };
+    const initializeGame = async () => {
+      const session_id = await startGameData(); // Дожидаемся завершения startGameData
 
-    GameData.instance.setData({
-      gameId,
-      booster,
-      userSkinUrl,
-      userSpriteUrl,
-      onGameEnd: handleGameEnd,
-      onPurchaseAttempt,
-    });
+      GameData.instance.setData({
+        session_id,
+        booster,
+        userSkinUrl,
+        userSpriteUrl,
+        onGameEnd: handleGameEnd,
+        onPurchaseAttempt,
+      });
 
-    const { gameWidth, gameHeight } = calculateGameDimensions();
+      const { gameWidth, gameHeight } = calculateGameDimensions();
 
-    const config: Phaser.Types.Core.GameConfig = {
-      type: Phaser.AUTO,
-      parent: gameRef.current,
-      physics: {
-        default: "matter",
-        matter: {
-          gravity: { x: 0, y: 0 },
-          // debug: true,
-          positionIterations: 6,
-          velocityIterations: 4,
+      const config: Phaser.Types.Core.GameConfig = {
+        type: Phaser.AUTO,
+        parent: gameRef.current,
+        physics: {
+          default: "matter",
+          matter: {
+            gravity: { x: 0, y: 0 },
+            positionIterations: 6,
+            velocityIterations: 4,
+          },
         },
-      },
-      scene: GameScene,
-      width: gameWidth,
-      height: gameHeight,
+        scene: GameScene,
+        width: gameWidth,
+        height: gameHeight,
+      };
+
+      const game = new Phaser.Game(config);
+      phaserGameRef.current = game;
+
+      window.addEventListener("orientationchange", resizeGame);
     };
 
-    const game = new Phaser.Game(config);
-    phaserGameRef.current = game;
-
-    window.addEventListener("orientationchange", resizeGame);
+    initializeGame(); // Запускаем асинхронную инициализацию игры
 
     return () => {
       window.removeEventListener("orientationchange", resizeGame);

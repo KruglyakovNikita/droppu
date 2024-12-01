@@ -20,6 +20,7 @@ import { mediumPresets } from "./presets/medium-presets";
 import { hardPresets } from "./presets/hard-presets";
 import { ultraHardPresets } from "./presets/ultra-hard-presets";
 import { getCurrentDifficultyLevel } from "./utils/difficultyLevels";
+import { ICreatePurchaseAttempt, IEndGame } from "../lib/api/game";
 
 // Константы игры
 export const PLAYER_SPEED = 2.5; // Постоянная скорость вправо
@@ -54,12 +55,14 @@ class GameScene extends Phaser.Scene {
   coinText!: Phaser.GameObjects.Text;
 
   // For game
-  gameId!: string;
+  session_id!: number;
   booster!: number;
   userSkinUrl!: string;
   userSpriteUrl!: string;
-  onGameEnd!: (scroe: any, coins: any, heails: any, gameId: any) => void;
-  onPurchaseAttempt!: (cost: number) => Promise<"ok" | "canceled">;
+  onGameEnd!: (body: IEndGame) => void;
+  onPurchaseAttempt!: (
+    body: ICreatePurchaseAttempt
+  ) => Promise<"ok" | "canceled">;
 
   // Адаптивные константы
   MIN_Y!: number;
@@ -99,7 +102,7 @@ class GameScene extends Phaser.Scene {
     const data = gameData.getData();
     console.log("data", data);
 
-    this.gameId = data.gameId;
+    this.session_id = data.session_id;
     this.booster = data.booster;
     this.userSkinUrl = data.userSkinUrl;
     this.userSpriteUrl = data.userSpriteUrl;
@@ -943,12 +946,11 @@ class GameScene extends Phaser.Scene {
     // Обработчик нажатия на кнопку "Закончить игру"
     finishButton.on("pointerdown", () => {
       this.closeModal(modalElements);
-      this.onGameEnd(
-        this.score,
-        this.coinCount,
-        this.continueCount,
-        this.gameId
-      );
+      this.onGameEnd({
+        score: this.score,
+        coins_earned: this.coinCount,
+        session_id: this.session_id,
+      });
       this.isStoped = true;
     });
 
@@ -964,7 +966,9 @@ class GameScene extends Phaser.Scene {
 
       // Вызываем внешнюю функцию покупки
       const continueCost = Math.pow(2, this.continueCount); // Стоимость удваивается каждый раз
-      const purchaseResult = await this.onPurchaseAttempt(continueCost);
+      const purchaseResult = await this.onPurchaseAttempt({
+        amount: continueCost,
+      });
 
       if (purchaseResult === "ok") {
         // Покупка успешна
@@ -1016,12 +1020,11 @@ class GameScene extends Phaser.Scene {
           30000,
           () => {
             this.closeModal(modalElements);
-            this.onGameEnd(
-              this.score,
-              this.coinCount,
-              this.continueCount,
-              this.gameId
-            );
+            this.onGameEnd({
+              score: this.score,
+              coins_earned: this.coinCount,
+              session_id: this.session_id,
+            });
           },
           undefined,
           this

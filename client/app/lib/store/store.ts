@@ -1,8 +1,9 @@
 import { create } from "zustand";
-import { Achievement, InvitedUser, User } from "./types";
+import { Achievement, Game, InvitedUser, User } from "./types";
 
 type StoreState = {
   user: User | null;
+  game: Game | null;
   inventory: string[];
   achievements: Achievement[];
   invitedUsers: InvitedUser[];
@@ -17,6 +18,7 @@ type StoreState = {
 
 export const useStore = create<StoreState>((set) => ({
   user: null,
+  game: null,
   inventory: [],
   achievements: [],
   invitedUsers: [],
