@@ -3,9 +3,13 @@ import { FaHome, FaTrophy, FaUserFriends, FaWallet } from "react-icons/fa";
 import GradientBorderWrapper from "./GradientBorderWrapper";
 import Link from "next/link";
 import { useRouter } from "next/router";
+import { useStore } from "../lib/store/store";
 
 const NavBar = () => {
   const router = useRouter();
+  const navbarVisible = useStore((state) => state.navbarVisible);
+
+  if (!navbarVisible) return null;
 
   const navItems = [
     { href: "/", icon: FaHome, label: "Home" },

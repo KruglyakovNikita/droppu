@@ -28,6 +28,7 @@ const Home: React.FC = () => {
   const setUser = useStore((state) => state.setUser);
   const userInfo = useStore((state) => state.user);
   const [telegramUser, setTelegramUser] = useState<any>(null);
+  const setNavbarVisible = useStore((state) => state.setNavbarVisible);
 
   useEffect(() => {
     const authenticate = async (initData: string) => {
@@ -327,7 +328,7 @@ const Home: React.FC = () => {
                 Top
               </Heading>
               <Text fontSize="10px" color={colors.secondaryText}>
-                You are: 143
+                Score: {userInfo?.game_high_score ?? 0}
               </Text>
             </Stack>
           </Card>
@@ -336,9 +337,9 @@ const Home: React.FC = () => {
       {/* PLAY BTN */}
       <Box
         onClick={() => {
+          setNavbarVisible(false);
           window.location.href = "/game";
           window.Telegram.WebApp.requestFullscreen();
-
         }}
         mt={30}
         w="360px"

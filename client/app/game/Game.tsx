@@ -3,6 +3,7 @@
 import React, { CSSProperties, FC, useEffect, useRef, useState } from "react";
 import GameScene from "../game/GameScene";
 import Phaser from "phaser";
+import { useStore } from "../lib/store/store";
 
 export interface GameSceneData {
   gameId: string;
@@ -19,12 +20,18 @@ const Game: FC<GameSceneData> = ({
   userSpriteUrl,
   onGameEnd,
 }) => {
+  const setNavbarVisible = useStore((state) => state.setNavbarVisible);
   const gameRef = useRef<HTMLDivElement>(null);
   const [isHorizontal, setIsHorizontal] = useState(
     window.innerHeight < window.innerWidth
   );
   const [gameWidth, setGameWidth] = useState(600);
   const [gameHeight, setGameHeight] = useState(400);
+
+  useEffect(() => {
+    setNavbarVisible(false);
+    return () => setNavbarVisible(true);
+  }, []);
 
   const calculateGameDimensions = () => {
     const maxWidth = 600;

@@ -7,7 +7,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
       <Box flex={1} as="main">
         {children}
       </Box>
-      {/* <NavBar /> */}
+      <NavBar />
     </VStack>
   );
 };
