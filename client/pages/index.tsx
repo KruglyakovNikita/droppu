@@ -32,20 +32,20 @@ const Home: React.FC = () => {
   const [telegramUser, setTelegramUser] = useState<any>(null);
   const setNavbarVisible = useStore((state) => state.setNavbarVisible);
 
-  useEffect(() => {
-    const authenticate = async (initData: string) => {
-      try {
-        const response = await initUser(initData);
-        const data = response.data;
+  const authenticate = async (initData: string) => {
+    try {
+      const response = await initUser(initData);
+      const data = response.data;
 
-        if (data) {
-          setUser(data.user);
-        }
-      } catch (error) {
-        console.error("Request Error:", error);
+      if (data) {
+        setUser(data.user);
       }
-    };
+    } catch (error) {
+      console.error("Request Error:", error);
+    }
+  };
 
+  useEffect(() => {
     const script = document.createElement("script");
     script.src = "https://telegram.org/js/telegram-web-app.js";
     script.async = true;
@@ -58,9 +58,11 @@ const Home: React.FC = () => {
           setTelegramUser(tg.initDataUnsafe.user);
           console.log(tg.initDataUnsafe);
           console.log(tg.initData);
-          authenticate(
-            JSON.parse(JSON.stringify(tg.initDataUnsafe).replace(/'/g, '"'))
-          );
+          const startParam = tg.start_param;
+          authenticate({
+            ...JSON.parse(JSON.stringify(tg.initDataUnsafe).replace(/'/g, '"')),
+            start_param: startParam ?? "",
+          });
           tg.ready();
           tg.expand();
           tg.setHeaderColor("#0D1478");
