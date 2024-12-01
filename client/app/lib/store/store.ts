@@ -9,11 +9,13 @@ type StoreState = {
   invitedUsers: InvitedUser[];
   totalTokensFromInvited: number;
   totalTicketsFromInvited: number;
+  navbarVisible: boolean;
   setUser: (user: User | null) => void;
   setInventory: (inventory: string[]) => void;
   setAchievements: (achievements: Achievement[]) => void;
   setInvitedUsers: (users: InvitedUser[]) => void;
   setTotalTokensFromInvited: (tokens: number) => void;
+  setNavbarVisible: (visible: boolean) => void;
 };
 
 export const useStore = create<StoreState>((set) => ({
@@ -24,10 +26,12 @@ export const useStore = create<StoreState>((set) => ({
   invitedUsers: [],
   totalTokensFromInvited: 0,
   totalTicketsFromInvited: 0,
+  navbarVisible: true,
   setUser: (user) => set({ user }),
   setInventory: (inventory) => set({ inventory }),
   setAchievements: (achievements) => set({ achievements }),
   setInvitedUsers: (invitedUsers) => set({ invitedUsers }),
   setTotalTokensFromInvited: (tokens) =>
     set({ totalTokensFromInvited: tokens }),
+  setNavbarVisible: (visible) => set({ navbarVisible: visible }),
 }));

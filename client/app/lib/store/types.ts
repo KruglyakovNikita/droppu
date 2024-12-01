@@ -10,6 +10,7 @@ export type User = {
   language: string;
   region: string;
   registration_date: string;
+  game_high_score: number;
 };
 
 export type Game = {
@@ -40,3 +41,28 @@ export type Task = {
   additional_info: string;
   type: string;
 };
+
+export type PendingRewards = {
+  total_coins: number;
+  total_tickets: number;
+  rewards_from: any[];
+}
+
+export type ReferralUser = {
+  referral_id: number;
+  username: string;
+  registration_date: string;
+  total_earned: number;
+  indirect_referrals_count: number;
+}
+
+export type LeaderboardEntry = {
+  username: string;
+  score: number;
+  rank: number;
+}
+
+export type LeaderboardData = {
+  leaderboard: LeaderboardEntry[];
+  me: LeaderboardEntry;
+}

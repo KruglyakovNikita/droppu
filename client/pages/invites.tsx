@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import {
   Box,
   Flex,
@@ -10,10 +11,58 @@ import {
 import GradientBorderWrapper from "../app/components/GradientBorderWrapper";
 import colors from "@/theme/colors";
 import { useStore } from "../app/lib/store/store";
+import {
+  getPendingRewards,
+  claimRewards,
+  getReferralsList,
+} from "../app/lib/api/referrals";
+import { ReferralUser } from "../app/lib/store/types";
 
 
 export default function Invites() {
   const userInfo = useStore((state) => state.user);
+  const [pendingRewards, setPendingRewards] = useState({
+    total_coins: 0,
+    total_tickets: 0,
+  });
+  const [friends, setFriends] = useState<ReferralUser[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const fetchData = async () => {
+    try {
+      const [rewardsResponse, friendsResponse] = await Promise.all([
+        getPendingRewards(),
+        getReferralsList(),
+      ]);
+
+      if (rewardsResponse?.data) {
+        setPendingRewards(rewardsResponse.data);
+      }
+      if (friendsResponse?.data) {
+        setFriends(friendsResponse.data);
+      }
+    } catch (error) {
+      console.error("Error fetching referral data:", error);
+    }
+  };
+
+  const handleClaim = async () => {
+    if (loading) return;
+    setLoading(true);
+    try {
+      await claimRewards();
+      await fetchData(); // Refresh data after claiming
+      window.Telegram.WebApp.HapticFeedback.impactOccurred("medium");
+    } catch (error) {
+      console.error("Error claiming rewards:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const inviteFriendsLink = () => {
     window.Telegram.WebApp.HapticFeedback.impactOccurred("soft");
@@ -21,11 +70,6 @@ export default function Invites() {
       `https://t.me/share/url?url=https://t.me/DroppuBot/start?startapp=${userInfo?.tg_id}&text=%0A%0A🚀 Jump into action with @Droppu's jetpack game and earn $JET tokens soon!%0A🌟 Get a 750 rating boost just for joining!%0A💥 Premium players score a massive 1000 rating boost!`
     );
   };
-  const friends = [
-    // { name: "Alice", points: 1200 },
-    // { name: "Bob", points: 850 },
-    // { name: "Charlie", points: 950 },
-  ];
   const steps = [
     {
       title: "Share your referral link",
@@ -86,9 +130,9 @@ export default function Invites() {
         >
           <Flex w="full" justify="space-around" mb={1} gap={5}>
             {[
-              { label: "Points", value: "12349" },
-              { label: "Tickets", value: "123" },
-              { label: "Frens", value: "12" },
+              { label: "Points", value: pendingRewards.total_coins.toString() },
+              { label: "Tickets", value: pendingRewards.total_tickets.toString() },
+              { label: "Frens", value: friends.length.toString() },
             ].map((stat, index) => (
               <GradientBorderWrapper
                 key={index}
@@ -141,6 +185,9 @@ export default function Invites() {
             fontSize="14px"
             _hover={{ bg: "rgba(255, 255, 255, 0.1)" }}
             color={colors.primaryText}
+            onClick={handleClaim}
+            isDisabled={pendingRewards.total_coins === 0 && pendingRewards.total_tickets === 0}
+            isLoading={loading}
           >
             Claim
           </Button>
@@ -195,10 +242,10 @@ export default function Invites() {
                       fontSize="16px"
                       mb={-2}
                     >
-                      
+                      {friend.username}
                     </Text>
                     <Text fontSize="12px" color={colors.secondaryText}>
-                      +10
+                      +{friend.indirect_referrals_count} refs
                     </Text>
                   </Stack>
                 </Flex>
@@ -209,7 +256,7 @@ export default function Invites() {
                     color={colors.primaryText}
                     mb={-2}
                   >
-
+                    {friend.total_earned}
                   </Text>
                   <Text
                     fontFamily="'PixelifySans-Bold', sans-serif"

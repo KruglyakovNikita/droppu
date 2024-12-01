@@ -7,31 +7,50 @@ import {
   Avatar,
   Stack,
   Image,
+  Tabs,
+  TabList,
+  Tab,
+  TabPanels,
+  TabPanel,
 } from "@chakra-ui/react";
 import GradientBorderWrapper from "../app/components/GradientBorderWrapper";
 import colors from "../theme/colors";
+import { LeaderboardData } from "../app/lib/store/types";
+import { fetchLeaderboard } from "../app/lib/api/stats";
 
-const TopPage: React.FC = () => {
-  const [topUsers, setTopUsers] = useState<any[]>([]);
-  const [currentUser, setCurrentUser] = useState<any>(null);
+const periods = [
+  { id: "daily", label: "Daily" },
+  { id: "weekly", label: "Weekly" },
+  { id: "all_time", label: "All Time" },
+];
+
+const StatsPage: React.FC = () => {
+  const [leaderboardData, setLeaderboardData] = useState<any | null>(null);
+  const [selectedPeriod, setSelectedPeriod] = useState("daily");
 
   useEffect(() => {
-    const fetchTopUsers = async () => {
-      const data = [
-        { id: 1, username: "the_world_dawn", points: "4.5M", position: 1 },
-        { id: 2, username: "hoangha_7979", points: "4.4M", position: 2 },
-        { id: 3, username: "tema_ultra", points: "4.0M", position: 3 },
-        { id: 4, username: "thucvn_egov", points: "3.8M", position: 4 },
-        { id: 5, username: "SelectTarget", points: "3.2M", position: 5 },
-      ];
-      const user = { username: "a_yanushevich", points: "6,996", position: 21772629 };
-
-      setTopUsers(data);
-      setCurrentUser(user);
+    const getLeaderboard = async () => {
+      try {
+        const response = await fetchLeaderboard(selectedPeriod);
+        console.log('API Response:', response);
+        if (response?.data) {
+          setLeaderboardData(response.data);
+        }
+      } catch (error) {
+        console.error("Error fetching leaderboard:", error);
+      }
     };
+    
+    getLeaderboard();
+  }, [selectedPeriod]);
 
-    fetchTopUsers();
-  }, []);
+  useEffect(() => {
+    console.log('Leaderboard data updated:', leaderboardData);
+  }, [leaderboardData]);
+
+  const handleTabChange = (index: number) => {
+    setSelectedPeriod(periods[index].id);
+  };
 
   return (
     <Flex
@@ -41,9 +60,9 @@ const TopPage: React.FC = () => {
       color="white"
       minH="100vh"
       p={4}
-      pb="80px" // Отступ для текущего пользователя и Navbar
+      pb="80px"
     >
-      {/* Заголовок */}
+      {/* Header */}
       <Flex align="center" mb={1}>
         <Image src="/icons/trophy.gif" alt="Trophy" boxSize="35px" />
         <Heading fontSize="24px" fontFamily="'PixelifySans-Bold', sans-serif">
@@ -51,25 +70,40 @@ const TopPage: React.FC = () => {
         </Heading>
       </Flex>
 
-      <Text
-        fontSize="18px"
-        fontFamily="'PixelifySans-Bold', sans-serif"
+      {/* Period Tabs */}
+      <Tabs 
+        onChange={handleTabChange} 
+        variant="soft-rounded" 
+        colorScheme="purple"
         mb={4}
-        color={colors.secondaryText}
       >
-        Total Users: 43,129,311
-      </Text>
+        <TabList>
+          {periods.map((period) => (
+            <Tab
+              key={period.id}
+              _selected={{ 
+                color: colors.accent,
+                bg: "rgba(255, 255, 255, 0.1)" 
+              }}
+              fontFamily="'PixelifySans-Bold', sans-serif"
+              fontSize="14px"
+            >
+              {period.label}
+            </Tab>
+          ))}
+        </TabList>
+      </Tabs>
 
-      {/* Список пользователей */}
-      <Box w="100%" maxW="360px" h="calc(100vh - 200px)" overflowY="auto" mb={4} borderRadius="12px">
+      {/* Leaderboard List */}
+      <Box w="100%" maxW="360px" h="calc(100vh - 250px)" overflowY="auto" mb={4}>
         <Stack spacing={4} pr={2}>
-          {topUsers.map((user) => (
+          {leaderboardData?.leaderboard.map((user) => (
             <GradientBorderWrapper
+              key={user.rank}
               borderRadius={12}
               startColor="#793BC7"
               endColor="#C2D2FF"
               strokeWidth={1.5}
-              key={user.id}
             >
               <Flex
                 bg="rgba(255, 255, 255, 0.05)"
@@ -96,15 +130,14 @@ const TopPage: React.FC = () => {
                       {user.username}
                     </Text>
                     <Text fontSize="12px" color={colors.secondaryText}>
-                      {user.points} PAWS
+                      {user.score} points
                     </Text>
                   </Stack>
                 </Flex>
-                {/* Позиция или GIF */}
-                {user.position <= 3 ? (
+                {user.rank <= 3 ? (
                   <Image
-                    src={`/icons//position_${user.position}.gif`}
-                    alt={`Position ${user.position}`}
+                    src={`/icons/position_${user.rank}.gif`}
+                    alt={`Position ${user.rank}`}
                     boxSize="40px"
                   />
                 ) : (
@@ -113,7 +146,7 @@ const TopPage: React.FC = () => {
                     fontSize="16px"
                     color={colors.primaryText}
                   >
-                    #{user.position}
+                    #{user.rank}
                   </Text>
                 )}
               </Flex>
@@ -122,8 +155,8 @@ const TopPage: React.FC = () => {
         </Stack>
       </Box>
 
-      {/* Текущий пользователь */}
-      {currentUser && (
+      {/* Current User */}
+      {leaderboardData?.me && (
         <GradientBorderWrapper
           borderRadius={20}
           startColor="#FFD700"
@@ -156,10 +189,10 @@ const TopPage: React.FC = () => {
                   fontSize="18px"
                   color="#FFD700"
                 >
-                  {currentUser.username}
+                  {leaderboardData.me.username}
                 </Text>
                 <Text fontSize="14px" color="#FFE066">
-                  {currentUser.points} PAWS
+                  {leaderboardData.me.score} points
                 </Text>
               </Stack>
             </Flex>
@@ -168,7 +201,7 @@ const TopPage: React.FC = () => {
               fontSize="18px"
               color="#FFD700"
             >
-              #{currentUser.position}
+              #{leaderboardData.me.rank}
             </Text>
           </Flex>
         </GradientBorderWrapper>
@@ -177,4 +210,4 @@ const TopPage: React.FC = () => {
   );
 };
 
-export default TopPage;
+export default StatsPage;

@@ -26,7 +26,7 @@ const floatAnimation = keyframes`
 const Earn: React.FC = () => {
   const [tasks, setTasks] = useState<any[]>([]);
   const [filteredTasks, setFilteredTasks] = useState<any[]>([]);
-  const [selectedCategory, setSelectedCategory] = useState("New Socials");
+  const [selectedCategory, setSelectedCategory] = useState("New");
   const [isRewardPopupOpen, setIsRewardPopupOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState<any>(null);
 
@@ -38,7 +38,8 @@ const Earn: React.FC = () => {
         if (response?.data) {
           console.log(response.data);
           setTasks(response.data);
-          // filterTasks("New Socials", tasks.);
+          const filtered = response.data.filter((task) => task.type === "New");
+          setFilteredTasks(filtered);
         }
       } catch (error) {
         console.error("Error fetching tasks:", error);

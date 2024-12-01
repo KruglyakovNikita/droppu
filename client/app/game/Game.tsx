@@ -11,6 +11,7 @@ import {
   IEndGame,
   startGame,
 } from "../lib/api/game";
+import { useStore } from "../lib/store/store";
 
 export interface GameSceneData {
   session_id: number;
@@ -31,6 +32,7 @@ const Game: FC<GameSceneData> = ({
   onGameEnd,
   onPurchaseAttempt,
 }) => {
+  const setNavbarVisible = useStore((state) => state.setNavbarVisible);
   const gameRef = useRef<HTMLDivElement>(null);
   const phaserGameRef = useRef<Phaser.Game | null>(null);
   const [isHorizontal, setIsHorizontal] = useState(
@@ -39,6 +41,11 @@ const Game: FC<GameSceneData> = ({
   const [gameWidth, setGameWidth] = useState(600);
   const [gameHeight, setGameHeight] = useState(400);
   const [isGameOver, setIsGameOver] = useState(false);
+
+  useEffect(() => {
+    setNavbarVisible(false);
+    return () => setNavbarVisible(true);
+  }, []);
 
   const calculateGameDimensions = () => {
     const maxWidth = 600;
