@@ -180,7 +180,6 @@ class GameScene extends Phaser.Scene {
 
   create() {
     console.log("create");
-
     // Создание анимации бега
     this.anims.create({
       key: "run",
@@ -336,6 +335,7 @@ class GameScene extends Phaser.Scene {
       color: "#ffffff",
     });
     this.fpsText.setScrollFactor(0);
+    GameData.instance.notifyGameReady();
   }
 
   /**
@@ -807,6 +807,8 @@ class GameScene extends Phaser.Scene {
       0.75
     );
     overlay.setDepth(1000);
+    overlay.setInteractive({ useHandCursor: false });
+
     modalElements.push(overlay);
 
     // Проверяем, достигнуто ли максимальное количество продолжений
@@ -852,8 +854,20 @@ class GameScene extends Phaser.Scene {
         "gradient"
       );
       continueButton.setDepth(1010); // Устанавливаем глубину
-      continueButton.setInteractive({ useHandCursor: true });
+      continueButton.setInteractive({ useHandCursor: false });
       modalElements.push(continueButton);
+
+      const interactiveArea = this.add.rectangle(
+        continueButtonX,
+        continueButtonY,
+        continueButtonWidth + 60, // Ширина кнопки + пространство для иконки
+        continueButtonHeight + 30, // Высота кнопки + пространство для иконки
+        0xffffff,
+        0 // Прозрачность
+      );
+      interactiveArea.setDepth(1015);
+      interactiveArea.setInteractive({ useHandCursor: true });
+      modalElements.push(interactiveArea);
 
       // Пульсирующая обводка для кнопки "Продолжить"
       const continueButtonBorder = this.add.graphics();
@@ -866,6 +880,8 @@ class GameScene extends Phaser.Scene {
         12
       );
       continueButtonBorder.setDepth(1010); // Устанавливаем такую же глубину
+      continueButtonBorder.setInteractive({ useHandCursor: false });
+
       modalElements.push(continueButtonBorder);
 
       this.tweens.add({
@@ -891,6 +907,8 @@ class GameScene extends Phaser.Scene {
         )
         .setOrigin(0.5);
       continueButtonText.setDepth(1011); // Текст выше кнопки
+      continueButtonText.setInteractive({ useHandCursor: false });
+
       modalElements.push(continueButtonText);
 
       // Иконка хилки (меньшего размера и справа от текста)
@@ -898,6 +916,8 @@ class GameScene extends Phaser.Scene {
         .image(centerX + 110, continueButtonY, "healIcon")
         .setDisplaySize(30, 30); // Уменьшение размера иконки
       healIcon.setDepth(1012);
+      healIcon.setInteractive({ useHandCursor: false });
+
       modalElements.push(healIcon);
 
       // Таймер сбоку кнопки "Продолжить"
@@ -912,6 +932,8 @@ class GameScene extends Phaser.Scene {
         0xff0000
       );
       timerCircle.setDepth(1013);
+      timerCircle.setInteractive({ useHandCursor: false });
+
       modalElements.push(timerCircle);
 
       const timerText = this.add
@@ -921,6 +943,8 @@ class GameScene extends Phaser.Scene {
         })
         .setOrigin(0.5);
       timerText.setDepth(1014);
+      timerText.setInteractive({ useHandCursor: false });
+
       modalElements.push(timerText);
 
       // Таймер пульсации для круга таймера
@@ -940,13 +964,13 @@ class GameScene extends Phaser.Scene {
       this.purchaseTimer = this.time.addEvent({
         delay: 1000,
         callback: this.createPurchaseTimer,
-        args: [timerText, continueButton, timerCircle, modalElements],
+        args: [timerText, interactiveArea, timerCircle, modalElements],
         callbackScope: this,
         loop: true,
       });
 
       // Обработчик нажатия на кнопку "Продолжить"
-      continueButton.on("pointerdown", async () => {
+      interactiveArea.on("pointerdown", async () => {
         console.log("Purchase button clicked.");
         this.isPurchasing = true;
 

@@ -12,6 +12,7 @@ import {
   startGame,
 } from "../lib/api/game";
 import { useStore } from "../lib/store/store";
+import "./Game.css";
 
 export interface GameSceneData {
   session_id: number;
@@ -39,8 +40,9 @@ const Game: FC<GameSceneData> = ({
     window.innerHeight < window.innerWidth
   );
   const [currentGameWidth, setCurentGameWidth] = useState<number>(-1);
-  const [currentHameHeight, setCurrentGameHeight] = useState<number>(-1);
+  const [currentGameHeight, setCurrentGameHeight] = useState<number>(-1);
   const [isGameOver, setIsGameOver] = useState(false);
+  const [isLoading, setIsLoading] = useState(true); // Добавляем состояние загрузки
 
   useEffect(() => {
     setNavbarVisible(false);
@@ -109,6 +111,7 @@ const Game: FC<GameSceneData> = ({
       onGameEnd();
     }
   };
+
   useEffect(() => {
     if (
       typeof window === "undefined" ||
@@ -119,6 +122,11 @@ const Game: FC<GameSceneData> = ({
     }
 
     const initializeGame = async () => {
+      // Устанавливаем обратный вызов для уведомления о готовности игры
+      GameData.instance.setOnGameReady(() => {
+        setIsLoading(false); // Скрываем индикатор загрузки
+      });
+
       const session_id = await startGameData(); // Дожидаемся завершения startGameData
 
       GameData.instance.setData({
@@ -177,6 +185,9 @@ const Game: FC<GameSceneData> = ({
     }
   }, [isGameOver]);
 
+  console.log(currentGameHeight);
+  console.log(currentGameWidth);
+
   return (
     <div
       style={{
@@ -196,14 +207,33 @@ const Game: FC<GameSceneData> = ({
       }}
       onContextMenu={(e) => e.preventDefault()} // Предотвращаем контекстное меню
     >
+      {isLoading && (
+        // Отображаем индикатор загрузки, пока isLoading = true
+        <div
+          style={{
+            position: "absolute",
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+            zIndex: 9999,
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+          }}
+        >
+          <div className="spinner" />
+          <div style={{ color: "#ffffff", marginTop: "10px" }}>Загрузка...</div>
+        </div>
+      )}
+
       {!isGameOver && (
         <div
           style={{
             position: "absolute",
-            top: `calc((100vh - ${currentHameHeight}px) / 2)`,
+            top: `calc((100vh - ${currentGameHeight}px) / 2)`,
             left: `calc((100vw - ${currentGameWidth}px) / 2)`,
             width: currentGameWidth,
-            height: currentHameHeight,
+            height: currentGameHeight,
             overflow: "hidden",
             transform: isHorizontal ? "none" : "rotate(90deg)",
             margin: 0,
@@ -212,8 +242,12 @@ const Game: FC<GameSceneData> = ({
             alignItems: "center",
             justifyContent: "center",
             zIndex: 2,
-            outline: "8px ridge rgba(100, 150, 220, .9)",
-            borderRadius: "2rem",
+            outline:
+              currentGameWidth > 0 && currentGameWidth > 0
+                ? "8px ridge rgba(100, 150, 220, .9)"
+                : "",
+            borderRadius:
+              currentGameWidth > 0 && currentGameWidth > 0 ? "2rem" : "",
             userSelect: "none", // Отключаем выделение текста
             WebkitUserSelect: "none", // Для Safari
             touchAction: "none", // Отключаем стандартные действия при касании
@@ -230,6 +264,7 @@ const Game: FC<GameSceneData> = ({
               userSelect: "none", // Отключаем выделение текста
               WebkitUserSelect: "none", // Для Safari
               touchAction: "none", // Отключаем стандартные действия при касании
+              visibility: isLoading ? "hidden" : "visible",
             }}
             onContextMenu={(e) => e.preventDefault()} // Предотвращаем контекстное меню
           />
