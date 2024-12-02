@@ -38,8 +38,8 @@ const Game: FC<GameSceneData> = ({
   const [isHorizontal, setIsHorizontal] = useState(
     window.innerHeight < window.innerWidth
   );
-  const [gameWidth, setGameWidth] = useState(600);
-  const [gameHeight, setGameHeight] = useState(400);
+  const [currentGameWidth, setCurentGameWidth] = useState<number>(-1);
+  const [currentHameHeight, setCurrentGameHeight] = useState<number>(-1);
   const [isGameOver, setIsGameOver] = useState(false);
 
   useEffect(() => {
@@ -76,12 +76,15 @@ const Game: FC<GameSceneData> = ({
       Math.max(gameHeight, minWidth / aspectRatio),
       maxWidth / aspectRatio
     );
-    setGameWidth(Math.floor(gameWidth));
-    setGameHeight(Math.floor(gameHeight));
+    const finalWidth = gameWidth - 10;
+    const finalHeight = gameHeight - 20;
+
+    setCurentGameWidth(Math.floor(finalWidth));
+    setCurrentGameHeight(Math.floor(finalHeight));
 
     return {
-      gameWidth: Math.floor(gameWidth),
-      gameHeight: Math.floor(gameHeight),
+      gameWidth: Math.floor(finalWidth),
+      gameHeight: Math.floor(finalHeight),
     };
   };
 
@@ -183,16 +186,20 @@ const Game: FC<GameSceneData> = ({
         padding: 0,
         top: 0,
         left: 0,
+        userSelect: "none", // Отключаем выделение текста
+        WebkitUserSelect: "none", // Для Safari
+        touchAction: "none", // Отключаем стандартные действия при касании
       }}
+      onContextMenu={(e) => e.preventDefault()} // Предотвращаем контекстное меню
     >
       {!isGameOver && (
         <div
           style={{
             position: "absolute",
-            top: `calc((100vh - ${gameHeight}px) / 2)`,
-            left: `calc((100vw - ${gameWidth}px) / 2)`,
-            width: gameWidth,
-            height: gameHeight,
+            top: `calc((100vh - ${currentHameHeight}px) / 2)`,
+            left: `calc((100vw - ${currentGameWidth}px) / 2)`,
+            width: currentGameWidth,
+            height: currentHameHeight,
             overflow: "hidden",
             transform: isHorizontal ? "none" : "rotate(90deg)",
             margin: 0,
@@ -203,7 +210,11 @@ const Game: FC<GameSceneData> = ({
             zIndex: 2,
             outline: "8px ridge rgba(100, 150, 220, .9)",
             borderRadius: "2rem",
+            userSelect: "none", // Отключаем выделение текста
+            WebkitUserSelect: "none", // Для Safari
+            touchAction: "none", // Отключаем стандартные действия при касании
           }}
+          onContextMenu={(e) => e.preventDefault()} // Предотвращаем контекстное меню
         >
           <div
             className="game"
@@ -212,7 +223,11 @@ const Game: FC<GameSceneData> = ({
               outlineWidth: "3px",
               outlineColor: "green",
               outlineOffset: "3px",
+              userSelect: "none", // Отключаем выделение текста
+              WebkitUserSelect: "none", // Для Safari
+              touchAction: "none", // Отключаем стандартные действия при касании
             }}
+            onContextMenu={(e) => e.preventDefault()} // Предотвращаем контекстное меню
           />
         </div>
       )}
