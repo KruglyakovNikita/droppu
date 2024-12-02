@@ -39,6 +39,16 @@ export class WeaponManager {
     this.objects = [];
   }
 
+  stopAllObjects() {
+    this.objects.forEach((obj) => {
+      if (obj.instance.setActive) {
+        obj.instance.setActive(false);
+      }
+    });
+    console.log("All objects removed from WeaponManager.");
+    this.objects = [];
+  }
+
   update(player: Phaser.GameObjects.Sprite) {
     this.objects = this.objects.filter((obj) => {
       if (!obj.instance) {

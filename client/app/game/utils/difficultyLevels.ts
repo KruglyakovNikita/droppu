@@ -1,21 +1,45 @@
 import { DifficultyLevel } from "../presets/types";
 
+const initialScore = 0;
+const initialScoreEnd = 2500;
+const intermediateScoreEnd = 5000;
+const advancedScoreEnd = 10000;
+const expertScoreEnd = 15000;
+const masterScoreEnd = Infinity;
+
 export const difficultyLevels: DifficultyLevel[] = [
   // {
   //   name: "Initial",
   //   minScore: 0,
   //   maxScore: Infinity,
-  //   presetTypes: ["medium"],
+  //   presetTypes: ["easy"],
   //   obstacles: {
-  //     spawnRateMultiplier: 1,
-  //     obstacleConfigs: [],
+  //     spawnRateMultiplier: 3,
+  //     obstacleConfigs: [
+  //       // {
+  //       //   name: "doubleDynamicLasers",
+  //       //   weight: 15,
+  //       //   obstacleType: "laserCannon",
+  //       //   variants: [
+  //       //     { type: "static", position: { y: "top" } },
+  //       //     { type: "static", position: { y: "bottom" } },
+  //       //     { type: "homing" },
+  //       //   ],
+  //       // },
+  //       {
+  //         name: "dynamicLaserCannon",
+  //         weight: 15,
+  //         obstacleType: "laserCannon",
+  //         variants: [{ type: "dynamic" }],
+  //       },
+  //     ],
   //   },
-  //   coinPresetFrequency: 10,
+  //   coinPresetFrequency: 100,
   // },
   {
     name: "Initial",
-    minScore: 0,
-    maxScore: 5000,
+    minScore: initialScore,
+    maxScore: initialScoreEnd,
     presetTypes: ["easy", "medium"],
     obstacles: {
       spawnRateMultiplier: 1,
@@ -25,8 +49,8 @@ export const difficultyLevels: DifficultyLevel[] = [
   },
   {
     name: "Intermediate",
-    minScore: 5000,
-    maxScore: 10000,
+    minScore: initialScoreEnd,
+    maxScore: intermediateScoreEnd,
     presetTypes: ["medium", "hard"],
     obstacles: {
       spawnRateMultiplier: 1,
@@ -49,8 +73,8 @@ export const difficultyLevels: DifficultyLevel[] = [
   },
   {
     name: "Advanced",
-    minScore: 10000,
-    maxScore: 20000,
+    minScore: intermediateScoreEnd,
+    maxScore: advancedScoreEnd,
     presetTypes: ["hard", "ultra-hard"],
     obstacles: {
       spawnRateMultiplier: 1.5,
@@ -88,8 +112,8 @@ export const difficultyLevels: DifficultyLevel[] = [
   },
   {
     name: "Expert",
-    minScore: 20000,
-    maxScore: 45000,
+    minScore: advancedScoreEnd,
+    maxScore: expertScoreEnd,
     presetTypes: ["hard", "ultra-hard"],
     obstacles: {
       spawnRateMultiplier: 2,
@@ -137,8 +161,8 @@ export const difficultyLevels: DifficultyLevel[] = [
   },
   {
     name: "Master",
-    minScore: 45000,
-    maxScore: Infinity,
+    minScore: expertScoreEnd,
+    maxScore: masterScoreEnd,
     presetTypes: ["ultra-hard"],
     obstacles: {
       spawnRateMultiplier: 2.5,
