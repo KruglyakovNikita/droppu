@@ -12,6 +12,8 @@ export class ObjectPool<T extends Phaser.GameObjects.Image> {
       obj.setActive(true);
       obj.setVisible(true);
     } else {
+      console.log("CREATEA LASER");
+
       obj = this.factory();
       this.pool.push(obj);
     }
@@ -19,14 +21,16 @@ export class ObjectPool<T extends Phaser.GameObjects.Image> {
   }
 
   release(obj: T) {
-    obj.setActive(false);
-    obj.setVisible(false);
+    console.log("DEACTIVATE");
+
+    if ((obj as any).setActive) (obj as any).setActive(false);
+    if ((obj as any).setVisible) (obj as any).setVisible(false);
   }
 
   releaseAll() {
     this.pool.forEach((obj) => {
-      obj.setActive(false);
-      obj.setVisible(false);
+      if ((obj as any).setActive) (obj as any).setActive(false);
+      if ((obj as any).setVisible) (obj as any).setVisible(false);
     });
   }
 }

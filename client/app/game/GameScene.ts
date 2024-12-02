@@ -94,6 +94,7 @@ class GameScene extends Phaser.Scene {
 
   //Optimize
   coinPool!: ObjectPool<Phaser.Physics.Matter.Image>;
+  laserPool!: ObjectPool<Phaser.Physics.Matter.Image>;
 
   fpsText!: Phaser.GameObjects.Text;
 
@@ -283,6 +284,34 @@ class GameScene extends Phaser.Scene {
     this.coinText.setScrollFactor(0);
 
     // СОЗДАНИЕ ПРЕПЯТСТВИЙ
+    this.coinPool = new ObjectPool(() => {
+      const coin = this.matter.add.sprite(0, 0, "coin");
+      coin.setDisplaySize(this.scale.width * 0.03, this.scale.height * 0.05);
+      coin.setSensor(true); // Устанавливаем как сенсор
+      coin.setIgnoreGravity(true); // Игнорируем гравитацию
+      coin.setDepth(1); // Устанавливаем слой отрисовки
+      coin.setVisible(true); // Делаем монеты видимыми
+
+      coin.play("spin"); // Запускаем анимацию
+      this.coins.push(coin);
+      return coin;
+    });
+
+    const heightScale = this.scale.height / 400;
+
+    this.laserPool = new ObjectPool(() => {
+      const laser = this.matter.add.image(0, 0, "laser", undefined, {
+        isStatic: true,
+      });
+
+      laser.setOrigin(0.5, 0.5);
+      laser.setDisplaySize(25, heightScale);
+      laser.setSensor(true);
+      laser.setActive(false);
+      laser.setVisible(false);
+      return laser;
+    });
+
     // Инициализация очереди пресетов
     for (let i = 0; i < 3; i++) {
       this.enqueuePreset();
@@ -301,19 +330,6 @@ class GameScene extends Phaser.Scene {
     this.nextObstacleTime =
       this.time.now +
       baseDelay / currentDifficulty.obstacles.spawnRateMultiplier;
-
-    this.coinPool = new ObjectPool(() => {
-      const coin = this.matter.add.sprite(0, 0, "coin");
-      coin.setDisplaySize(this.scale.width * 0.03, this.scale.height * 0.05);
-      coin.setSensor(true); // Устанавливаем как сенсор
-      coin.setIgnoreGravity(true); // Игнорируем гравитацию
-      coin.setDepth(1); // Устанавливаем слой отрисовки
-      coin.setVisible(true); // Делаем монеты видимыми
-
-      coin.play("spin"); // Запускаем анимацию
-      this.coins.push(coin);
-      return coin;
-    });
 
     this.fpsText = this.add.text(this.scale.width - 100, 10, "", {
       fontSize: "16px",
@@ -594,22 +610,19 @@ class GameScene extends Phaser.Scene {
     const heightScale = this.scale.height / 400; // 400 - базовая высота
 
     preset.lasers.forEach((laserConfig) => {
-      const x = this.lastPlatformX + laserConfig.x * this.scale.width; // x теперь относительный
-      const y = laserConfig.y * this.scale.height; // y теперь относительный
+      const x = this.lastPlatformX + laserConfig.x * this.scale.width; // x now relative
+      const y = laserConfig.y * this.scale.height; // y now relative
       const angle = Phaser.Math.DegToRad(laserConfig.angle || 0);
       const laserLength = 80 * heightScale;
 
-      // Создание лазера
-      const laser = this.matter.add.image(x, y, "laser", undefined, {
-        isStatic: true,
-      });
-
-      // Настройка лазера
-      laser.setOrigin(0.5, 0.5);
+      // Acquire laser from the pool
+      const laser = this.laserPool.acquire();
+      laser.setPosition(x, y);
       laser.setRotation(angle);
       laser.setDisplaySize(25, laserLength);
 
-      laser.setSensor(true);
+      laser.setActive(true);
+      laser.setVisible(true);
 
       this.lasers.push(laser);
       maxOffsetX = Math.max(maxOffsetX, laserConfig.x * this.scale.width);
@@ -986,9 +999,10 @@ class GameScene extends Phaser.Scene {
 
       // Вызываем внешнюю функцию покупки
       const continueCost = Math.pow(2, this.continueCount); // Стоимость удваивается каждый раз
-      const purchaseResult = await this.onPurchaseAttempt({
-        amount: continueCost,
-      });
+      // const purchaseResult = await this.onPurchaseAttempt({
+      //   amount: continueCost,
+      // });
+      const purchaseResult = "ok";
 
       if (purchaseResult === "ok") {
         // Покупка успешна
@@ -1002,7 +1016,7 @@ class GameScene extends Phaser.Scene {
 
         // Возобновляем таймер
         if (this.purchaseTimer) {
-          this.purchaseTimer.paused = false;
+          this.purchaseTimer.destroy();
         }
       }
     });
@@ -1074,8 +1088,8 @@ class GameScene extends Phaser.Scene {
     // Убираем красный цвет и возобновляем мир
 
     // Очистка старых объектов и таймеров
-    this.lasers.forEach((laser) => laser.destroy());
     this.lasers = [];
+    this.laserPool.releaseAll();
     this.destroyCoin();
     this.objectManager.removeAllObjects();
   }
@@ -1083,6 +1097,8 @@ class GameScene extends Phaser.Scene {
   continueGame() {
     this.player.clearTint();
     this.matter.world.resume();
+    this.isStoped = false;
+    this.cameras.main.startFollow(this.player, true, 0.1, 0.1);
     // Перезапуск таймеров генерации препятствий
     //////TEST
     // this.generateRocketsByTimer();
@@ -1152,7 +1168,7 @@ class GameScene extends Phaser.Scene {
         this.cameras?.main?.scrollX !== undefined &&
         laser?.x < this.cameras.main.scrollX - 100
       ) {
-        laser.destroy();
+        this.laserPool.release(laser);
         return false;
       }
       return true;
