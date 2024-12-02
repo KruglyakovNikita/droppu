@@ -203,7 +203,7 @@ class GameScene extends Phaser.Scene {
 
     // Создаем игрока с физикой Matter
     if (!this.userSpriteUrl) {
-      this.player = this.matter.add.sprite(100, 200, "userSprite");
+      this.player = this.matter.add.sprite(128, 204, "userSprite");
     } else {
       this.player = this.matter.add.sprite(100, 200, "playerRun");
       this.player.play("run");
@@ -303,9 +303,7 @@ class GameScene extends Phaser.Scene {
         isStatic: true,
       });
 
-      laser.setOrigin(0.5, 0.5);
-      laser.setDisplaySize(25, heightScale);
-      laser.setSensor(true);
+      laser.setSensor(false);
       laser.setActive(false);
       laser.setVisible(false);
       return laser;
@@ -608,6 +606,7 @@ class GameScene extends Phaser.Scene {
   createPreset(preset: Preset) {
     let maxOffsetX = 0;
     const heightScale = this.scale.height / 400; // 400 - базовая высота
+    console.log("heightScale", heightScale);
 
     preset.lasers.forEach((laserConfig) => {
       const x = this.lastPlatformX + laserConfig.x * this.scale.width; // x now relative
@@ -616,16 +615,20 @@ class GameScene extends Phaser.Scene {
       const laserLength = 80 * heightScale;
 
       // Acquire laser from the pool
-      const laser = this.laserPool.acquire();
-      laser.setPosition(x, y);
-      laser.setRotation(angle);
-      laser.setDisplaySize(25, laserLength);
+      const laser = this.laserPool?.acquire();
+      if (laser) {
+        laser.setPosition(x, y);
+        laser.setRotation(angle);
+        laser.setDisplaySize(25, laserLength);
+        laser.setSize(25, laserLength);
+        console.log(laserLength);
 
-      laser.setActive(true);
-      laser.setVisible(true);
+        laser.setActive(true);
+        laser.setVisible(true);
 
-      this.lasers.push(laser);
-      maxOffsetX = Math.max(maxOffsetX, laserConfig.x * this.scale.width);
+        this.lasers.push(laser);
+        maxOffsetX = Math.max(maxOffsetX, laserConfig.x * this.scale.width);
+      }
     });
 
     if (preset.coins && this.coinPool) {
@@ -807,7 +810,6 @@ class GameScene extends Phaser.Scene {
       0.75
     );
     overlay.setDepth(1000);
-    overlay.setInteractive({ useHandCursor: false });
 
     modalElements.push(overlay);
 
@@ -854,20 +856,8 @@ class GameScene extends Phaser.Scene {
         "gradient"
       );
       continueButton.setDepth(1010); // Устанавливаем глубину
-      continueButton.setInteractive({ useHandCursor: false });
-      modalElements.push(continueButton);
 
-      const interactiveArea = this.add.rectangle(
-        continueButtonX,
-        continueButtonY,
-        continueButtonWidth + 60, // Ширина кнопки + пространство для иконки
-        continueButtonHeight + 30, // Высота кнопки + пространство для иконки
-        0xffffff,
-        0 // Прозрачность
-      );
-      interactiveArea.setDepth(1015);
-      interactiveArea.setInteractive({ useHandCursor: true });
-      modalElements.push(interactiveArea);
+      modalElements.push(continueButton);
 
       // Пульсирующая обводка для кнопки "Продолжить"
       const continueButtonBorder = this.add.graphics();
@@ -880,7 +870,6 @@ class GameScene extends Phaser.Scene {
         12
       );
       continueButtonBorder.setDepth(1010); // Устанавливаем такую же глубину
-      continueButtonBorder.setInteractive({ useHandCursor: false });
 
       modalElements.push(continueButtonBorder);
 
@@ -907,7 +896,6 @@ class GameScene extends Phaser.Scene {
         )
         .setOrigin(0.5);
       continueButtonText.setDepth(1011); // Текст выше кнопки
-      continueButtonText.setInteractive({ useHandCursor: false });
 
       modalElements.push(continueButtonText);
 
@@ -932,7 +920,6 @@ class GameScene extends Phaser.Scene {
         0xff0000
       );
       timerCircle.setDepth(1013);
-      timerCircle.setInteractive({ useHandCursor: false });
 
       modalElements.push(timerCircle);
 
@@ -943,7 +930,6 @@ class GameScene extends Phaser.Scene {
         })
         .setOrigin(0.5);
       timerText.setDepth(1014);
-      timerText.setInteractive({ useHandCursor: false });
 
       modalElements.push(timerText);
 
@@ -960,6 +946,18 @@ class GameScene extends Phaser.Scene {
       // Логика таймера и покупки
       this.purchaseTimeLeft = 10;
       this.isPurchasing = false;
+
+      const interactiveArea = this.add.rectangle(
+        continueButtonX,
+        continueButtonY,
+        continueButtonWidth + 60, // Ширина кнопки + пространство для иконки
+        continueButtonHeight + 30, // Высота кнопки + пространство для иконки
+        0xffffff,
+        0 // Прозрачность
+      );
+      interactiveArea.setInteractive({ useHandCursor: true });
+      interactiveArea.setDepth(1015);
+      modalElements.push(interactiveArea);
 
       this.purchaseTimer = this.time.addEvent({
         delay: 1000,

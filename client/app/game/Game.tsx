@@ -162,14 +162,11 @@ const Game: FC<GameSceneData> = ({
 
       const game = new Phaser.Game(config);
       phaserGameRef.current = game;
-
-      window.addEventListener("orientationchange", resizeGame);
     };
 
     initializeGame(); // Запускаем асинхронную инициализацию игры
 
     return () => {
-      window.removeEventListener("orientationchange", resizeGame);
       if (phaserGameRef.current) {
         phaserGameRef.current.destroy(true);
         phaserGameRef.current = null;
