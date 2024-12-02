@@ -782,13 +782,18 @@ class GameScene extends Phaser.Scene {
         obj.instance.destroyWarning();
       }
     });
+
+    setTimeout(() => this.objectManager.removeAllObjects(), 50);
     this.showModal();
   }
+
   showModal() {
     // Получаем центр экрана
     const centerX = this.cameras.main.worldView.x + this.cameras.main.width / 2;
     const centerY =
       this.cameras.main.worldView.y + this.cameras.main.height / 2;
+    const continueButtonY = centerY - 50;
+    const continueButtonX = centerX;
 
     // Создаем массив для хранения элементов модалки
     const modalElements: Phaser.GameObjects.GameObject[] = [];
@@ -802,42 +807,20 @@ class GameScene extends Phaser.Scene {
       0x000000,
       0.75
     );
+    overlay.setDepth(1000);
     modalElements.push(overlay);
 
-    // // Создаем модальное окно с обводкой
-    // const modalWidth = 500;
-    // const modalHeight = 350;
-    // const modal = this.add.rectangle(
-    //   centerX,
-    //   centerY,
-    //   undefined,
-    //   undefined,
-    //   0x0b0b0b, // Темно-серый цвет
-    //   0.75 // Устанавливаем прозрачность (0.9 - почти непрозрачно)
-    // );
-    // modal.setStrokeStyle(4, 0x0b0b0b, 0.8);
-    // modalElements.push(modal);
-
     // Создаем градиентную текстуру для кнопки "Продолжить"
-
-    // Кнопка "Продолжить"
-    const continueButtonX = centerX;
-    const continueButtonY = centerY - 50;
-    const gradientTexture = this.textures.createCanvas("gradient", 250, 60);
-
-    const continueButton = this.add.image(
-      continueButtonX,
-      continueButtonY,
-      "gradient"
-    );
-    continueButton.setInteractive({ useHandCursor: true });
-    modalElements.push(continueButton);
-
-    const continueButtonWidth = 250;
+    const continueButtonWidth = 260;
     const continueButtonHeight = 60;
+
+    const gradientTexture = this.textures.createCanvas(
+      "gradient",
+      continueButtonWidth,
+      continueButtonHeight
+    );
     if (gradientTexture) {
       const gradientCtx = gradientTexture.getContext();
-
       const gradient = gradientCtx.createLinearGradient(0, 0, 0, 60);
       gradient.addColorStop(0, "#00008b"); // Темно-синий
       gradient.addColorStop(1, "#1e90ff"); // Светло-синий
@@ -854,16 +837,28 @@ class GameScene extends Phaser.Scene {
       gradientTexture.refresh();
     }
 
+    // Создаем объект изображения с текстурой градиента
+
+    const continueButton = this.add.image(
+      continueButtonX,
+      continueButtonY,
+      "gradient"
+    );
+    continueButton.setDepth(1010); // Устанавливаем глубину
+    continueButton.setInteractive({ useHandCursor: true });
+    modalElements.push(continueButton);
+
     // Пульсирующая обводка для кнопки "Продолжить"
     const continueButtonBorder = this.add.graphics();
     continueButtonBorder.lineStyle(4, 0xff0000, 1);
     continueButtonBorder.strokeRoundedRect(
-      continueButtonX - continueButtonWidth / 2,
-      continueButtonY - continueButtonHeight / 2,
+      centerX - continueButtonWidth / 2, // Половина ширины
+      centerY - 80, // Высота кнопки с учетом отступа
       continueButtonWidth,
       continueButtonHeight,
       12
     );
+    continueButtonBorder.setDepth(1010); // Устанавливаем такую же глубину
     modalElements.push(continueButtonBorder);
 
     this.tweens.add({
@@ -877,29 +872,26 @@ class GameScene extends Phaser.Scene {
 
     // Текст на кнопке "Продолжить"
     const continueButtonText = this.add
-      .text(
-        continueButtonX - 20,
-        continueButtonY,
-        `Продолжить x${this.continueCount + 1}`,
-        {
-          fontSize: "24px",
-          color: "#ffffff",
-          fontStyle: "bold",
-        }
-      )
+      .text(centerX, continueButtonY, `Продолжить x${this.continueCount + 1}`, {
+        fontSize: "24px",
+        color: "#ffffff",
+        fontStyle: "bold",
+      })
       .setOrigin(0.5);
+    continueButtonText.setDepth(1011); // Текст выше кнопки
     modalElements.push(continueButtonText);
 
     // Иконка хилки (меньшего размера и справа от текста)
     const healIcon = this.add
-      .image(continueButtonX + 90, continueButtonY, "healIcon")
+      .image(centerX + 110, continueButtonY, "healIcon")
       .setDisplaySize(30, 30); // Уменьшение размера иконки
+    healIcon.setDepth(1012);
     modalElements.push(healIcon);
 
     // Таймер сбоку кнопки "Продолжить"
     const timerCircleRadius = 15; // Уменьшенный радиус
-    const timerCircleX = continueButtonX + continueButtonWidth / 2 - 5;
-    const timerCircleY = continueButtonY - continueButtonHeight / 2;
+    const timerCircleX = continueButtonX + continueButton.width / 2 - 5;
+    const timerCircleY = continueButtonY - continueButton.height / 2;
 
     const timerCircle = this.add.circle(
       timerCircleX,
@@ -907,6 +899,7 @@ class GameScene extends Phaser.Scene {
       timerCircleRadius,
       0xff0000
     );
+    timerCircle.setDepth(1013);
     modalElements.push(timerCircle);
 
     const timerText = this.add
@@ -915,6 +908,7 @@ class GameScene extends Phaser.Scene {
         color: "#ffffff",
       })
       .setOrigin(0.5);
+    timerText.setDepth(1014);
     modalElements.push(timerText);
 
     // Таймер пульсации для круга таймера
@@ -954,6 +948,8 @@ class GameScene extends Phaser.Scene {
       0x808080 // Серый цвет для менее привлекательной кнопки
     );
     finishButton.setInteractive({ useHandCursor: true });
+    finishButton.setDepth(1010);
+
     modalElements.push(finishButton);
 
     // Обводка для кнопки "Закончить игру"
@@ -965,6 +961,7 @@ class GameScene extends Phaser.Scene {
       finishButtonWidth,
       finishButtonHeight
     );
+    finishButtonBorder.setDepth(1011);
     modalElements.push(finishButtonBorder);
 
     // Текст на кнопке "Закончить игру"
@@ -974,51 +971,13 @@ class GameScene extends Phaser.Scene {
         color: "#ffffff",
       })
       .setOrigin(0.5);
+    finishButtonText.setDepth(1012);
     modalElements.push(finishButtonText);
-
-    // Обработчик нажатия на кнопку "Закончить игру"
-    finishButton.on("pointerdown", () => {
+    // Привязываем события клика к кнопке
+    continueButton.on("pointerdown", () => {
+      console.log("Кнопка 'Продолжить' нажата");
       this.closeModal(modalElements);
-      this.onGameEnd({
-        score: this.score,
-        coins_earned: this.coinCount,
-        session_id: this.session_id,
-      });
-      this.isStoped = true;
-    });
-
-    // Обработчик нажатия на кнопку "Продолжить"
-    continueButton.on("pointerdown", async () => {
-      console.log("Purchase button clicked.");
-      this.isPurchasing = true;
-
-      // Останавливаем таймер
-      if (this.purchaseTimer) {
-        this.purchaseTimer.paused = true;
-      }
-
-      // Вызываем внешнюю функцию покупки
-      const continueCost = Math.pow(2, this.continueCount); // Стоимость удваивается каждый раз
-      // const purchaseResult = await this.onPurchaseAttempt({
-      //   amount: continueCost,
-      // });
-      const purchaseResult = "ok";
-
-      if (purchaseResult === "ok") {
-        // Покупка успешна
-        this.continueCount += 1;
-        this.closeModal(modalElements);
-        this.continueGame();
-        this.isPurchasing = false;
-      } else {
-        // Покупка отменена
-        this.isPurchasing = false;
-
-        // Возобновляем таймер
-        if (this.purchaseTimer) {
-          this.purchaseTimer.destroy();
-        }
-      }
+      this.continueGame();
     });
   }
 
@@ -1091,7 +1050,6 @@ class GameScene extends Phaser.Scene {
     this.lasers = [];
     this.laserPool.releaseAll();
     this.destroyCoin();
-    this.objectManager.removeAllObjects();
   }
 
   continueGame() {
