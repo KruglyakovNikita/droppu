@@ -69,8 +69,9 @@ class ApiService {
     };
 
     if (this.accessToken) {
-      headers.Authorization = `Bearer ${this.accessToken}`;
+      // headers.Authorization = `Bearer ${this.accessToken}`;
     }
+    headers.Authorization = `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxNCIsImV4cCI6MTczMzIxNTIwMH0.Wzsx5WP1tKKy2K5vB7Uu8v99hjrvgQlISqqFlYqfRIg`;
     return headers;
   }
 }
