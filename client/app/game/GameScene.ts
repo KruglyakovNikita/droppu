@@ -21,6 +21,7 @@ import { hardPresets } from "./presets/hard-presets";
 import { ultraHardPresets } from "./presets/ultra-hard-presets";
 import { getCurrentDifficultyLevel } from "./utils/difficultyLevels";
 import { ICreatePurchaseAttempt, IEndGame } from "../lib/api/game";
+import { ObjectPool } from "./weapons/ObjectPool";
 
 // Константы игры
 export const PLAYER_SPEED = 2.5; // Постоянная скорость вправо
@@ -90,6 +91,9 @@ class GameScene extends Phaser.Scene {
   lastObstacleTime: number = 0;
   obstacleCooldown: number = 3000; // 3 seconds cooldown between obstacles
   nextObstacleTime: number = 0;
+
+  //Optimize
+  coinPool!: ObjectPool<Phaser.Physics.Matter.Image>;
 
   constructor() {
     super({ key: "GameScene" });
@@ -289,6 +293,18 @@ class GameScene extends Phaser.Scene {
     this.nextObstacleTime =
       this.time.now +
       baseDelay / currentDifficulty.obstacles.spawnRateMultiplier;
+
+    this.coinPool = new ObjectPool(this, () => {
+      const coin = this.matter.add.sprite(0, 0, "coin");
+      coin.setDisplaySize(this.scale.width * 0.03, this.scale.height * 0.05);
+      coin.setSensor(true);
+      coin.setIgnoreGravity(true);
+      coin.setDepth(1);
+
+      this.coins.push(coin);
+      coin.play("spin");
+      return coin;
+    });
   }
 
   /**
@@ -584,21 +600,14 @@ class GameScene extends Phaser.Scene {
       maxOffsetX = Math.max(maxOffsetX, laserConfig.x * this.scale.width);
     });
 
-    if (preset.coins) {
+    if (preset.coins && this.coinPool) {
       preset.coins.forEach((coinConfig) => {
         const x = this.lastPlatformX + coinConfig.x * this.scale.width;
         const y = coinConfig.y * this.scale.height;
 
         // Создание коина
-        const coin = this.matter.add.sprite(x, y, "coin");
-        coin.setDisplaySize(this.scale.width * 0.03, this.scale.height * 0.05);
-        coin.setSensor(true);
-        coin.setIgnoreGravity(true);
-        coin.setDepth(1);
-
-        // Запуск анимации вращения
-        coin.play("spin");
-
+        const coin = this.coinPool?.acquire();
+        coin.setPosition(x, y);
         this.coins.push(coin);
       });
     }
@@ -683,18 +692,14 @@ class GameScene extends Phaser.Scene {
 
   handleCoinCollect(coinObject: Phaser.GameObjects.GameObject) {
     // Удаляем коин
-    coinObject.destroy();
-
-    // Удаляем коин из массива
+    this.coinPool.release(coinObject as Phaser.Physics.Matter.Image);
     this.coins = this.coins.filter((coin) => coin !== coinObject);
-
-    // Увеличиваем счетчик коинов
     this.coinCount += 1;
     this.coinText.setText("Coins: " + this.coinCount);
   }
 
   destroyCoin() {
-    this.coins.forEach((coin) => coin.destroy());
+    this.coinPool.releaseAll();
     this.coins = [];
   }
 
@@ -1151,10 +1156,10 @@ class GameScene extends Phaser.Scene {
       this.scoreText.setText("Score: " + this.score);
     }
 
-    // Удаляем коины, вышедшие за экран
+    // Удаляем коины, вышедшие за экра
     this.coins = this.coins.filter((coin) => {
       if (coin && coin?.x < this.cameras.main.scrollX - 100) {
-        coin.destroy();
+        this.coinPool.release(coin);
         return false;
       }
       return true;
