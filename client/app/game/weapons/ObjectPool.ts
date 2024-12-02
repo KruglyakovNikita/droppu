@@ -1,10 +1,8 @@
 export class ObjectPool<T extends Phaser.GameObjects.Image> {
   private pool: T[] = [];
-  private scene: Phaser.Scene;
   private factory: () => T;
 
-  constructor(scene: Phaser.Scene, factory: () => T) {
-    this.scene = scene;
+  constructor(factory: () => T) {
     this.factory = factory;
   }
 
@@ -15,6 +13,7 @@ export class ObjectPool<T extends Phaser.GameObjects.Image> {
       obj.setVisible(true);
     } else {
       obj = this.factory();
+      this.pool.push(obj);
     }
     return obj;
   }

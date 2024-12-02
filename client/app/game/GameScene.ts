@@ -95,6 +95,8 @@ class GameScene extends Phaser.Scene {
   //Optimize
   coinPool!: ObjectPool<Phaser.Physics.Matter.Image>;
 
+  fpsText!: Phaser.GameObjects.Text;
+
   constructor() {
     super({ key: "GameScene" });
   }
@@ -219,6 +221,12 @@ class GameScene extends Phaser.Scene {
     const scaleX = targetWidth / this.player.width;
     const scaleY = targetHeight / this.player.height;
     this.player.setScale(scaleX, scaleY);
+    // // Then adjust the body size
+    // this.player.setBody({
+    //   type: "rectangle",
+    //   width: this.player.displayWidth,
+    //   height: this.player.displayHeight,
+    // });
 
     // Настройка управления
     this.cursors = this.input.keyboard!.createCursorKeys();
@@ -294,17 +302,24 @@ class GameScene extends Phaser.Scene {
       this.time.now +
       baseDelay / currentDifficulty.obstacles.spawnRateMultiplier;
 
-    this.coinPool = new ObjectPool(this, () => {
+    this.coinPool = new ObjectPool(() => {
       const coin = this.matter.add.sprite(0, 0, "coin");
       coin.setDisplaySize(this.scale.width * 0.03, this.scale.height * 0.05);
-      coin.setSensor(true);
-      coin.setIgnoreGravity(true);
-      coin.setDepth(1);
+      coin.setSensor(true); // Устанавливаем как сенсор
+      coin.setIgnoreGravity(true); // Игнорируем гравитацию
+      coin.setDepth(1); // Устанавливаем слой отрисовки
+      coin.setVisible(true); // Делаем монеты видимыми
 
+      coin.play("spin"); // Запускаем анимацию
       this.coins.push(coin);
-      coin.play("spin");
       return coin;
     });
+
+    this.fpsText = this.add.text(this.scale.width - 100, 10, "", {
+      fontSize: "16px",
+      color: "#ffffff",
+    });
+    this.fpsText.setScrollFactor(0);
   }
 
   /**
@@ -1077,6 +1092,9 @@ class GameScene extends Phaser.Scene {
    * Метод обновления сцены
    */
   update() {
+    const fps = Math.floor(this.game.loop.actualFps);
+    this.fpsText.setText(`FPS: ${fps}`);
+
     if (this.isStoped) {
       return;
     }

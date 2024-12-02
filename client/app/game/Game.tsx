@@ -143,6 +143,10 @@ const Game: FC<GameSceneData> = ({
         scene: GameScene,
         width: gameWidth,
         height: gameHeight,
+        fps: {
+          target: 60, // Максимальное количество FPS
+          forceSetTimeOut: true, // Использовать setTimeout вместо requestAnimationFrame
+        },
       };
 
       const game = new Phaser.Game(config);
