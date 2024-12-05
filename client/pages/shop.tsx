@@ -55,14 +55,16 @@ const Shop: React.FC = () => {
   };
 
   const handlePurchase = async (currency: string) => {
+    window.Telegram.WebApp.HapticFeedback.impactOccurred("medium");
     if (!selectedItem) return;
     
     if (currency === 'stars') {
         const response = await createPurchaseAttempt({
             amount: selectedItem.star_price,
             description: selectedItem.inventory_item.name
-        })
+        });
         if (response?.payment_url) {
+            console.log(response?.payment_url);
             await window.Telegram.WebApp.openInvoice(response?.payment_url);
     
             const eventData: any = await new Promise((resolve, reject) => {
