@@ -163,13 +163,13 @@ const Shop: React.FC = () => {
           }
         />
         <ButtonIfoLink
-          title={userInfo?.coins.toString() || "0"}
+          title={filteredItems.length.toString() || "0"}
           width="100px"
-          description="Stars"
+          description="Items"
           onClick={() => {}}
           startIcon={
             <Image
-              src="/icons/tg_star_icon.svg"
+              src="/icons/shop_icon.svg"
               alt="Stars Icon"
               boxSize="23px"
               mr={2}
