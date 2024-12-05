@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { Achievement, Game, InvitedUser, User } from "./types";
+import { initUser } from "../api/user";
 
 type StoreState = {
   user: User | null;
@@ -10,6 +11,7 @@ type StoreState = {
   totalTokensFromInvited: number;
   totalTicketsFromInvited: number;
   navbarVisible: boolean;
+  initUser: (initData?: string) => Promise<void>;
   setUser: (user: User | null) => void;
   setInventory: (inventory: string[]) => void;
   setAchievements: (achievements: Achievement[]) => void;
@@ -27,6 +29,16 @@ export const useStore = create<StoreState>((set) => ({
   totalTokensFromInvited: 0,
   totalTicketsFromInvited: 0,
   navbarVisible: true,
+  initUser: async (initData?: string) => {
+    try {
+      const response = await initUser(initData);
+      if (response.data) {
+        set({ user: response.data.user });
+      }
+    } catch (error) {
+      console.error("Init user error:", error);
+    }
+  },
   setUser: (user) => set({ user }),
   setInventory: (inventory) => set({ inventory }),
   setAchievements: (achievements) => set({ achievements }),

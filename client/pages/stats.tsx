@@ -9,13 +9,10 @@ import {
   Image,
   Tabs,
   TabList,
-  Tab,
-  TabPanels,
-  TabPanel,
+  Tab
 } from "@chakra-ui/react";
 import GradientBorderWrapper from "../app/components/GradientBorderWrapper";
 import colors from "../theme/colors";
-import { LeaderboardData } from "../app/lib/store/types";
 import { fetchLeaderboard } from "../app/lib/api/stats";
 
 const periods = [

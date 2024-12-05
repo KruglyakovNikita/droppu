@@ -1,8 +1,16 @@
-import { Box, Flex, Button, Text, Image, Heading } from "@chakra-ui/react";
+import {
+  Box,
+  Flex,
+  Button,
+  Text,
+  Image,
+  Heading,
+  Spinner,
+  useToast,
+} from "@chakra-ui/react";
 import { motion, AnimatePresence } from "framer-motion";
 import colors from "@/theme/colors";
 import GradientBorderWrapper from "./GradientBorderWrapper";
-
 const TaskPop = ({
   icon,
   reward,
@@ -11,10 +19,22 @@ const TaskPop = ({
   button1Text,
   button1Link,
   button2Text,
+  category, // New prop to identify the category
+  onSubscribe,
   onCheck,
+  isLoading,
+  isChecked,
   isOpen,
   onClose,
 }) => {
+  const toast = useToast();
+
+  const showOnlyCheckButton = ["Frens", "Farming"].includes(category);
+
+  const handleCheck = () => {
+    onCheck(); 
+  };
+
   return (
     <AnimatePresence>
       {isOpen && (
@@ -35,12 +55,12 @@ const TaskPop = ({
             backgroundColor: colors.cardBackground,
             boxShadow: "0px -2px 10px rgba(0, 0, 0, 0.3)",
             overflow: "hidden",
-            zIndex: 1000, // Обеспечивает отображение поверх других элементов
+            zIndex: 1000,
           }}
         >
           <GradientBorderWrapper
-            startColor="#793BC7"
-            endColor="#C2D2FF"
+            startColor=""
+            endColor=""
             strokeWidth={2.5}
             style={{
               borderRadius: "56px 56px 0 0",
@@ -48,7 +68,7 @@ const TaskPop = ({
               height: "100%",
             }}
           >
-            {/* Кнопка закрытия */}
+            {/* Close Button */}
             <Flex justify="flex-end">
               <Button
                 onClick={onClose}
@@ -62,7 +82,7 @@ const TaskPop = ({
               </Button>
             </Flex>
 
-            {/* Содержимое компонента */}
+            {/* Popup Content */}
             <Flex direction="column" align="center" p={6}>
               <Image src={icon} alt="Reward Icon" boxSize="60px" mb={3} />
               <Text fontSize="24px" color={colors.accent} fontWeight="bold">
@@ -88,27 +108,36 @@ const TaskPop = ({
               </Text>
 
               <Flex gap={3}>
-                {/* Первая кнопка - ссылка */}
-                <Button
-                  as="a"
-                  onClick={onCheck}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  border="1px solid white"
-                  borderRadius="20px"
-                  minWidth="110px"
-                  height="35px"
-                  bg="transparent"
-                  fontSize="14px"
-                  _hover={{ bg: "rgba(255, 255, 255, 0.1)" }}
-                  color={colors.primaryText}
-                >
-                  {button1Text}
-                </Button>
+                {!showOnlyCheckButton && (
+                  <Button
+                    as="a"
+                    href={button1Link}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    border="1px solid white"
+                    borderRadius="20px"
+                    minWidth="110px"
+                    height="35px"
+                    bg="transparent"
+                    fontSize="14px"
+                    _hover={{ bg: "rgba(255, 255, 255, 0.1)" }}
+                    color="white" // Ensures the checkmark is white
+                    onClick={onSubscribe}
+                    disabled={isLoading || isChecked}
+                  >
+                    {isLoading ? (
+                      <Spinner size="sm" />
+                    ) : isChecked ? (
+                      "✓"
+                    ) : (
+                      button1Text
+                    )}
+                  </Button>
+                )}
 
-                {/* Вторая кнопка - функция проверки */}
+                {/* Check Button */}
                 <Button
-                  onClick={onCheck}
+                  onClick={handleCheck}
                   border="1px solid white"
                   borderRadius="20px"
                   minWidth="110px"
@@ -117,6 +146,7 @@ const TaskPop = ({
                   fontSize="14px"
                   _hover={{ bg: "rgba(255, 255, 255, 0.1)" }}
                   color={colors.primaryText}
+                  disabled={!isChecked && !showOnlyCheckButton}
                 >
                   {button2Text}
                 </Button>
