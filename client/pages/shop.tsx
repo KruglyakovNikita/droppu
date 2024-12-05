@@ -26,6 +26,7 @@ const rarities = [
   { name: "Infinite", color: "teal.400", neon: "rgba(0, 255, 212, 0.8)" },
 ];
 
+
 const Shop: React.FC = () => {
   const userInfo = useStore((state) => state.user);
   const [selectedRarity, setSelectedRarity] = useState("All");
