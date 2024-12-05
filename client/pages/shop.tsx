@@ -38,6 +38,24 @@ const Shop: React.FC = () => {
     fetchShopItems();
   }, []);
 
+  useEffect(() => {
+    const script = document.createElement("script");
+    script.src = "https://telegram.org/js/telegram-web-app.js";
+    script.async = true;
+    document.body.appendChild(script);
+
+    script.onload = () => {
+      if (window.Telegram && window.Telegram.WebApp) {
+        // Initialize Telegram WebApp here
+        window.Telegram.WebApp.ready();
+      }
+    };
+
+    return () => {
+      document.body.removeChild(script);
+    };
+  }, []);
+
   const fetchShopItems = async () => {
     const response = await getShopItems();
     if (response.data) {
