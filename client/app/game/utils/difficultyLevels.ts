@@ -45,7 +45,7 @@ export const difficultyLevels: DifficultyLevel[] = [
       spawnRateMultiplier: 1,
       obstacleConfigs: [],
     },
-    coinPresetFrequency: 2,
+    coinPresetFrequency: 1.5,
   },
   {
     name: "Intermediate",

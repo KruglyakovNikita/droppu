@@ -5,6 +5,7 @@ export interface IEndGame {
   session_id: number;
   coins_earned: number;
   score: number;
+  isPaid?: boolean;
 }
 
 interface IEndGameResponse {
@@ -25,6 +26,10 @@ interface ICreatePurchaseAttemptResponse {
 export interface ICreatePurchaseAttempt {
   amount: number;
   description?: string;
+}
+
+export interface ICreatePayTicketAttempt {
+  session_id: number;
 }
 
 export const startGame = async (body: IStartGame) => {
