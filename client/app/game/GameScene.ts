@@ -856,7 +856,7 @@ class GameScene extends Phaser.Scene {
         "gradient"
       );
       continueButton.setDepth(1010); // Устанавливаем глубину
-
+      // continueButton.disableInteractive({ useHandCursor: true });
       modalElements.push(continueButton);
 
       // Пульсирующая обводка для кнопки "Продолжить"
@@ -899,14 +899,29 @@ class GameScene extends Phaser.Scene {
 
       modalElements.push(continueButtonText);
 
-      // Иконка хилки (меньшего размера и справа от текста)
       const healIcon = this.add
-        .image(centerX + 110, continueButtonY, "healIcon")
-        .setDisplaySize(30, 30); // Уменьшение размера иконки
-      healIcon.setDepth(1012);
-      healIcon.setInteractive({ useHandCursor: false });
+        .image(centerX + 110, continueButtonY, "healIcon") // Положение "хилки" рядом с кнопкой
+        .setDisplaySize(25, 25); // Уменьшение размера
+
+      healIcon.setDepth(1010); // Та же глубина, что у кнопки, но добавляем интерактивный слой отдельно
 
       modalElements.push(healIcon);
+
+      // Добавляем кликабельную область поверх всей кнопки (включая область, где "хилка")
+      const interactiveArea = this.add.rectangle(
+        continueButtonX,
+        continueButtonY,
+        continueButtonWidth, // Размер кнопки
+        continueButtonHeight,
+        0xff0000, // Фон (можно сделать прозрачным для отладки)
+        0 // Прозрачность полностью
+      );
+
+      // Делаем эту область интерактивной
+      interactiveArea.setInteractive({ useHandCursor: true });
+
+      // Устанавливаем глубину интерактивной области выше хилки
+      interactiveArea.setDepth(1016);
 
       // Таймер сбоку кнопки "Продолжить"
       const timerCircleRadius = 15; // Уменьшенный радиус
@@ -947,22 +962,17 @@ class GameScene extends Phaser.Scene {
       this.purchaseTimeLeft = 10;
       this.isPurchasing = false;
 
-      const interactiveArea = this.add.rectangle(
-        continueButtonX,
-        continueButtonY,
-        continueButtonWidth + 60, // Ширина кнопки + пространство для иконки
-        continueButtonHeight + 30, // Высота кнопки + пространство для иконки
-        0xffffff,
-        0 // Прозрачность
-      );
-      interactiveArea.setInteractive({ useHandCursor: true });
-      interactiveArea.setDepth(1015);
-      modalElements.push(interactiveArea);
-
       this.purchaseTimer = this.time.addEvent({
         delay: 1000,
         callback: this.createPurchaseTimer,
-        args: [timerText, interactiveArea, timerCircle, modalElements],
+        args: [
+          timerText,
+          interactiveArea,
+          timerCircle,
+          modalElements,
+          continueButtonBorder,
+          gradientTexture,
+        ],
         callbackScope: this,
         loop: true,
       });
@@ -999,6 +1009,7 @@ class GameScene extends Phaser.Scene {
           }
         }
       });
+      modalElements.push(interactiveArea);
     } else {
       // Если достигнуто максимальное количество продолжений
 
@@ -1031,7 +1042,8 @@ class GameScene extends Phaser.Scene {
       const healIcon = this.add
         .image(centerX + 110, continueButtonY, "healIcon")
         .setDisplaySize(30, 30); // Уменьшение размера иконки
-      healIcon.setDepth(1012);
+      healIcon.setDepth(1010);
+      healIcon.setInteractive({ useHandCursor: false });
       modalElements.push(healIcon);
 
       // Кнопка "Продолжить" отключена, поэтому не добавляем таймер и не делаем ее интерактивной
@@ -1089,20 +1101,34 @@ class GameScene extends Phaser.Scene {
     });
   }
 
-  createPurchaseTimer(timerText, continueButton, timerCircle, modalElements) {
-    if (!timerText || !continueButton || !timerCircle || !modalElements) {
+  createPurchaseTimer(
+    timerText,
+    continueButton,
+    timerCircle,
+    modalElements,
+    continueButtonBorder,
+    gradientTexture
+  ) {
+    if (
+      !timerText ||
+      !continueButton ||
+      !timerCircle ||
+      !modalElements ||
+      !continueButtonBorder ||
+      !gradientTexture
+    ) {
       console.error("Ошибка: Один из параметров не определён!");
       return;
     }
+
     console.log("Таймер запущен:", this.purchaseTimeLeft);
-    console.log("Таймер вызван, осталось времени:", this.purchaseTimeLeft);
 
     if (!this.isPurchasing) {
       this.purchaseTimeLeft -= 1;
 
       // Обновляем текст таймера
       if (this.purchaseTimeLeft > 0) {
-        console.log("purchaseTimeLeft:", this.purchaseTimeLeft);
+        console.log("Оставшееся время:", this.purchaseTimeLeft);
         timerText.setText(`${this.purchaseTimeLeft}`);
       } else {
         console.log("Время вышло");
@@ -1111,10 +1137,42 @@ class GameScene extends Phaser.Scene {
         this.purchaseTimer?.remove(false);
         this.purchaseTimer = null;
 
-        // Блокируем кнопку покупки
+        // Блокируем кнопку покупки и делаем её серой
         continueButton.disableInteractive();
         timerText.setText("✖");
-        timerCircle.setFillStyle(0x888888, 1);
+        timerCircle.setFillStyle(0x6b7096, 1);
+
+        // Изменяем обводку кнопки на серый цвет
+        continueButtonBorder.clear();
+        continueButtonBorder.lineStyle(4, "#7d87d4", 0.6); // Серый цвет обводки
+        continueButtonBorder.strokeRoundedRect(
+          continueButton.x - continueButton.displayWidth / 2,
+          continueButton.y - continueButton.displayHeight / 2,
+          continueButton.displayWidth,
+          continueButton.displayHeight,
+          12
+        );
+
+        // Изменяем градиент кнопки на серые тона
+        const gradientCtx = gradientTexture.getContext();
+        const newGradient = gradientCtx.createLinearGradient(
+          0,
+          0,
+          0,
+          gradientTexture.height
+        );
+        newGradient.addColorStop(1, "#39437d"); // Светло-серый
+        newGradient.addColorStop(0, "#0d0f1f"); // Тёмно-серый
+        gradientCtx.fillStyle = newGradient;
+        this.drawRoundedRect(
+          gradientCtx,
+          0,
+          0,
+          gradientTexture.width,
+          gradientTexture.height,
+          12
+        );
+        gradientTexture.refresh();
 
         // Таймер закрытия модалки через 30 секунд
         this.modalTimeout = this.time.delayedCall(
