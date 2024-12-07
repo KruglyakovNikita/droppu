@@ -107,13 +107,37 @@ const Game: FC<GameSceneData> = ({
   };
 
   const handleGameEnd = async (body: IEndGame) => {
-    setIsGameOver(true);
-    const data = await endGame(body);
-    if (data?.session_id)
-      GameData.instance.setProps({ session_id: data?.session_id });
+    console.log("=======123=123=123=123=312=132=123=3=12");
 
+    setIsGameOver(true);
+    try {
+      const data = await endGame(body);
+      if (data?.session_id)
+        GameData.instance.setProps({ session_id: data?.session_id });
+    } catch (err) {}
     if (onGameEnd) {
       onGameEnd();
+    }
+  };
+
+  const handleStartNextGameHandler = async (body: IEndGame) => {
+    console.log("IM HERER");
+
+    try {
+      const data = await endGame(body);
+      if (data?.session_id)
+        GameData.instance.setProps({ session_id: data?.session_id });
+
+      // if (onGameEnd) {
+      //   onGameEnd();
+      // }
+      ///ТУТ НАДО ЧТОБ ПРИЛЕТАЛ НОВЫЙ session_id
+      return { ...data, session_id: 505 };
+    } catch (err) {
+      if (onGameEnd) {
+        setIsGameOver(true);
+        onGameEnd();
+      }
     }
   };
 
@@ -163,10 +187,11 @@ const Game: FC<GameSceneData> = ({
         userSkinUrl,
         userSpriteUrl,
         onGameEnd: handleGameEnd,
+        handleStartNextGame: handleStartNextGameHandler,
         onPurchaseAttempt,
         payTicketForGame: payForGame,
-        game_type: "free", // или "paid"
-        hasTickets: false,
+        game_type: "paid", // или "paid"
+        hasTickets: true,
       });
 
       const { gameWidth, gameHeight } = calculateGameDimensions();

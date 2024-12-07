@@ -8,7 +8,7 @@ export interface IEndGame {
   isPaid?: boolean;
 }
 
-interface IEndGameResponse {
+export interface IEndGameResponse {
   session_id: number;
 }
 

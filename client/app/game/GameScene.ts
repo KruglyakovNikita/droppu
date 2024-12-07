@@ -24,6 +24,7 @@ import {
   ICreatePayTicketAttempt,
   ICreatePurchaseAttempt,
   IEndGame,
+  IEndGameResponse,
 } from "../lib/api/game";
 import { ObjectPool } from "./weapons/ObjectPool";
 
@@ -31,7 +32,7 @@ import { ObjectPool } from "./weapons/ObjectPool";
 export const PLAYER_SPEED = 2.5; // Постоянная скорость вправо
 
 export const MIN_DISTANCE_BETWEEN_PRESETS = 175; // Минимальное расстояние между пресетами
-
+const INIT_PLATFORM_DISTANCE = 400;
 class GameScene extends Phaser.Scene {
   testInd: number = 0;
   player!: Phaser.Physics.Matter.Sprite;
@@ -44,7 +45,7 @@ class GameScene extends Phaser.Scene {
   background4!: Phaser.GameObjects.Image;
 
   scoreText!: Phaser.GameObjects.Text;
-  lastPlatformX: number = 300;
+  lastPlatformX: number = INIT_PLATFORM_DISTANCE;
   lastBoundsUpdateX: number = 0;
 
   presetQueue: Preset[] = [];
@@ -65,6 +66,7 @@ class GameScene extends Phaser.Scene {
   userSkinUrl!: string;
   userSpriteUrl!: string;
   onGameEnd!: (body: IEndGame) => void;
+  handleStartNextGame!: (body: IEndGame) => Promise<IEndGameResponse>;
   onPurchaseAttempt!: (
     body: ICreatePurchaseAttempt
   ) => Promise<"ok" | "canceled">;
@@ -123,6 +125,7 @@ class GameScene extends Phaser.Scene {
     this.onGameEnd = data.onGameEnd;
     this.onPurchaseAttempt = data.onPurchaseAttempt;
     this.payTicketForGame = data.payTicketForGame;
+    this.handleStartNextGame = data.handleStartNextGame;
     this.gameType = data.game_type || "paid";
     this.hasTickets = data.hasTickets || false;
 
@@ -798,77 +801,52 @@ class GameScene extends Phaser.Scene {
     setTimeout(() => this.clearGame(), 50);
     this.showModal();
   }
-
+  /**
+   * Метод отображения модального окна с тремя кнопками
+   */
   showModal() {
-    // Получаем центр экрана
-    const gameWithoutTickets = this.gameType === "free" && !this.hasTickets;
+    // Определяем наличие тикетов
+    const canContinue = this.continueCount < this.maxContinues;
+    const hasTickets = this.hasTickets && this.gameType === "paid";
 
-    // Определяем базовую точку для размещения кнопок
-    const centerYForThreeButtons =
+    // Получаем центр экрана
+    const centerY =
       this.cameras.main.worldView.y + this.cameras.main.height / 2;
     const centerX = this.cameras.main.worldView.x + this.cameras.main.width / 2;
 
-    // Задаём координаты по умолчанию (когда только 2 кнопки: Продолжить и Закончить)
-    let continueButtonY = centerYForThreeButtons - 50;
-    let payTicketButtonY = centerYForThreeButtons; // Если будет нужна
-    let finishButtonY = centerYForThreeButtons + 50;
+    // Координаты для трёх кнопок
+    const buttonSpacing = 80;
+    const continueButtonY = centerY - buttonSpacing;
+    const middleButtonY = centerY;
+    const finishButtonY = centerY + buttonSpacing;
 
-    // Если у нас gameWithoutTickets && coinCount >= 1, значит будут три кнопки, увеличим расстояние
-    if (gameWithoutTickets && this.coinCount >= 1) {
-      continueButtonY = centerYForThreeButtons - 100;
-      payTicketButtonY = centerYForThreeButtons; // середина
-      finishButtonY = centerYForThreeButtons + 100;
-    } else {
-      // Если нет третьей кнопки, оставляем две, как было
-      payTicketButtonY = centerYForThreeButtons; // Можно не использовать, если не нужна
-      finishButtonY = centerYForThreeButtons + 50;
-    }
-
-    // Далее используйте continueButtonY, payTicketButtonY и finishButtonY при создании кнопок
-
-    // Пример для кнопки "Продолжить"
-    const continueButtonX = centerX;
-    // ... далее создаём кнопку "Продолжить" с координатами (continueButtonX, continueButtonY)
-
-    // Пример для кнопки "Оплатить Ticket" (если нужна)
-    const payTicketButtonX = centerX;
-    // ... создаём кнопку "Оплатить Ticket" с (payTicketButtonX, payTicketButtonY)
-
-    // Пример для кнопки "Закончить игру"
-    const finishButtonX = centerX;
-
-    // Создаем массив для хранения элементов модалки
     const modalElements: Phaser.GameObjects.GameObject[] = [];
 
-    // Отображаем затемненный фон
     const overlay = this.add.rectangle(
-      continueButtonX,
-      centerYForThreeButtons,
+      centerX,
+      centerY,
       this.cameras.main.width,
       this.cameras.main.height,
       0x000000,
       0.75
     );
     overlay.setDepth(1000);
-
     modalElements.push(overlay);
 
-    // Проверяем, достигнуто ли максимальное количество продолжений
-    const canContinue = this.continueCount < this.maxContinues;
-
-    // Создаем градиентную текстуру для кнопки "Продолжить", если можно продолжить
+    // === Кнопка "Продолжить" ===
     if (canContinue) {
       const continueButtonWidth = 260;
       const continueButtonHeight = 60;
 
+      // Создаём градиентную текстуру
       const gradientTexture = this.textures.createCanvas(
-        "gradient",
+        "continueGradient",
         continueButtonWidth,
         continueButtonHeight
       );
       if (gradientTexture) {
-        const gradientCtx = gradientTexture.getContext();
-        const gradient = gradientCtx.createLinearGradient(
+        const ctx = gradientTexture.getContext();
+        const gradient = ctx.createLinearGradient(
           0,
           0,
           0,
@@ -876,43 +854,42 @@ class GameScene extends Phaser.Scene {
         );
         gradient.addColorStop(0, "#00008b"); // Темно-синий
         gradient.addColorStop(1, "#1e90ff"); // Светло-синий
-
-        gradientCtx.fillStyle = gradient;
+        ctx.fillStyle = gradient;
         this.drawRoundedRect(
-          gradientCtx,
+          ctx,
           0,
           0,
           continueButtonWidth,
           continueButtonHeight,
           12
-        ); // Радиус углов — 12px
+        );
         gradientTexture.refresh();
       }
 
-      // Создаем объект изображения с текстурой градиента
+      // Создаём кнопку "Продолжить"
       const continueButton = this.add.image(
-        continueButtonX,
+        centerX,
         continueButtonY,
-        "gradient"
+        "continueGradient"
       );
-      continueButton.setDepth(1010); // Устанавливаем глубину
-      // continueButton.disableInteractive({ useHandCursor: true });
+      continueButton.setInteractive({ useHandCursor: true });
+      continueButton.setDepth(1010);
       modalElements.push(continueButton);
 
       // Пульсирующая обводка для кнопки "Продолжить"
       const continueButtonBorder = this.add.graphics();
       continueButtonBorder.lineStyle(4, 0xff0000, 1);
       continueButtonBorder.strokeRoundedRect(
-        centerX - 130, // Половина ширины (260 / 2)
-        continueButtonY - 30, // Половина высоты (60 / 2)
-        260,
-        60,
+        centerX - continueButtonWidth / 2,
+        continueButtonY - continueButtonHeight / 2,
+        continueButtonWidth,
+        continueButtonHeight,
         12
       );
-      continueButtonBorder.setDepth(1010); // Устанавливаем такую же глубину
-
+      continueButtonBorder.setDepth(1010);
       modalElements.push(continueButtonBorder);
 
+      // Анимация пульсации обводки
       this.tweens.add({
         targets: continueButtonBorder,
         alpha: 0,
@@ -935,47 +912,38 @@ class GameScene extends Phaser.Scene {
           }
         )
         .setOrigin(0.5);
-      continueButtonText.setDepth(1011); // Текст выше кнопки
-
+      continueButtonText.setDepth(1011);
       modalElements.push(continueButtonText);
 
+      // Иконка хилки рядом с кнопкой
       const healIcon = this.add
-        .image(centerX + 110, continueButtonY, "healIcon") // Положение "хилки" рядом с кнопкой
-        .setDisplaySize(25, 25); // Уменьшение размера
-
-      healIcon.setDepth(1010); // Та же глубина, что у кнопки, но добавляем интерактивный слой отдельно
-
+        .image(centerX + 110, continueButtonY, "healIcon")
+        .setDisplaySize(25, 25)
+        .setDepth(1010);
       modalElements.push(healIcon);
 
-      // Добавляем кликабельную область поверх всей кнопки (включая область, где "хилка")
-      const interactiveArea = this.add.rectangle(
-        continueButtonX,
-        continueButtonY,
-        continueButtonWidth, // Размер кнопки
-        continueButtonHeight,
-        0xff0000, // Фон (можно сделать прозрачным для отладки)
-        0 // Прозрачность полностью
-      );
-
-      // Делаем эту область интерактивной
-      interactiveArea.setInteractive({ useHandCursor: true });
-
-      // Устанавливаем глубину интерактивной области выше хилки
+      // Создаём кликабельную область поверх всей кнопки
+      const interactiveArea = this.add
+        .rectangle(
+          centerX,
+          continueButtonY,
+          continueButtonWidth,
+          continueButtonHeight,
+          0xff0000,
+          0 // Полностью прозрачный
+        )
+        .setInteractive({ useHandCursor: true });
       interactiveArea.setDepth(1016);
+      modalElements.push(interactiveArea);
 
       // Таймер сбоку кнопки "Продолжить"
-      const timerCircleRadius = 15; // Уменьшенный радиус
-      const timerCircleX = continueButtonX + 130 - 5; // (260 / 2) - 5
-      const timerCircleY = continueButtonY - 30; // Половина высоты
+      const timerCircleRadius = 15;
+      const timerCircleX = centerX + 130 - 5;
+      const timerCircleY = continueButtonY - 30;
 
-      const timerCircle = this.add.circle(
-        timerCircleX,
-        timerCircleY,
-        timerCircleRadius,
-        0xff0000
-      );
-      timerCircle.setDepth(1013);
-
+      const timerCircle = this.add
+        .circle(timerCircleX, timerCircleY, timerCircleRadius, 0xff0000)
+        .setDepth(1013);
       modalElements.push(timerCircle);
 
       const timerText = this.add
@@ -983,12 +951,11 @@ class GameScene extends Phaser.Scene {
           fontSize: "16px",
           color: "#ffffff",
         })
-        .setOrigin(0.5);
-      timerText.setDepth(1014);
-
+        .setOrigin(0.5)
+        .setDepth(1014);
       modalElements.push(timerText);
 
-      // Таймер пульсации для круга таймера
+      // Анимация пульсации для круга таймера
       this.tweens.add({
         targets: timerCircle,
         scale: 1.2,
@@ -1019,7 +986,7 @@ class GameScene extends Phaser.Scene {
 
       // Обработчик нажатия на кнопку "Продолжить"
       interactiveArea.on("pointerdown", async () => {
-        console.log("Purchase button clicked.");
+        console.log("Continue button clicked.");
         this.isPurchasing = true;
 
         // Останавливаем таймер
@@ -1049,238 +1016,175 @@ class GameScene extends Phaser.Scene {
           }
         }
       });
-      modalElements.push(interactiveArea);
     } else {
-      // Если достигнуто максимальное количество продолжений
-
+      // Если достигнуто максимальное количество продолжений, кнопка "Продолжить" отключена
       const continueButtonWidth = 260;
       const continueButtonHeight = 60;
 
-      // Создаем объект изображения с серой текстурой для отключенной кнопки
-      const disabledButton = this.add.rectangle(
-        continueButtonX,
-        continueButtonY,
+      // Создаём серую текстуру для отключённой кнопки
+      const disabledGradientTexture = this.textures.createCanvas(
+        "disabledGradient",
         continueButtonWidth,
-        continueButtonHeight,
-        0x808080 // Серый цвет
+        continueButtonHeight
       );
-      disabledButton.setDepth(1010); // Устанавливаем глубину
-      modalElements.push(disabledButton);
+      if (disabledGradientTexture) {
+        const ctx = disabledGradientTexture.getContext();
+        const grad = ctx.createLinearGradient(0, 0, 0, continueButtonHeight);
+        grad.addColorStop(0, "#7d87d4"); // Серый оттенок
+        grad.addColorStop(1, "#39437d"); // Тёмно-серый оттенок
+        ctx.fillStyle = grad;
+        this.drawRoundedRect(
+          ctx,
+          0,
+          0,
+          continueButtonWidth,
+          continueButtonHeight,
+          12
+        );
+        disabledGradientTexture.refresh();
+      }
 
-      // Создаем текст на серой кнопке
-      const disabledButtonText = this.add
+      // Создаём отключённую кнопку "Продолжить"
+      const disabledContinueButton = this.add
+        .image(centerX, continueButtonY, "disabledGradient")
+        .setDepth(1010);
+      modalElements.push(disabledContinueButton);
+
+      // Текст на отключённой кнопке
+      const disabledContinueText = this.add
         .text(centerX, continueButtonY, `Продолжить x${this.continueCount}`, {
           fontSize: "24px",
           color: "#ffffff",
           fontStyle: "bold",
         })
-        .setOrigin(0.5);
-      disabledButtonText.setDepth(1011); // Текст выше кнопки
-      modalElements.push(disabledButtonText);
+        .setOrigin(0.5)
+        .setDepth(1011);
+      modalElements.push(disabledContinueText);
 
-      // Создаем иконку хилки на серой кнопке
+      // Иконка хилки на кнопке
       const healIcon = this.add
-        .image(centerX + 110, continueButtonY, "healIcon")
-        .setDisplaySize(30, 30); // Уменьшение размера иконки
-      healIcon.setDepth(1010);
-      healIcon.setInteractive({ useHandCursor: false });
+        .image(centerX + 130, continueButtonY, "healIcon")
+        .setDisplaySize(30, 30)
+        .setDepth(1010);
       modalElements.push(healIcon);
 
-      // Кнопка "Продолжить" отключена, поэтому не добавляем таймер и не делаем ее интерактивной
+      // Кнопка не интерактивна, поэтому нет обработчика
     }
 
-    // === Создание кнопки "Оплатить Ticket" ===
-    // Появляется, если игра не "paid" и тикетов нет.
-    if (gameWithoutTickets && this.coinCount >= 1) {
-      const payTicketButtonWidth = 220;
-      const payTicketButtonHeight = 50;
+    // === Кнопка "Продолжить за тикет" или "Купить тикет и получить монеты" ===
+    const middleButtonLabel = hasTickets
+      ? "Продолжить за тикет"
+      : "Купить тикет и получить монеты";
+    const middleButtonTextureKey = hasTickets
+      ? "ticketGradient"
+      : "buyTicketGradient";
 
-      // Создаём градиентную текстуру для кнопки "Оплатить Ticket"
-      const payTicketTexture = this.textures.createCanvas(
-        "payTicketGradient",
-        payTicketButtonWidth,
-        payTicketButtonHeight
-      );
-      if (payTicketTexture) {
-        const ctx = payTicketTexture.getContext();
-        const grad = ctx.createLinearGradient(0, 0, 0, payTicketButtonHeight);
-        // Немного привлекательный градиент, но не такой яркий, как у "Продолжить"
+    const middleButtonWidth = 220;
+    const middleButtonHeight = 50;
+
+    // Создаём градиентную текстуру для средней кнопки
+    const middleTexture = this.textures.createCanvas(
+      middleButtonTextureKey,
+      middleButtonWidth,
+      middleButtonHeight
+    );
+    if (middleTexture) {
+      const ctx = middleTexture.getContext();
+      const grad = ctx.createLinearGradient(0, 0, 0, middleButtonHeight);
+      if (hasTickets) {
         grad.addColorStop(0, "#2e8b57"); // Темно-зелёный
-        grad.addColorStop(1, "#3cb371"); // Более светлый зелёный
-        ctx.fillStyle = grad;
-        this.drawRoundedRect(
-          ctx,
-          0,
-          0,
-          payTicketButtonWidth,
-          payTicketButtonHeight,
-          10
-        );
-        payTicketTexture.refresh();
+        grad.addColorStop(1, "#3cb371"); // Светло-зелёный
+      } else {
+        grad.addColorStop(0, "#ff7f50"); // Коралловый
+        grad.addColorStop(1, "#ff6347"); // Томатный
       }
-
-      // Кнопка "Оплатить Ticket"
-      const payTicketButton = this.add.image(
-        payTicketButtonX,
-        payTicketButtonY,
-        "payTicketGradient"
-      );
-      payTicketButton.setDepth(1010);
-      payTicketButton.setInteractive({ useHandCursor: true });
-      modalElements.push(payTicketButton);
-
-      // Обводка для кнопки "Оплатить Ticket"
-      const payTicketBorder = this.add.graphics();
-      payTicketBorder.lineStyle(3, 0x004d40, 1);
-      payTicketBorder.strokeRoundedRect(
-        payTicketButtonX - payTicketButtonWidth / 2,
-        payTicketButtonY - payTicketButtonHeight / 2,
-        payTicketButtonWidth,
-        payTicketButtonHeight,
+      ctx.fillStyle = grad;
+      this.drawRoundedRect(
+        ctx,
+        0,
+        0,
+        middleButtonWidth,
+        middleButtonHeight,
         10
       );
-      payTicketBorder.setDepth(1011);
-      modalElements.push(payTicketBorder);
-
-      // Текст на кнопке "Оплатить Ticket"
-      // Показываем, сколько монет игрок потеряет, если не купит.
-      const payTicketText = this.add.text(
-        payTicketButtonX,
-        payTicketButtonY,
-        `Оплатить Ticket\nСохранить ${this.coinCount} монет`,
-        {
-          fontSize: "18px",
-          color: "#ffffff",
-          fontStyle: "bold",
-          align: "center",
-        }
-      );
-      payTicketText.setOrigin(0.5);
-      payTicketText.setDepth(1012);
-      modalElements.push(payTicketText);
-
-      // Обработчик нажатия на кнопку "Оплатить Ticket"
-      payTicketButton.on("pointerdown", async () => {
-        console.log("Pay Ticket button clicked.");
-
-        // Вызываем функцию покупки тикета
-        await this.payTicketForGameHandler(modalElements);
-      });
+      middleTexture.refresh();
     }
-    if (gameWithoutTickets && this.coinCount >= 1) {
-      const payTicketButtonWidth = 220;
-      const payTicketButtonHeight = 50;
 
-      // Создаём градиентную текстуру для кнопки "Оплатить Ticket"
-      const payTicketTexture = this.textures.createCanvas(
-        "payTicketGradient",
-        payTicketButtonWidth,
-        payTicketButtonHeight
-      );
-      if (payTicketTexture) {
-        const ctx = payTicketTexture.getContext();
-        const grad = ctx.createLinearGradient(0, 0, 0, payTicketButtonHeight);
-        // Немного привлекательный градиент, но не такой яркий, как у "Продолжить"
-        grad.addColorStop(0, "#2e8b57"); // Темно-зелёный
-        grad.addColorStop(1, "#3cb371"); // Более светлый зелёный
-        ctx.fillStyle = grad;
-        this.drawRoundedRect(
-          ctx,
-          0,
-          0,
-          payTicketButtonWidth,
-          payTicketButtonHeight,
-          10
-        );
-        payTicketTexture.refresh();
+    // Создаём среднюю кнопку
+    const middleButton = this.add
+      .image(centerX, middleButtonY, middleButtonTextureKey)
+      .setDepth(1010);
+    middleButton.setInteractive({ useHandCursor: true });
+    modalElements.push(middleButton);
+
+    // Добавляем текст на среднюю кнопку
+    const middleButtonText = this.add
+      .text(centerX, middleButtonY, middleButtonLabel, {
+        fontSize: "18px",
+        color: "#ffffff",
+        fontStyle: "bold",
+        align: "center",
+      })
+      .setOrigin(0.5)
+      .setDepth(1011);
+    modalElements.push(middleButtonText);
+
+    // Обработчик нажатия на среднюю кнопку
+    middleButton.on("pointerdown", async () => {
+      if (hasTickets) {
+        // Продолжить за тикет
+        console.log("Continue with ticket button clicked.");
+        await this.startNextGame();
+        this.closeModal(modalElements);
+      } else {
+        // Купить тикет и получить монеты
+        console.log("Buy ticket button clicked.");
+        await this.payTicketForGameHandler(modalElements);
       }
-
-      // Кнопка "Оплатить Ticket"
-      const payTicketButton = this.add.image(
-        payTicketButtonX,
-        payTicketButtonY,
-        "payTicketGradient"
-      );
-      payTicketButton.setDepth(1010);
-      payTicketButton.setInteractive({ useHandCursor: true });
-      modalElements.push(payTicketButton);
-
-      // Обводка для кнопки "Оплатить Ticket"
-      const payTicketBorder = this.add.graphics();
-      payTicketBorder.lineStyle(3, 0x004d40, 1);
-      payTicketBorder.strokeRoundedRect(
-        payTicketButtonX - payTicketButtonWidth / 2,
-        payTicketButtonY - payTicketButtonHeight / 2,
-        payTicketButtonWidth,
-        payTicketButtonHeight,
-        10
-      );
-      payTicketBorder.setDepth(1011);
-      modalElements.push(payTicketBorder);
-
-      // Текст на кнопке "Оплатить Ticket"
-      // Показываем, сколько монет игрок потеряет, если не купит.
-      const payTicketText = this.add.text(
-        payTicketButtonX,
-        payTicketButtonY,
-        `Оплатить Ticket\nСохранить ${this.coinCount} монет`,
-        {
-          fontSize: "18px",
-          color: "#ffffff",
-          fontStyle: "bold",
-          align: "center",
-        }
-      );
-      payTicketText.setOrigin(0.5);
-      payTicketText.setDepth(1012);
-      modalElements.push(payTicketText);
-
-      // Обработчик нажатия на кнопку "Оплатить Ticket"
-      payTicketButton.on("pointerdown", async () => {
-        console.log("Pay Ticket button clicked.");
-
-        // Вызываем функцию покупки тикета
-        await this.payTicketForGameHandler(modalElements);
-      });
-    }
+    });
 
     // === Кнопка "Закончить игру" ===
-    // Выше мы добавили payTicketButton при необходимости, теперь ниже идёт "Закончить игру"
-
     const finishButtonWidth = 200;
     const finishButtonHeight = 50;
 
-    const finishButton = this.add.rectangle(
-      finishButtonX,
-      finishButtonY,
-      finishButtonWidth,
-      finishButtonHeight,
-      0x808080 // Серый цвет для менее привлекательной кнопки
-    );
-    finishButton.setInteractive({ useHandCursor: true });
-    finishButton.setDepth(1010);
-    modalElements.push(finishButton);
-
-    // Обводка для кнопки "Закончить игру"
-    const finishButtonBorder = this.add.graphics();
-    finishButtonBorder.lineStyle(2, 0x333333, 1);
-    finishButtonBorder.strokeRect(
-      finishButtonX - finishButtonWidth / 2,
-      finishButtonY - finishButtonHeight / 2,
+    // Создаём градиентную текстуру для кнопки "Закончить игру"
+    const finishTexture = this.textures.createCanvas(
+      "finishGradient",
       finishButtonWidth,
       finishButtonHeight
     );
-    finishButtonBorder.setDepth(1011);
-    modalElements.push(finishButtonBorder);
+    if (finishTexture) {
+      const ctx = finishTexture.getContext();
+      const grad = ctx.createLinearGradient(0, 0, 0, finishButtonHeight);
+      grad.addColorStop(0, "#808080"); // Серый
+      grad.addColorStop(1, "#666666"); // Тёмно-серый
+      ctx.fillStyle = grad;
+      this.drawRoundedRect(
+        ctx,
+        0,
+        0,
+        finishButtonWidth,
+        finishButtonHeight,
+        10
+      );
+      finishTexture.refresh();
+    }
 
-    // Текст на кнопке "Закончить игру"
+    // Создаём кнопку "Закончить игру"
+    const finishButton = this.add
+      .image(centerX, finishButtonY, "finishGradient")
+      .setDepth(1010);
+    finishButton.setInteractive({ useHandCursor: true });
+    modalElements.push(finishButton);
+
+    // Добавляем текст на кнопку "Закончить игру"
     const finishButtonText = this.add
-      .text(finishButtonX, finishButtonY, "Закончить игру", {
+      .text(centerX, finishButtonY, "Закончить игру", {
         fontSize: "20px",
         color: "#ffffff",
       })
-      .setOrigin(0.5);
-    finishButtonText.setDepth(1012);
+      .setOrigin(0.5)
+      .setDepth(1011);
     modalElements.push(finishButtonText);
 
     // Обработчик нажатия на кнопку "Закончить игру"
@@ -1297,6 +1201,43 @@ class GameScene extends Phaser.Scene {
     });
   }
 
+  async startNextGame() {
+    // Завершаем текущую игру и отправляем данные на сервер
+    const response = await this.handleStartNextGame({
+      score: this.score,
+      coins_earned: this.coinCount,
+      session_id: this.session_id,
+      isPaid: true, // Указываем, что использовался тикет
+    });
+    console.log("RESPONSE");
+    console.log(response);
+
+    if (response?.session_id) {
+      // Очищаем текущую игру
+      this.clearGame();
+
+      // Сброс позиции генерации препятствий
+      this.lastPlatformX = INIT_PLATFORM_DISTANCE;
+
+      // Устанавливаем новый session_id
+      this.session_id = response.session_id;
+
+      // Сбрасываем параметры игры
+      this.score = 0;
+      this.coinCount = 0;
+
+      // Очищаем объекты
+      this.objectManager.removeAllObjects();
+      this.coins = [];
+      this.lasers = [];
+      this.presetQueue = [];
+
+      // Перезапускаем игру
+      this.scene.restart();
+    } else {
+      console.error("Failed to start the next game.");
+    }
+  }
   // Новая функция для оплаты тикета
   async payTicketForGameHandler(
     modalElements: Phaser.GameObjects.GameObject[]
@@ -1325,12 +1266,12 @@ class GameScene extends Phaser.Scene {
   }
 
   createPurchaseTimer(
-    timerText,
-    continueButton,
-    timerCircle,
-    modalElements,
-    continueButtonBorder,
-    gradientTexture
+    timerText: Phaser.GameObjects.Text,
+    continueButton: Phaser.GameObjects.Rectangle,
+    timerCircle: Phaser.GameObjects.Arc,
+    modalElements: Phaser.GameObjects.GameObject[],
+    continueButtonBorder: Phaser.GameObjects.Graphics,
+    gradientTexture: Phaser.Textures.CanvasTexture
   ) {
     if (
       !timerText ||
@@ -1367,7 +1308,7 @@ class GameScene extends Phaser.Scene {
 
         // Изменяем обводку кнопки на серый цвет
         continueButtonBorder.clear();
-        continueButtonBorder.lineStyle(4, "#7d87d4", 0.6); // Серый цвет обводки
+        continueButtonBorder.lineStyle(4, 0x7d87d4, 0.6); // Серый цвет обводки
         continueButtonBorder.strokeRoundedRect(
           continueButton.x - continueButton.displayWidth / 2,
           continueButton.y - continueButton.displayHeight / 2,
@@ -1433,8 +1374,6 @@ class GameScene extends Phaser.Scene {
   }
 
   clearGame() {
-    // Убираем красный цвет и возобновляем мир
-
     // Очистка старых объектов и таймеров
     this.objectManager.removeAllObjects();
     this.lasers = [];
