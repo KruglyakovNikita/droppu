@@ -58,7 +58,6 @@ const StatsPage: React.FC = () => {
     <Flex
       direction="column"
       align="center"
-      bgGradient="linear(to-b, #0D1478, #130B3D, #130B3D, #0D1478)"
       color="white"
       minH="100vh"
       p={4}

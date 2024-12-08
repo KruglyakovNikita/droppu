@@ -11,10 +11,13 @@ import { Spinner } from "@chakra-ui/react";
 const Layout = ({ children }: { children: React.ReactNode }) => {
   const setTelegramUser = useStore((state) => state.setTelegramUser);
   const setUser = useStore((state) => state.setUser);
+  const setCheckInInfo = useStore((state) => state.setCheckInInfo);
+  const setFirstLoginInfo = useStore((state) => state.setFirstLoginInfo);
   const user = useStore((state) => state.user);
-  const [checkInInfo, setCheckInInfo] = useState<CheckInInfo>();
+  const checkInInfo = useStore((state) => state.checkInInfo);
+  const firstLoginInfo = useStore((state) => state.firstLoginInfo);
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [firstLoginInfo, setFirstLoginInfo] = useState<FirstLoginInfo>();
+  const [showModal, setShowModal] = useState(false);
 
   useEffect(() => {
     const script = document.createElement("script");
@@ -55,7 +58,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
       const response = await initUser({
         query_id: "AAF03wc0AgAAAHTfBzROOCVW",
         user: {
-          id: 7898484566,
+          id: 78984845667992822,
           first_name: "Иван",
           last_name: "Иванов",
           username: "ivanivanov",
@@ -71,10 +74,12 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
       if (data?.user) {
         setUser(data.user);
       }
-      if (data?.check_in_info) {
+      if (data?.check_in_info && data.user.check_in) {
+        setShowModal(true);
         setCheckInInfo(data.check_in_info);
       }
-      if (data?.first_login_info) {
+      if (data?.first_login_info && data.user.is_first_login) {
+        setShowModal(true);
         setFirstLoginInfo(data.first_login_info);
       }
     } catch (error) {
@@ -86,33 +91,67 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
 
   return (
     <VStack minHeight="100vh" align="stretch">
-      {isLoading ? (
+      <Flex
+        alignItems="center"
+        justifyContent="center"
+        width="100vw"
+        bgGradient="linear(to-b, #0D1478, #130B3D, #130B3D, #0D1478)"
+      >
         <Flex
           alignItems="center"
           justifyContent="center"
-          minHeight="100vh"
-          bgGradient="linear(to-b, #0D1478, #130B3D, #0D1478)"
+          maxW="650px"
+          minW="250px"
         >
-          <Spinner thickness="4px" speed="1s" emptyColor="gray.100" size="xl" />
+          {isLoading ? (
+            <Flex
+              alignItems="center"
+              justifyContent="center"
+              minHeight="100vh"
+              width="100vw"
+              bgGradient="linear(to-b, #0D1478, #130B3D, #0D1478)"
+            >
+              <Spinner
+                thickness="4px"
+                speed="1s"
+                emptyColor="gray.100"
+                size="xl"
+              />
+            </Flex>
+          ) : (
+            <Flex alignItems="center" justifyContent="center">
+              {(!user?.is_first_login || !user.is_first_login) &&
+              user?.check_in &&
+              checkInInfo ? (
+                <CheckInModal
+                  data={checkInInfo}
+                  onClose={() => {
+                    setShowModal(false);
+                    setCheckInInfo(null);
+                  }}
+                />
+              ) : null}
+
+              {user?.is_first_login && firstLoginInfo ? (
+                <WelcomeModal
+                  data={firstLoginInfo}
+                  onClose={() => {
+                    setShowModal(false);
+                    setFirstLoginInfo(null);
+                  }}
+                />
+              ) : null}
+
+              {showModal ? null : (
+                <Box flex={1} as="main">
+                  {children}
+                </Box>
+              )}
+              <NavBar />
+            </Flex>
+          )}
         </Flex>
-      ) : (
-        <>
-          {(!user?.is_first_login || !user.is_first_login) &&
-          user?.check_in &&
-          checkInInfo ? (
-            <CheckInModal data={checkInInfo} />
-          ) : null}
-
-          {user?.is_first_login && firstLoginInfo ? (
-            <WelcomeModal data={firstLoginInfo} />
-          ) : null}
-
-          <Box flex={1} as="main">
-            {children}
-          </Box>
-          <NavBar />
-        </>
-      )}
+      </Flex>
     </VStack>
   );
 };

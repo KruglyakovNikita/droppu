@@ -1,6 +1,14 @@
 import React, { useState, useEffect, FC } from "react";
 import { keyframes } from "@emotion/react";
-import { Box, Flex, Text, Button, Image, Stack } from "@chakra-ui/react";
+import {
+  Box,
+  Flex,
+  Text,
+  Button,
+  Image,
+  Stack,
+  Divider,
+} from "@chakra-ui/react";
 import { motion } from "framer-motion";
 import { useStore } from "../lib/store/store";
 import colors from "../../theme/colors";
@@ -8,9 +16,15 @@ import GradientBorderWrapper from "@/app/components/GradientBorderWrapper";
 import { FirstLoginInfo } from "../lib/store/types";
 import { useRouter } from "next/router";
 
-const fadeInOut = keyframes`
+const fadeInOutLogo = keyframes`
   0%, 100% { opacity: 0.5; }
   50% { opacity: 1; }
+`;
+
+const fadeInOutText = keyframes`
+  0% { opacity: 0.1; }
+  50% { opacity: 1; }
+  100% { opacity: 0; }
 `;
 
 const slideIn = keyframes`
@@ -23,38 +37,41 @@ const MotionBox = Box;
 
 interface WelcomeModalProps {
   data: FirstLoginInfo;
+  onClose: () => void;
 }
 
-const WelcomeModal: FC<WelcomeModalProps> = ({ data }) => {
+const WelcomeModal: FC<WelcomeModalProps> = ({ data, onClose }) => {
   const setNavbarVisible = useStore((state) => state.setNavbarVisible);
   const [currentTopic, setCurrentTopic] = useState(0);
   const [step, setStep] = useState(1);
-  const router = useRouter();
-  const topics = [
-    "Sign up and come to the droppu world",
-    "Explore unique features",
-    "Level up and grow your potential",
-  ];
-
-  const bonuses = [
+  const firstLoginInfo = useStore((state) => state.firstLoginInfo);
+  const [bonuses] = useState([
     {
       icon: "/icons/premium.gif",
       title: "Telegram Premium",
-      points: "300 points",
-      visible: data?.is_premium || true,
+      coins: `+${firstLoginInfo?.premium_coins ?? 0} coins`,
+      visible: firstLoginInfo?.is_premium || true,
     },
     {
       icon: "/icons/account_age.gif",
-      title: `Account age ${data?.years_telegram || 0}`,
-      points: "400 points",
+      title: `Account age: ${firstLoginInfo?.years_telegram || 0}`,
+      coins: `+${firstLoginInfo?.premium_coins ?? 0} coins`,
       visible: true,
     },
     {
       icon: "/icons/welcome.gif",
       title: "Welcome Bonus",
-      points: "400 points 3 tickets",
+      coins: `+${firstLoginInfo?.welcome_coins ?? 0} coins`,
+      tickets: `+${firstLoginInfo?.welcome_tickets || 0} tickets`,
       visible: true,
     },
+  ]);
+
+  const router = useRouter();
+  const topics = [
+    "Sign up and come to the droppu world",
+    "Explore unique features",
+    "Level up and grow your potential",
   ];
 
   useEffect(() => {
@@ -66,7 +83,7 @@ const WelcomeModal: FC<WelcomeModalProps> = ({ data }) => {
     if (step === 1) {
       const interval = setInterval(() => {
         setCurrentTopic((prev) => (prev + 1) % topics.length);
-      }, 2500);
+      }, 2000);
       return () => clearInterval(interval);
     }
   }, [step, topics.length]);
@@ -75,24 +92,26 @@ const WelcomeModal: FC<WelcomeModalProps> = ({ data }) => {
     setStep(2);
   };
 
+  const onCloseHandler = () => {
+    onClose();
+  };
+
   return (
     <Flex
       direction="column"
       align="center"
       justify="center"
-      bg="#0d0a33"
       color={colors.primaryText}
       minH="100vh"
       textAlign="center"
       px={6}
-      bgGradient="linear(to-b, #0D1478, #130B3D, #0D1478)"
     >
       {step === 1 && (
         <>
           {/* Animated Logo */}
           <MotionBox
             as={motion.div}
-            animation={`${fadeInOut} 3s infinite`}
+            animation={`${fadeInOutLogo} 3s infinite`}
             mb={6}
             display="flex"
             justifyContent="center"
@@ -112,6 +131,7 @@ const WelcomeModal: FC<WelcomeModalProps> = ({ data }) => {
             mb={1}
             color={colors.secondaryText}
             fontWeight="bold"
+            textColor="#CD53FC"
           >
             Welcome to DROPPU
           </Text>
@@ -119,11 +139,12 @@ const WelcomeModal: FC<WelcomeModalProps> = ({ data }) => {
           {/* Rotating Topics */}
           <MotionBox
             as={motion.div}
-            animation={`${slideIn} 4s`}
-            key={currentTopic}
+            animation={`${fadeInOutText} 2s infinite`}
+            mb={6}
+            display="flex"
+            justifyContent="center"
             fontSize="lg"
             fontFamily="'PixelifySans-Regular', sans-serif"
-            mb={4}
           >
             {topics[currentTopic]}
           </MotionBox>
@@ -157,7 +178,7 @@ const WelcomeModal: FC<WelcomeModalProps> = ({ data }) => {
             _hover={{ bg: "rgba(255, 255, 255, 0.1)" }}
             color={colors.primaryText}
           >
-            LETS GO
+            NEXT
           </Button>
         </>
       )}
@@ -169,55 +190,79 @@ const WelcomeModal: FC<WelcomeModalProps> = ({ data }) => {
             {bonuses
               .filter((bonus) => bonus.visible)
               .map((bonus, index) => (
-                <GradientBorderWrapper
+                <Flex
                   key={index}
                   align="center"
                   justify="space-between"
                   w="100%"
-                  startColor="#793BC7"
-                  endColor="#C2D2FF"
-                  strokeWidth={1.5}
-                  bg="rgba(255, 255, 255, 0.05)"
-                  borderRadius={12}
-                  p={4}
+                  flexDirection="column"
+                  gap={4}
                 >
                   <Flex align="center" w="100%">
-                    <Image
-                      src={bonus.icon}
-                      width="64px"
-                      height="64px"
-                      mr={4}
-                      animation={`${fadeInOut} 3s infinite`}
-                    />
-                    <Flex w="100%" direction="column">
+                    <Image src={bonus.icon} width="64px" height="64px" mr={4} />
+                    <Flex
+                      w="100%"
+                      direction="column"
+                      justifyContent="center"
+                      alignItems="center"
+                    >
                       <Text
-                        fontSize="24px"
+                        fontSize={{ base: "24px", sm: "28px" }}
                         fontWeight="bold"
                         fontFamily="'PixelifySans-Bold', sans-serif"
                         textAlign="left"
                       >
                         {bonus.title}
                       </Text>
-                      <Text
-                        fontSize="16px"
-                        color={colors.secondaryText}
-                        fontFamily="'PixelifySans-Regular', sans-serif"
-                        textAlign="left"
-                      >
-                        {bonus.points}
-                      </Text>
+                      <Flex alignItems="center" justifyContent="center" gap={2}>
+                        <Text
+                          fontSize="16px"
+                          color={colors.secondaryText}
+                          fontFamily="'PixelifySans-Regular', sans-serif"
+                          textAlign="left"
+                        >
+                          {bonus.coins}
+                        </Text>
+
+                        {bonus.tickets ? (
+                          <Divider
+                            orientation="vertical"
+                            color="black"
+                            height="15px"
+                            width="1px"
+                          />
+                        ) : null}
+                        {bonus.tickets ? (
+                          <Text
+                            fontSize="16px"
+                            color={colors.secondaryText}
+                            fontFamily="'PixelifySans-Regular', sans-serif"
+                            textAlign="left"
+                          >
+                            {bonus.tickets}
+                          </Text>
+                        ) : null}
+                      </Flex>
                     </Flex>
                   </Flex>
-                </GradientBorderWrapper>
+                  <Divider />
+                </Flex>
               ))}
           </Stack>
 
           {/* Buttons */}
-          <Flex mt={16} gap={6} w="100%" align="center">
+          <Flex
+            marginTop="8rem"
+            gap={6}
+            w="100%"
+            alignItems="center"
+            justifyContent="center"
+          >
             <Button
+              onClick={onCloseHandler}
               mt="3"
               height="40px"
-              width="280px"
+              width="230px"
               border="2px solid white"
               borderRadius="52px"
               bg="transparent"
@@ -226,22 +271,7 @@ const WelcomeModal: FC<WelcomeModalProps> = ({ data }) => {
               fontSize="24px"
               _hover={{ bg: "rgba(255, 255, 255, 0.1)" }}
               color={colors.primaryText}
-            >
-              SHARE
-            </Button>
-            <Button
-              onClick={() => router.push("/")}
-              mt="3"
-              height="40px"
-              width="280px"
-              border="2px solid white"
-              borderRadius="52px"
-              bg="transparent"
-              fontFamily="'PixelifySans-Bold', sans-serif"
-              fontWeight="bold"
-              fontSize="24px"
-              _hover={{ bg: "rgba(255, 255, 255, 0.1)" }}
-              color={colors.primaryText}
+              padding="20px"
             >
               CLAIM
             </Button>

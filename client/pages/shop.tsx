@@ -160,14 +160,7 @@ const Shop: React.FC = () => {
   };
 
   return (
-    <Flex
-      direction="column"
-      align="center"
-      bgGradient="linear(to-b, #0D1478, #130B3D, #130B3D, #0D1478)"
-      color="white"
-      minH="100vh"
-      p={4}
-    >
+    <Flex direction="column" align="center" color="white" minH="100vh" p={4}>
       <Heading
         fontSize="24px"
         fontFamily="'PixelifySans-Bold', sans-serif"

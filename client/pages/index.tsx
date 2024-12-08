@@ -51,7 +51,6 @@ const Home: React.FC = () => {
     <Flex
       direction="column"
       align="center"
-      bgGradient="linear(to-b, #0D1478, #130B3D, #130B3D, #0D1478)"
       color={colors.primaryText}
       minH="100vh"
       overflowY="scroll"

@@ -81,6 +81,8 @@ export interface FirstLoginInfo {
   date_telegram: string;
   premium_coins: number;
   years_coins: number;
+  welcome_tickets: number;
+  welcome_coins: number;
 }
 
 export interface CheckInInfo {

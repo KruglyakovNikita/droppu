@@ -9,9 +9,10 @@ import { useRouter } from "next/router";
 
 interface CheckInModalProps {
   data: CheckInInfo;
+  onClose: () => void;
 }
 
-const CheckInModal: FC<CheckInModalProps> = ({ data }) => {
+const CheckInModal: FC<CheckInModalProps> = ({ data, onClose }) => {
   const setNavbarVisible = useStore((state) => state.setNavbarVisible);
   const router = useRouter();
 
@@ -22,6 +23,7 @@ const CheckInModal: FC<CheckInModalProps> = ({ data }) => {
 
   const handleNextPage = () => {
     router.push("/");
+    onClose();
   };
 
   return (

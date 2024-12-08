@@ -1,5 +1,13 @@
 import { create } from "zustand";
-import { Achievement, Game, InvitedUser, TelegramUser, User } from "./types";
+import {
+  Achievement,
+  CheckInInfo,
+  FirstLoginInfo,
+  Game,
+  InvitedUser,
+  TelegramUser,
+  User,
+} from "./types";
 import { initUser } from "../api/user";
 
 type StoreState = {
@@ -7,6 +15,8 @@ type StoreState = {
   game: Game | null;
   telegramUser: TelegramUser | null;
   inventory: string[];
+  firstLoginInfo: FirstLoginInfo | null;
+  checkInInfo: CheckInInfo | null;
   achievements: Achievement[];
   invitedUsers: InvitedUser[];
   totalTokensFromInvited: number;
@@ -14,6 +24,8 @@ type StoreState = {
   navbarVisible: boolean;
   initUser: (initData?: string) => Promise<void>;
   setUser: (user: User | null) => void;
+  setCheckInInfo: (checkInInfo: CheckInInfo | null) => void;
+  setFirstLoginInfo: (firstLoginInfo: FirstLoginInfo | null) => void;
   setTelegramUser: (telegramUser: TelegramUser | null) => void;
   setInventory: (inventory: string[]) => void;
   setAchievements: (achievements: Achievement[]) => void;
@@ -26,6 +38,8 @@ export const useStore = create<StoreState>((set) => ({
   user: null,
   game: null,
   telegramUser: null,
+  firstLoginInfo: null,
+  checkInInfo: null,
   inventory: [],
   achievements: [],
   invitedUsers: [],
@@ -44,6 +58,8 @@ export const useStore = create<StoreState>((set) => ({
   },
   setTelegramUser: (telegramUser) => set({ telegramUser }),
   setUser: (user) => set({ user }),
+  setCheckInInfo: (checkInInfo) => set({ checkInInfo }),
+  setFirstLoginInfo: (firstLoginInfo) => set({ firstLoginInfo }),
   setInventory: (inventory) => set({ inventory }),
   setAchievements: (achievements) => set({ achievements }),
   setInvitedUsers: (invitedUsers) => set({ invitedUsers }),
