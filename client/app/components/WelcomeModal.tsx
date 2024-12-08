@@ -1,17 +1,12 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, FC } from "react";
 import { keyframes } from "@emotion/react";
-import {
-  Box,
-  Flex,
-  Text,
-  Button,
-  Image,
-  Stack,
-} from "@chakra-ui/react";
+import { Box, Flex, Text, Button, Image, Stack } from "@chakra-ui/react";
 import { motion } from "framer-motion";
-import { useStore } from "../app/lib/store/store";
-import colors from "../theme/colors";
+import { useStore } from "../lib/store/store";
+import colors from "../../theme/colors";
 import GradientBorderWrapper from "@/app/components/GradientBorderWrapper";
+import { FirstLoginInfo } from "../lib/store/types";
+import { useRouter } from "next/router";
 
 const fadeInOut = keyframes`
   0%, 100% { opacity: 0.5; }
@@ -26,11 +21,15 @@ const slideIn = keyframes`
 
 const MotionBox = Box;
 
-const WelcomeScreen = ({ data }) => {
+interface WelcomeModalProps {
+  data: FirstLoginInfo;
+}
+
+const WelcomeModal: FC<WelcomeModalProps> = ({ data }) => {
   const setNavbarVisible = useStore((state) => state.setNavbarVisible);
   const [currentTopic, setCurrentTopic] = useState(0);
-  const [page, setPage] = useState(1);
-
+  const [step, setStep] = useState(1);
+  const router = useRouter();
   const topics = [
     "Sign up and come to the droppu world",
     "Explore unique features",
@@ -42,11 +41,11 @@ const WelcomeScreen = ({ data }) => {
       icon: "/icons/premium.gif",
       title: "Telegram Premium",
       points: "300 points",
-      visible: data?.telegramPremium || true,
+      visible: data?.is_premium || true,
     },
     {
       icon: "/icons/account_age.gif",
-      title: `Account age ${data?.accountAge || 0}`,
+      title: `Account age ${data?.years_telegram || 0}`,
       points: "400 points",
       visible: true,
     },
@@ -64,16 +63,16 @@ const WelcomeScreen = ({ data }) => {
   }, [setNavbarVisible]);
 
   useEffect(() => {
-    if (page === 1) {
+    if (step === 1) {
       const interval = setInterval(() => {
         setCurrentTopic((prev) => (prev + 1) % topics.length);
       }, 2500);
       return () => clearInterval(interval);
     }
-  }, [page, topics.length]);
+  }, [step, topics.length]);
 
   const handleNextPage = () => {
-    setPage(2);
+    setStep(2);
   };
 
   return (
@@ -86,8 +85,9 @@ const WelcomeScreen = ({ data }) => {
       minH="100vh"
       textAlign="center"
       px={6}
+      bgGradient="linear(to-b, #0D1478, #130B3D, #0D1478)"
     >
-      {page === 1 && (
+      {step === 1 && (
         <>
           {/* Animated Logo */}
           <MotionBox
@@ -106,7 +106,13 @@ const WelcomeScreen = ({ data }) => {
           </MotionBox>
 
           {/* Main Title */}
-          <Text fontSize="2xl" fontFamily="'PixelifySans-Bold', sans-serif" mb={1} color={colors.secondaryText} fontWeight="bold">
+          <Text
+            fontSize="2xl"
+            fontFamily="'PixelifySans-Bold', sans-serif"
+            mb={1}
+            color={colors.secondaryText}
+            fontWeight="bold"
+          >
             Welcome to DROPPU
           </Text>
 
@@ -156,7 +162,7 @@ const WelcomeScreen = ({ data }) => {
         </>
       )}
 
-      {page === 2 && (
+      {step === 2 && (
         <>
           {/* Bonuses Section */}
           <Stack spacing={6} w="100%">
@@ -209,33 +215,33 @@ const WelcomeScreen = ({ data }) => {
           {/* Buttons */}
           <Flex mt={16} gap={6} w="100%" align="center">
             <Button
-                mt="3"
-                height="40px"
-                width="280px"
-                border="2px solid white"
-                borderRadius="52px"
-                bg="transparent"
-                fontFamily="'PixelifySans-Bold', sans-serif"
-                fontWeight="bold"
-                fontSize="24px"
-                _hover={{ bg: "rgba(255, 255, 255, 0.1)" }}
-                color={colors.primaryText}
+              mt="3"
+              height="40px"
+              width="280px"
+              border="2px solid white"
+              borderRadius="52px"
+              bg="transparent"
+              fontFamily="'PixelifySans-Bold', sans-serif"
+              fontWeight="bold"
+              fontSize="24px"
+              _hover={{ bg: "rgba(255, 255, 255, 0.1)" }}
+              color={colors.primaryText}
             >
               SHARE
             </Button>
             <Button
-                onClick={() => window.location.href = "/index"}
-                mt="3"
-                height="40px"
-                width="280px"
-                border="2px solid white"
-                borderRadius="52px"
-                bg="transparent"
-                fontFamily="'PixelifySans-Bold', sans-serif"
-                fontWeight="bold"
-                fontSize="24px"
-                _hover={{ bg: "rgba(255, 255, 255, 0.1)" }}
-                color={colors.primaryText}
+              onClick={() => router.push("/")}
+              mt="3"
+              height="40px"
+              width="280px"
+              border="2px solid white"
+              borderRadius="52px"
+              bg="transparent"
+              fontFamily="'PixelifySans-Bold', sans-serif"
+              fontWeight="bold"
+              fontSize="24px"
+              _hover={{ bg: "rgba(255, 255, 255, 0.1)" }}
+              color={colors.primaryText}
             >
               CLAIM
             </Button>
@@ -246,4 +252,4 @@ const WelcomeScreen = ({ data }) => {
   );
 };
 
-export default WelcomeScreen;
+export default WelcomeModal;

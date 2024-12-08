@@ -53,9 +53,12 @@ const Inventory: React.FC = () => {
     }
   };
 
-  const filteredItems = selectedRarity === "All" 
-    ? inventoryItems 
-    : inventoryItems.filter((item) => item.inventory_item.rarity === selectedRarity);
+  const filteredItems =
+    selectedRarity === "All"
+      ? inventoryItems
+      : inventoryItems.filter(
+          (item) => item.inventory_item.rarity === selectedRarity
+        );
 
   const handleItemClick = (item) => {
     setSelectedItem(item);
@@ -64,7 +67,7 @@ const Inventory: React.FC = () => {
 
   const handleEquip = async () => {
     if (!selectedItem) return;
-    
+
     const response = await equipItem(selectedItem.inventory_item.id);
     if (response.error) {
       toast({
@@ -96,7 +99,7 @@ const Inventory: React.FC = () => {
       <Flex
         direction="column"
         align="center"
-        bgGradient="linear(to-b, #0D1478, #130B3D, #0D1478)"
+        bgGradient="linear(to-b, #0D1478, #130B3D, #130B3D, #0D1478)"
         color="white"
         minH="100vh"
         p={4}
@@ -106,7 +109,6 @@ const Inventory: React.FC = () => {
           fontSize="24px"
           fontFamily="'PixelifySans-Bold', sans-serif"
           mb={4}
-
         >
           Inventory
         </Heading>
@@ -114,7 +116,7 @@ const Inventory: React.FC = () => {
         {/* Информация о монетах и предметах */}
         <Flex gap={4} mb={6}>
           <ButtonIfoLink
-            title={isLoading ? "..." : (userInfo?.coins.toString() || "0")}
+            title={isLoading ? "..." : userInfo?.coins.toString() || "0"}
             width="100px"
             description="Points"
             onClick={chanelLink}
@@ -131,7 +133,7 @@ const Inventory: React.FC = () => {
             title="Shop"
             width="100px"
             description="Buy items"
-            onClick={() => window.location.href = '/shop'}
+            onClick={() => (window.location.href = "/shop")}
             startIcon={
               <Image
                 src="/icons/shop_icon.svg"
@@ -142,7 +144,7 @@ const Inventory: React.FC = () => {
             }
           />
           <ButtonIfoLink
-            title={isLoading ? "...": inventoryItems.length.toString()}
+            title={isLoading ? "..." : inventoryItems.length.toString()}
             width="100px"
             description="Items"
             onClick={chanelLink}
@@ -188,7 +190,8 @@ const Inventory: React.FC = () => {
                   transform: "translateX(-50%)",
                   width: "100%",
                   height: "5px",
-                  background: selectedRarity === rarity.name ? rarity.neon : "none",
+                  background:
+                    selectedRarity === rarity.name ? rarity.neon : "none",
                   filter: "blur(6px)",
                   borderRadius: "8px",
                 }}
@@ -201,67 +204,69 @@ const Inventory: React.FC = () => {
 
         {/* Сетка предметов */}
         <Grid templateColumns="repeat(2, 1fr)" gap={6}>
-          {isLoading ? (
-            // Skeleton loading state
-            Array(6).fill(0).map((_, index) => (
-              <Skeleton
-                key={index}
-                height="130px"
-                width="150px"
-                borderRadius="12px"
-                startColor="#1a1a1a"
-                endColor="#2d2d2d"
-              />
-            ))
-          ) : (
-            filteredItems.map((item, index) => {
-              const rarity = rarities.find((r) => r.name === item.inventory_item.rarity);
-              return (
-                <GradientBorderWrapper
-                  key={index}
-                  borderRadius={12}
-                  startColor="#793BC7"
-                  endColor="#C2D2FF"
-                  strokeWidth={1.5}
-                  onClick={() => handleItemClick(item)}
-                >
-                  <Flex
-                    direction="column"
-                    align="center"
-                    justify="center"
-                    p={4}
-                    h="130px"
-                    w="150px"
-                    bg="transparent"
+          {isLoading
+            ? // Skeleton loading state
+              Array(6)
+                .fill(0)
+                .map((_, index) => (
+                  <Skeleton
+                    key={index}
+                    height="130px"
+                    width="150px"
                     borderRadius="12px"
-                    position="relative"
+                    startColor="#1a1a1a"
+                    endColor="#2d2d2d"
+                  />
+                ))
+            : filteredItems.map((item, index) => {
+                const rarity = rarities.find(
+                  (r) => r.name === item.inventory_item.rarity
+                );
+                return (
+                  <GradientBorderWrapper
+                    key={index}
+                    borderRadius={12}
+                    startColor="#793BC7"
+                    endColor="#C2D2FF"
+                    strokeWidth={1.5}
+                    onClick={() => handleItemClick(item)}
                   >
-                    <Box
-                      position="absolute"
-                      bottom="35px"
-                      width="70px"
-                      height="70px"
-                      borderRadius="50%"
-                      bg={rarity?.neon}
-                      filter="blur(10px)"
-                      zIndex={0}
-                    />
-                    <Image
-                      src={`https://droppu.ru:7777/api/v1/uploads/${item.inventory_item.image_url}`}
-                      alt={item.inventory_item.name}
-                      boxSize="80px"
-                      objectFit="contain"
-                      mb={0}
-                      zIndex={1}
-                    />
-                    <Text fontSize="12px" color={colors.secondaryText}>
-                      {item.inventory_item.name}
-                    </Text>
-                  </Flex>
-                </GradientBorderWrapper>
-              );
-            })
-          )}
+                    <Flex
+                      direction="column"
+                      align="center"
+                      justify="center"
+                      p={4}
+                      h="130px"
+                      w="150px"
+                      bg="transparent"
+                      borderRadius="12px"
+                      position="relative"
+                    >
+                      <Box
+                        position="absolute"
+                        bottom="35px"
+                        width="70px"
+                        height="70px"
+                        borderRadius="50%"
+                        bg={rarity?.neon}
+                        filter="blur(10px)"
+                        zIndex={0}
+                      />
+                      <Image
+                        src={`https://droppu.ru:7777/api/v1/uploads/${item.inventory_item.image_url}`}
+                        alt={item.inventory_item.name}
+                        boxSize="80px"
+                        objectFit="contain"
+                        mb={0}
+                        zIndex={1}
+                      />
+                      <Text fontSize="12px" color={colors.secondaryText}>
+                        {item.inventory_item.name}
+                      </Text>
+                    </Flex>
+                  </GradientBorderWrapper>
+                );
+              })}
         </Grid>
       </Flex>
 

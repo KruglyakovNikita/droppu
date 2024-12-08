@@ -9,13 +9,10 @@ import {
   Image,
   Heading,
 } from "@chakra-ui/react";
-
 import { keyframes } from "@emotion/react";
 import GradientBorderWrapper from "../app/components/GradientBorderWrapper";
-import { useEffect, useState } from "react";
 import colors from "../theme/colors";
 import { useStore } from "../app/lib/store/store";
-import { initUser } from "@/app/lib/api/user";
 import { ButtonIfoLink } from "@/app/components/ButtonIfoLink";
 import { useRouter } from "next/router";
 
@@ -27,55 +24,10 @@ declare global {
 
 const Home: React.FC = () => {
   const router = useRouter();
-  const setUser = useStore((state) => state.setUser);
   const userInfo = useStore((state) => state.user);
-  const [telegramUser, setTelegramUser] = useState<any>(null);
+  const telegramUser = useStore((state) => state.telegramUser);
+
   const setNavbarVisible = useStore((state) => state.setNavbarVisible);
-
-  const authenticate = async (initData: string) => {
-    try {
-      const response = await initUser(initData);
-      const data = response.data;
-
-      if (data) {
-        setUser(data.user);
-      }
-    } catch (error) {
-      console.error("Request Error:", error);
-    }
-  };
-
-  useEffect(() => {
-    const script = document.createElement("script");
-    script.src = "https://telegram.org/js/telegram-web-app.js";
-    script.async = true;
-    document.body.appendChild(script);
-
-    script.onload = () => {
-      if (window.Telegram && window.Telegram.WebApp) {
-        const tg = window.Telegram.WebApp;
-        if (tg.initDataUnsafe) {
-          setTelegramUser(tg.initDataUnsafe.user);
-          console.log(tg.initDataUnsafe);
-          console.log(tg.initData);
-          const startParam = tg.initDataUnsafe.start_param || "";
-          authenticate({
-            ...JSON.parse(JSON.stringify(tg.initDataUnsafe).replace(/'/g, '"')),
-            start_param: startParam ?? "",
-          });
-          tg.ready();
-          tg.expand();
-          tg.setHeaderColor("#0D1478");
-          tg.HapticFeedback.notificationOccurred("warning");
-          window.Telegram.WebApp.disableVerticalSwipes();
-        }
-      }
-    };
-
-    return () => {
-      document.body.removeChild(script);
-    };
-  }, []);
 
   const inviteFriendsLink = () => {
     window.Telegram.WebApp.HapticFeedback.impactOccurred("soft");
@@ -85,8 +37,8 @@ const Home: React.FC = () => {
   };
 
   const chanelLink = () => {
-    window.Telegram.WebApp.HapticFeedback.impactOccurred("soft");
-    window.Telegram.WebApp.openTelegramLink(`https://t.me/droppu`);
+    window.Telegram?.WebApp?.HapticFeedback.impactOccurred("soft");
+    window.Telegram?.WebApp?.openTelegramLink(`https://t.me/droppu`);
   };
 
   const floatAnimation = keyframes`
@@ -99,7 +51,7 @@ const Home: React.FC = () => {
     <Flex
       direction="column"
       align="center"
-      bgGradient="linear(to-b, #0D1478, #130B3D, #0D1478)"
+      bgGradient="linear(to-b, #0D1478, #130B3D, #130B3D, #0D1478)"
       color={colors.primaryText}
       minH="100vh"
       overflowY="scroll"
@@ -122,7 +74,7 @@ const Home: React.FC = () => {
 
         <ButtonIfoLink
           title="Invite Friends"
-          description="Get more tickets and points"
+          description="Get more tickets and coins"
           onClick={inviteFriendsLink}
           descriptionFontSize="8px"
           titleFontSize="16px"
@@ -186,7 +138,7 @@ const Home: React.FC = () => {
                 >
                   <Image
                     src="/icons/star_icon.svg"
-                    alt="Points Icon"
+                    alt="Coins Icon"
                     boxSize="23px"
                   />
                   <Stack spacing={0} ml={3}>
@@ -199,7 +151,7 @@ const Home: React.FC = () => {
                       {userInfo?.coins ?? 1}
                     </Heading>
                     <Text fontSize="12px" color={colors.secondaryText}>
-                      Points
+                      Coins
                     </Text>
                   </Stack>
                 </Flex>

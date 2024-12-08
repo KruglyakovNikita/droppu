@@ -29,7 +29,20 @@ const makeWheel = () => {
     return {
       path: instance(arc),
       color: colors[index],
-      value: ["$1", "$5", "ZERO", "$100", "JACKPOT", "$20", "$50", "$10", "$1", "$10", "ZERO", "$2"][index],
+      value: [
+        "$1",
+        "$5",
+        "ZERO",
+        "$100",
+        "JACKPOT",
+        "$20",
+        "$50",
+        "$10",
+        "$1",
+        "$10",
+        "ZERO",
+        "$2",
+      ][index],
       centroid: instance.centroid(arc),
     };
   });
@@ -70,8 +83,11 @@ export default function FortuneWheel() {
           }
 
           // Корректируем угол, чтобы получить правильный индекс выигрыша
-          const finalAngle = (newAngle % 360 + 360) % 360; // Приводим к диапазону 0-360
-          const winnerIndex = Math.floor((oneTurn - finalAngle + angleOffset - 15) / angleBySegment) % numberOfSegments; // Сдвиг -15 для точной указки
+          const finalAngle = ((newAngle % 360) + 360) % 360; // Приводим к диапазону 0-360
+          const winnerIndex =
+            Math.floor(
+              (oneTurn - finalAngle + angleOffset - 15) / angleBySegment
+            ) % numberOfSegments; // Сдвиг -15 для точной указки
           const winner = wheelPaths[winnerIndex].value;
           setResult(winner);
         });
@@ -90,7 +106,7 @@ export default function FortuneWheel() {
       align="center"
       justify="center"
       minH="100vh"
-      bgGradient="linear(to-b, #0D1478, #130B3D, #0D1478)"
+      bgGradient="linear(to-b, #0D1478, #130B3D, #130B3D, #0D1478)"
       color="white"
       p={4}
     >
@@ -105,7 +121,11 @@ export default function FortuneWheel() {
         Back
       </Button>
 
-      <Heading fontSize="24px" fontFamily="'PixelifySans-Bold', sans-serif" mb={6}>
+      <Heading
+        fontSize="24px"
+        fontFamily="'PixelifySans-Bold', sans-serif"
+        mb={6}
+      >
         Spin The Fortune Wheel
       </Heading>
 
@@ -129,7 +149,7 @@ export default function FortuneWheel() {
       )}
 
       {/* Колесо рулетки */}
-      
+
       <Box
         as={motion.div}
         style={{ width: wheelSize, height: wheelSize }}
@@ -140,7 +160,11 @@ export default function FortuneWheel() {
         boxShadow="0px 4px 10px rgba(0, 0, 0, 0.25)"
         bg="linear-gradient(to-r, #282a36, #44475a)"
       >
-        <svg width={wheelSize} height={wheelSize} viewBox={`0 0 ${wheelSize} ${wheelSize}`}>
+        <svg
+          width={wheelSize}
+          height={wheelSize}
+          viewBox={`0 0 ${wheelSize} ${wheelSize}`}
+        >
           <g transform={`translate(${wheelSize / 2}, ${wheelSize / 2})`}>
             {wheelPaths.map((arc, index) => (
               <g key={index}>

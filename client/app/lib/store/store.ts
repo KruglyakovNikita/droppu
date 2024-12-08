@@ -1,10 +1,11 @@
 import { create } from "zustand";
-import { Achievement, Game, InvitedUser, User } from "./types";
+import { Achievement, Game, InvitedUser, TelegramUser, User } from "./types";
 import { initUser } from "../api/user";
 
 type StoreState = {
   user: User | null;
   game: Game | null;
+  telegramUser: TelegramUser | null;
   inventory: string[];
   achievements: Achievement[];
   invitedUsers: InvitedUser[];
@@ -13,6 +14,7 @@ type StoreState = {
   navbarVisible: boolean;
   initUser: (initData?: string) => Promise<void>;
   setUser: (user: User | null) => void;
+  setTelegramUser: (telegramUser: TelegramUser | null) => void;
   setInventory: (inventory: string[]) => void;
   setAchievements: (achievements: Achievement[]) => void;
   setInvitedUsers: (users: InvitedUser[]) => void;
@@ -23,6 +25,7 @@ type StoreState = {
 export const useStore = create<StoreState>((set) => ({
   user: null,
   game: null,
+  telegramUser: null,
   inventory: [],
   achievements: [],
   invitedUsers: [],
@@ -39,6 +42,7 @@ export const useStore = create<StoreState>((set) => ({
       console.error("Init user error:", error);
     }
   },
+  setTelegramUser: (telegramUser) => set({ telegramUser }),
   setUser: (user) => set({ user }),
   setInventory: (inventory) => set({ inventory }),
   setAchievements: (achievements) => set({ achievements }),
