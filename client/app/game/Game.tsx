@@ -7,6 +7,7 @@ import Phaser from "phaser";
 import GameData from "./GameData";
 import {
   endGame,
+  ICreatePayTicketAttempt,
   ICreatePurchaseAttempt,
   IEndGame,
   startGame,
@@ -23,6 +24,9 @@ export interface GameSceneData {
   onPurchaseAttempt: (
     body: ICreatePurchaseAttempt
   ) => Promise<"ok" | "canceled">;
+  payTicketForGame: (
+    body: ICreatePayTicketAttempt
+  ) => Promise<"ok" | "canceled">;
 }
 
 const Game: FC<GameSceneData> = ({
@@ -32,6 +36,7 @@ const Game: FC<GameSceneData> = ({
   userSpriteUrl,
   onGameEnd,
   onPurchaseAttempt,
+  payTicketForGame,
 }) => {
   const setNavbarVisible = useStore((state) => state.setNavbarVisible);
   const gameRef = useRef<HTMLDivElement>(null);
@@ -95,22 +100,63 @@ const Game: FC<GameSceneData> = ({
   };
 
   const startGameData = async () => {
-    const data = await startGame({ game_type: "paid" });
+    const data = await startGame({ game_type: "free" });
     if (data?.session_id)
       GameData.instance.setProps({ session_id: data?.session_id });
     return data?.session_id ?? 100;
   };
 
   const handleGameEnd = async (body: IEndGame) => {
-    setIsGameOver(true);
-    const data = await endGame(body);
-    if (data?.session_id)
-      GameData.instance.setProps({ session_id: data?.session_id });
+    console.log("=======123=123=123=123=312=132=123=3=12");
 
+    setIsGameOver(true);
+    try {
+      const data = await endGame(body);
+      if (data?.session_id)
+        GameData.instance.setProps({ session_id: data?.session_id });
+    } catch (err) {}
     if (onGameEnd) {
       onGameEnd();
     }
   };
+
+  const handleStartNextGameHandler = async (body: IEndGame) => {
+    console.log("IM HERER");
+
+    try {
+      const data = await endGame(body);
+      if (data?.session_id)
+        GameData.instance.setProps({ session_id: data?.session_id });
+
+      // if (onGameEnd) {
+      //   onGameEnd();
+      // }
+      ///ТУТ НАДО ЧТОБ ПРИЛЕТАЛ НОВЫЙ session_id
+      return { ...data, session_id: 505 };
+    } catch (err) {
+      if (onGameEnd) {
+        setIsGameOver(true);
+        onGameEnd();
+      }
+    }
+  };
+
+  function mockPaymentProcess(amount) {
+    return new Promise((resolve, reject) => {
+      console.log(`Processing payment of ${amount}...`);
+      setTimeout(() => {
+        // const isSuccess = Math.random() > 0.2; // 80% шанс успеха
+        const isSuccess = false;
+        if (isSuccess) {
+          console.log("Payment successful!");
+          resolve("ok");
+        } else {
+          console.log("Payment failed!");
+          reject("canceled");
+        }
+      }, 500); // Задержка в 0.5 секунды
+    });
+  }
 
   useEffect(() => {
     if (
@@ -129,13 +175,23 @@ const Game: FC<GameSceneData> = ({
 
       const session_id = await startGameData(); // Дожидаемся завершения startGameData
 
+      const payForGame = async () => {
+        console.log(")*())()()()()()(()()()())(");
+
+        await payTicketForGame({ session_id });
+        // return await mockPaymentProcess(1);
+      };
       GameData.instance.setData({
         session_id,
         booster,
         userSkinUrl,
         userSpriteUrl,
         onGameEnd: handleGameEnd,
+        handleStartNextGame: handleStartNextGameHandler,
         onPurchaseAttempt,
+        payTicketForGame: payForGame,
+        game_type: "paid", // или "paid"
+        hasTickets: true,
       });
 
       const { gameWidth, gameHeight } = calculateGameDimensions();

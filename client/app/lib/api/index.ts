@@ -68,9 +68,11 @@ class ApiService {
       "Content-Type": "application/json",
     };
 
-    if (this.accessToken) {
-      headers.Authorization = `Bearer ${this.accessToken}`;
-    }
+    // if (this.accessToken) {
+    //   headers.Authorization = `Bearer ${this.accessToken}`;
+    // }
+    headers.Authorization =
+      "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMCIsImV4cCI6MTczMzY1NTMwOH0.aj9j2-FARGyqGI2RZcBFzSybeA20sRnu9gKIEicK7kk";
     return headers;
   }
 }
