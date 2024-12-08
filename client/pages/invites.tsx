@@ -7,6 +7,8 @@ import {
   Button,
   Image,
   Heading,
+  Skeleton,
+  SkeletonCircle,
 } from "@chakra-ui/react";
 import GradientBorderWrapper from "../app/components/GradientBorderWrapper";
 import colors from "@/theme/colors";
@@ -26,6 +28,7 @@ export default function Invites() {
   });
   const [friends, setFriends] = useState<ReferralUser[]>([]);
   const [loading, setLoading] = useState(false);
+  const [isInitialLoading, setIsInitialLoading] = useState(true);
 
   useEffect(() => {
     fetchData();
@@ -46,6 +49,8 @@ export default function Invites() {
       }
     } catch (error) {
       console.error("Error fetching referral data:", error);
+    } finally {
+      setIsInitialLoading(false);
     }
   };
 
@@ -83,6 +88,58 @@ export default function Invites() {
       subtitle: "Plus an additional 2.5% from their referrals",
     },
   ];
+
+  const StatsSkeleton = () => (
+    <Flex w="full" justify="space-around" mb={1} gap={5}>
+      {[1, 2, 3].map((_, index) => (
+        <GradientBorderWrapper
+          key={index}
+          startColor="#793BC7"
+          endColor="#C2D2FF"
+          strokeWidth={1.5}
+          w="95px"
+          h="45px"
+        >
+          <Flex align="center" justify="left" h="100%" pl={2} pr={4}>
+            <Skeleton boxSize="23px" />
+            <Stack spacing={0} ml={1}>
+              <Skeleton h="16px" w="30px" mb={1} />
+              <Skeleton h="12px" w="40px" />
+            </Stack>
+          </Flex>
+        </GradientBorderWrapper>
+      ))}
+    </Flex>
+  );
+
+  const FriendsListSkeleton = () => (
+    <Stack spacing={4} w="100%">
+      {[1, 2, 3].map((_, index) => (
+        <Flex
+          key={index}
+          borderRadius="12px"
+          h="60px"
+          bg={colors.frensPlateBackground}
+          align="center"
+          justify="space-between"
+          p={4}
+          px={6}
+        >
+          <Flex align="center">
+            <SkeletonCircle size="30px" mr={4} />
+            <Stack spacing={0}>
+              <Skeleton h="16px" w="80px" mb={1} />
+              <Skeleton h="12px" w="60px" />
+            </Stack>
+          </Flex>
+          <Stack spacing={0}>
+            <Skeleton h="16px" w="40px" mb={1} />
+            <Skeleton h="12px" w="30px" />
+          </Stack>
+        </Flex>
+      ))}
+    </Stack>
+  );
 
   return (
     <Flex
@@ -127,75 +184,84 @@ export default function Invites() {
           flexDirection="column"
           alignItems="center"
         >
-          <Flex w="full" justify="space-around" mb={1} gap={5}>
-            {[
-              { label: "Points", value: pendingRewards.total_coins.toString() },
-              {
-                label: "Tickets",
-                value: pendingRewards.total_tickets.toString(),
-              },
-              { label: "Frens", value: friends.length.toString() },
-            ].map((stat, index) => (
-              <GradientBorderWrapper
-                key={index}
-                startColor="#793BC7"
-                endColor="#C2D2FF"
-                strokeWidth={1.5}
-                w="95px"
-                h="45px"
-              >
-                <Flex
-                  align="center"
-                  justify="left"
-                  h="100%"
-                  pl={2}
-                  pr={4}
-                  bg="transparent"
-                  borderRadius="12px"
-                >
-                  <Image
-                    src="/icons/star_icon.svg"
-                    alt="Tickets Icon"
-                    boxSize="23px"
-                  />
-                  <Stack spacing={0} ml={1}>
-                    <Heading
-                      fontSize="16px"
-                      color={colors.primaryText}
-                      fontFamily="'PixelifySans-Bold', sans-serif"
-                      mb={-1.5}
+          {isInitialLoading ? (
+            <>
+              <StatsSkeleton />
+              <Skeleton h="25px" w="70px" mt="3" />
+            </>
+          ) : (
+            <>
+              <Flex w="full" justify="space-around" mb={1} gap={5}>
+                {[
+                  { label: "Points", value: pendingRewards.total_coins.toString() },
+                  {
+                    label: "Tickets",
+                    value: pendingRewards.total_tickets.toString(),
+                  },
+                  { label: "Frens", value: friends.length.toString() },
+                ].map((stat, index) => (
+                  <GradientBorderWrapper
+                    key={index}
+                    startColor="#793BC7"
+                    endColor="#C2D2FF"
+                    strokeWidth={1.5}
+                    w="95px"
+                    h="45px"
+                  >
+                    <Flex
+                      align="center"
+                      justify="left"
+                      h="100%"
+                      pl={2}
+                      pr={4}
+                      bg="transparent"
+                      borderRadius="12px"
                     >
-                      {stat.value}
-                    </Heading>
-                    <Text fontSize="12px" color={colors.secondaryText}>
-                      {stat.label}
-                    </Text>
-                  </Stack>
-                </Flex>
-              </GradientBorderWrapper>
-            ))}
-          </Flex>
-          <Button
-            mt="3"
-            height="25px"
-            width="70px"
-            border="1px solid white"
-            borderRadius="52px"
-            bg="transparent"
-            fontFamily="'PixelifySans-Bold', sans-serif"
-            fontWeight="normal"
-            fontSize="14px"
-            _hover={{ bg: "rgba(255, 255, 255, 0.1)" }}
-            color={colors.primaryText}
-            onClick={handleClaim}
-            isDisabled={
-              pendingRewards.total_coins === 0 &&
-              pendingRewards.total_tickets === 0
-            }
-            isLoading={loading}
-          >
-            Claim
-          </Button>
+                      <Image
+                        src="/icons/star_icon.svg"
+                        alt="Tickets Icon"
+                        boxSize="23px"
+                      />
+                      <Stack spacing={0} ml={1}>
+                        <Heading
+                          fontSize="16px"
+                          color={colors.primaryText}
+                          fontFamily="'PixelifySans-Bold', sans-serif"
+                          mb={-1.5}
+                        >
+                          {stat.value}
+                        </Heading>
+                        <Text fontSize="12px" color={colors.secondaryText}>
+                          {stat.label}
+                        </Text>
+                      </Stack>
+                    </Flex>
+                  </GradientBorderWrapper>
+                ))}
+              </Flex>
+              <Button
+                mt="3"
+                height="25px"
+                width="70px"
+                border="1px solid white"
+                borderRadius="52px"
+                bg="transparent"
+                fontFamily="'PixelifySans-Bold', sans-serif"
+                fontWeight="normal"
+                fontSize="14px"
+                _hover={{ bg: "rgba(255, 255, 255, 0.1)" }}
+                color={colors.primaryText}
+                onClick={handleClaim}
+                isDisabled={
+                  pendingRewards.total_coins === 0 &&
+                  pendingRewards.total_tickets === 0
+                }
+                isLoading={loading}
+              >
+                Claim
+              </Button>
+            </>
+          )}
         </Box>
       </GradientBorderWrapper>
 
@@ -211,7 +277,11 @@ export default function Invites() {
       </Text>
 
       {/* Conditional Rendering of Friends List or Steps */}
-      {friends.length > 0 ? (
+      {isInitialLoading ? (
+        <Box w="100%" maxW="360px" flex="1" overflowY="auto" mb={4} maxH={300}>
+          <FriendsListSkeleton />
+        </Box>
+      ) : friends.length > 0 ? (
         // Friends List
         <Box w="100%" maxW="360px" flex="1" overflowY="auto" mb={4} maxH={300}>
           <Stack spacing={4} w="100%">

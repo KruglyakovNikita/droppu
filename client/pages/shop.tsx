@@ -10,6 +10,7 @@ import {
   Heading,
   Image,
   Grid,
+  Skeleton,
 } from "@chakra-ui/react";
 import GradientBorderWrapper from "../app/components/GradientBorderWrapper";
 import colors from "../theme/colors";
@@ -34,6 +35,7 @@ const Shop: React.FC = () => {
   const [selectedItem, setSelectedItem] = useState<ShopItem | null>(null);
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const toast = useToast();
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     fetchShopItems();
@@ -58,9 +60,14 @@ const Shop: React.FC = () => {
   }, []);
 
   const fetchShopItems = async () => {
-    const response = await getShopItems();
-    if (response.data) {
-      setShopItems(response.data);
+    try {
+      setIsLoading(true);
+      const response = await getShopItems();
+      if (response.data) {
+        setShopItems(response.data);
+      }
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -170,7 +177,7 @@ const Shop: React.FC = () => {
 
       <Flex gap={4} mb={6}>
         <ButtonIfoLink
-          title={userInfo?.coins.toString() || "0"}
+          title={isLoading ? "..." : (userInfo?.coins.toString() || "0")}
           width="100px"
           description="Points"
           onClick={() => {}}
@@ -184,7 +191,7 @@ const Shop: React.FC = () => {
           }
         />
         <ButtonIfoLink
-          title={filteredItems.length.toString() || "0"}
+          title={isLoading ? "..." : (filteredItems.length.toString() || "0")}
           width="100px"
           description="Items"
           onClick={() => {}}
@@ -241,67 +248,81 @@ const Shop: React.FC = () => {
       </Flex>
 
       <Grid templateColumns="repeat(2, 1fr)" gap={6}>
-        {filteredItems.map((item, index) => {
-          const rarity = rarities.find(
-            (r) => r.name === item.inventory_item.rarity
-          );
-          return (
-            <GradientBorderWrapper
+        {isLoading ? (
+          // Skeleton loading state
+          Array(6).fill(0).map((_, index) => (
+            <Skeleton
               key={index}
-              borderRadius={12}
-              startColor="#793BC7"
-              endColor="#C2D2FF"
-              strokeWidth={1.5}
-              onClick={() => handleItemClick(item)}
-            >
-              <Flex
-                direction="column"
-                align="center"
-                justify="center"
-                p={4}
-                h="130px"
-                w="150px"
-                bg="transparent"
-                borderRadius="12px"
-                position="relative"
+              height="130px"
+              width="150px"
+              borderRadius="12px"
+              startColor="#1a1a1a"
+              endColor="#2d2d2d"
+            />
+          ))
+        ) : (
+          filteredItems.map((item, index) => {
+            const rarity = rarities.find(
+              (r) => r.name === item.inventory_item.rarity
+            );
+            return (
+              <GradientBorderWrapper
+                key={index}
+                borderRadius={12}
+                startColor="#793BC7"
+                endColor="#C2D2FF"
+                strokeWidth={1.5}
+                onClick={() => handleItemClick(item)}
               >
-                <Box
-                  position="absolute"
-                  bottom="35px"
-                  width="70px"
-                  height="70px"
-                  borderRadius="50%"
-                  bg={rarity?.neon}
-                  filter="blur(10px)"
-                  zIndex={0}
-                />
-                <Image
-                  src={`https://droppu.ru:7777/api/v1/uploads/${item.inventory_item.image_url}`}
-                  alt={item.inventory_item.name}
-                  boxSize="80px"
-                  objectFit="contain"
-                  mb={0}
-                  zIndex={1}
-                />
-                <Text fontSize="12px" color={colors.secondaryText}>
-                  {item.inventory_item.name}
-                </Text>
-                <Flex gap={2} mt={1}>
-                  {item.coin_price > 0 && (
-                    <Text fontSize="12px" color="yellow.400">
-                      {item.coin_price} P
-                    </Text>
-                  )}
-                  {item.star_price > 0 && (
-                    <Text fontSize="12px" color="blue.400">
-                      {item.star_price} ⭐
-                    </Text>
-                  )}
+                <Flex
+                  direction="column"
+                  align="center"
+                  justify="center"
+                  p={4}
+                  h="130px"
+                  w="150px"
+                  bg="transparent"
+                  borderRadius="12px"
+                  position="relative"
+                >
+                  <Box
+                    position="absolute"
+                    bottom="35px"
+                    width="70px"
+                    height="70px"
+                    borderRadius="50%"
+                    bg={rarity?.neon}
+                    filter="blur(10px)"
+                    zIndex={0}
+                  />
+                  <Image
+                    src={`https://droppu.ru:7777/api/v1/uploads/${item.inventory_item.image_url}`}
+                    alt={item.inventory_item.name}
+                    boxSize="80px"
+                    objectFit="contain"
+                    mb={0}
+                    zIndex={1}
+                  />
+                  <Text fontSize="12px" color={colors.secondaryText}>
+                    {item.inventory_item.name}
+                  </Text>
+                  <Flex gap={2} mt={1}>
+                    {item.coin_price > 0 && (
+                      <Text fontSize="12px" color="yellow.400">
+                        {item.coin_price} P
+                      </Text>
+                    )}
+                    {item.star_price > 0 && (
+                      <Text fontSize="12px" color="blue.400">
+                        {item.star_price} ⭐
+                      </Text>
+                    )}
+                  </Flex>
                 </Flex>
-              </Flex>
-            </GradientBorderWrapper>
-          );
-        })}
+              </GradientBorderWrapper>
+            );
+          })
+        )}
       </Grid>
 
       <ShopItemPopup

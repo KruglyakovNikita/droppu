@@ -11,6 +11,7 @@ import {
   Stack,
   Image,
   Grid,
+  Skeleton,
 } from "@chakra-ui/react";
 import GradientBorderWrapper from "../app/components/GradientBorderWrapper";
 import colors from "../theme/colors";
@@ -34,15 +35,21 @@ const Inventory: React.FC = () => {
   const [selectedItem, setSelectedItem] = useState<InventoryItem | null>(null);
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const toast = useToast();
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     fetchInventory();
   }, []);
 
   const fetchInventory = async () => {
-    const response = await getInventory();
-    if (response.data) {
-      setInventoryItems(response.data);
+    try {
+      setIsLoading(true);
+      const response = await getInventory();
+      if (response.data) {
+        setInventoryItems(response.data);
+      }
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -107,7 +114,7 @@ const Inventory: React.FC = () => {
         {/* Информация о монетах и предметах */}
         <Flex gap={4} mb={6}>
           <ButtonIfoLink
-            title={userInfo?.coins.toString() || "0"}
+            title={isLoading ? "..." : (userInfo?.coins.toString() || "0")}
             width="100px"
             description="Points"
             onClick={chanelLink}
@@ -135,7 +142,7 @@ const Inventory: React.FC = () => {
             }
           />
           <ButtonIfoLink
-            title={inventoryItems.length.toString()}
+            title={isLoading ? "...": inventoryItems.length.toString()}
             width="100px"
             description="Items"
             onClick={chanelLink}
@@ -194,53 +201,67 @@ const Inventory: React.FC = () => {
 
         {/* Сетка предметов */}
         <Grid templateColumns="repeat(2, 1fr)" gap={6}>
-          {filteredItems.map((item, index) => {
-            const rarity = rarities.find((r) => r.name === item.inventory_item.rarity);
-            return (
-              <GradientBorderWrapper
+          {isLoading ? (
+            // Skeleton loading state
+            Array(6).fill(0).map((_, index) => (
+              <Skeleton
                 key={index}
-                borderRadius={12}
-                startColor="#793BC7"
-                endColor="#C2D2FF"
-                strokeWidth={1.5}
-                onClick={() => handleItemClick(item)}
-              >
-                <Flex
-                  direction="column"
-                  align="center"
-                  justify="center"
-                  p={4}
-                  h="130px"
-                  w="150px"
-                  bg="transparent"
-                  borderRadius="12px"
-                  position="relative"
+                height="130px"
+                width="150px"
+                borderRadius="12px"
+                startColor="#1a1a1a"
+                endColor="#2d2d2d"
+              />
+            ))
+          ) : (
+            filteredItems.map((item, index) => {
+              const rarity = rarities.find((r) => r.name === item.inventory_item.rarity);
+              return (
+                <GradientBorderWrapper
+                  key={index}
+                  borderRadius={12}
+                  startColor="#793BC7"
+                  endColor="#C2D2FF"
+                  strokeWidth={1.5}
+                  onClick={() => handleItemClick(item)}
                 >
-                  <Box
-                    position="absolute"
-                    bottom="35px"
-                    width="70px"
-                    height="70px"
-                    borderRadius="50%"
-                    bg={rarity?.neon}
-                    filter="blur(10px)"
-                    zIndex={0}
-                  />
-                  <Image
-                    src={`https://droppu.ru:7777/api/v1/uploads/${item.inventory_item.image_url}`}
-                    alt={item.inventory_item.name}
-                    boxSize="80px"
-                    objectFit="contain"
-                    mb={0}
-                    zIndex={1}
-                  />
-                  <Text fontSize="12px" color={colors.secondaryText}>
-                    {item.inventory_item.name}
-                  </Text>
-                </Flex>
-              </GradientBorderWrapper>
-            );
-          })}
+                  <Flex
+                    direction="column"
+                    align="center"
+                    justify="center"
+                    p={4}
+                    h="130px"
+                    w="150px"
+                    bg="transparent"
+                    borderRadius="12px"
+                    position="relative"
+                  >
+                    <Box
+                      position="absolute"
+                      bottom="35px"
+                      width="70px"
+                      height="70px"
+                      borderRadius="50%"
+                      bg={rarity?.neon}
+                      filter="blur(10px)"
+                      zIndex={0}
+                    />
+                    <Image
+                      src={`https://droppu.ru:7777/api/v1/uploads/${item.inventory_item.image_url}`}
+                      alt={item.inventory_item.name}
+                      boxSize="80px"
+                      objectFit="contain"
+                      mb={0}
+                      zIndex={1}
+                    />
+                    <Text fontSize="12px" color={colors.secondaryText}>
+                      {item.inventory_item.name}
+                    </Text>
+                  </Flex>
+                </GradientBorderWrapper>
+              );
+            })
+          )}
         </Grid>
       </Flex>
 

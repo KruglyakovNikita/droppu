@@ -9,6 +9,7 @@ import {
   Image,
   useToast,
   Spinner,
+  Skeleton,
 } from "@chakra-ui/react";
 import { keyframes } from "@emotion/react";
 import GradientBorderWrapper from "../app/components/GradientBorderWrapper";
@@ -33,10 +34,11 @@ const Earn: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isChecked, setIsChecked] = useState(false);
   const toast = useToast();
-
+  const [isTasksLoading, setIsTasksLoading] = useState(true);
 
   useEffect(() => {
     const fetchTasks = async () => {
+      setIsTasksLoading(true);
       try {
         const response = await getTasks();
         if (response?.data) {
@@ -45,6 +47,8 @@ const Earn: React.FC = () => {
         }
       } catch (error) {
         console.error("Error fetching tasks:", error);
+      } finally {
+        setIsTasksLoading(false);
       }
     };
     fetchTasks();
@@ -122,64 +126,90 @@ const Earn: React.FC = () => {
         </Heading>
       </Box>
 
-      {/* Card for checking socials */}
-      <GradientBorderWrapper
-        width="360px"
-        height="110px"
-        startColor="#793BC7"
-        endColor="#C2D2FF"
-        strokeWidth={1.5}
-      >
-        <Box
-          position="relative"
-          zIndex="1"
-          display="flex"
-          flexDirection="column"
-          alignItems="left"
-          justifyContent="start"
-          height="100%"
-          px="6"
-          mt="4"
+      {/* Weekly Card with Skeleton */}
+      {isTasksLoading ? (
+        <GradientBorderWrapper
+          width="360px"
+          height="110px"
+          startColor="#793BC7"
+          endColor="#C2D2FF"
+          strokeWidth={1.5}
         >
-          <Text
-            fontSize="20px"
-            fontFamily="'PixelifySans-Bold', sans-serif"
-            color={colors.primaryText}
-            textAlign="left"
+          <Box
+            position="relative"
+            zIndex="1"
+            display="flex"
+            flexDirection="column"
+            alignItems="left"
+            justifyContent="start"
+            height="100%"
+            px="6"
+            mt="4"
           >
-            Earn for checking socials
-          </Text>
-          <Text
-            fontSize="14px"
-            fontFamily="'PixelifySans-Bold', sans-serif"
-            color={colors.secondaryText}
-            mt="-1"
+            <Skeleton height="20px" width="200px" mb={2} />
+            <Skeleton height="14px" width="100px" mb={3} />
+            <Skeleton height="25px" width="70px" borderRadius="52px" />
+          </Box>
+        </GradientBorderWrapper>
+      ) : (
+        <GradientBorderWrapper
+          width="360px"
+          height="110px"
+          startColor="#793BC7"
+          endColor="#C2D2FF"
+          strokeWidth={1.5}
+        >
+          <Box
+            position="relative"
+            zIndex="1"
+            display="flex"
+            flexDirection="column"
+            alignItems="left"
+            justifyContent="start"
+            height="100%"
+            px="6"
+            mt="4"
           >
-            300 Points
-          </Text>
-          <Button
-            mt="3"
-            height="25px"
-            width="70px"
-            border="1px solid white"
-            borderRadius="52px"
-            bg="transparent"
-            fontFamily="'PixelifySans-Bold', sans-serif"
-            fontWeight="normal"
-            fontSize="14px"
-            _hover={{ bg: "rgba(255, 255, 255, 0.1)" }}
-            color={colors.primaryText}
-            onClick={() =>
-              openRewardPopup({
-                name: "Earn for checking socials",
-                reward_coins: 300,
-              })
-            }
-          >
-            Start
-          </Button>
-        </Box>
-      </GradientBorderWrapper>
+            <Text
+              fontSize="20px"
+              fontFamily="'PixelifySans-Bold', sans-serif"
+              color={colors.primaryText}
+              textAlign="left"
+            >
+              Earn for checking socials
+            </Text>
+            <Text
+              fontSize="14px"
+              fontFamily="'PixelifySans-Bold', sans-serif"
+              color={colors.secondaryText}
+              mt="-1"
+            >
+              300 Points
+            </Text>
+            <Button
+              mt="3"
+              height="25px"
+              width="70px"
+              border="1px solid white"
+              borderRadius="52px"
+              bg="transparent"
+              fontFamily="'PixelifySans-Bold', sans-serif"
+              fontWeight="normal"
+              fontSize="14px"
+              _hover={{ bg: "rgba(255, 255, 255, 0.1)" }}
+              color={colors.primaryText}
+              onClick={() =>
+                openRewardPopup({
+                  name: "Earn for checking socials",
+                  reward_coins: 300,
+                })
+              }
+            >
+              Start
+            </Button>
+          </Box>
+        </GradientBorderWrapper>
+      )}
 
       {/* Navigation Bar */}
       <Flex
@@ -211,58 +241,87 @@ const Earn: React.FC = () => {
 
       {/* Task List */}
       <Grid templateColumns="1fr" gap={4} w="100%" maxW="360px">
-        {filteredTasks.map((task, index) => (
-          <GradientBorderWrapper
-            startColor="#793BC7"
-            endColor="#C2D2FF"
-            strokeWidth={1.5}
-            key={index}
-          >
-            <Flex
-              bg="transparent"
-              borderRadius="12px"
-              p={4}
-              h="50px"
-              align="center"
-              justify="space-between"
+        {isTasksLoading ? (
+          Array(3).fill(0).map((_, index) => (
+            <GradientBorderWrapper
+              startColor="#793BC7"
+              endColor="#C2D2FF"
+              strokeWidth={1.5}
+              key={index}
             >
-              <Flex align="center">
-                <Image
-                  src="/icons/star_icon.svg"
-                  alt="Task Icon"
-                  boxSize="23px"
-                  mr={3}
-                />
-                <Stack spacing={0}>
-                  <Text
-                    fontFamily="'PixelifySans-Bold', sans-serif"
-                    fontSize="16px"
-                  >
-                    {task.name}
-                  </Text>
-                  <Text fontSize="12px" color={colors.secondaryText}>
-                    {task.reward_coins} Points
-                  </Text>
-                </Stack>
-              </Flex>
-              <Button
-                height="25px"
-                width="70px"
-                border="1px solid white"
-                borderRadius="52px"
+              <Flex
                 bg="transparent"
-                fontFamily="'PixelifySans-Bold', sans-serif"
-                fontWeight="normal"
-                fontSize="14px"
-                _hover={{ bg: "rgba(255, 255, 255, 0.1)" }}
-                color={colors.primaryText}
-                onClick={() => openRewardPopup(task)}
+                borderRadius="12px"
+                p={4}
+                h="50px"
+                align="center"
+                justify="space-between"
               >
-                Start
-              </Button>
-            </Flex>
-          </GradientBorderWrapper>
-        ))}
+                <Flex align="center">
+                  <Skeleton boxSize="23px" mr={3} />
+                  <Stack spacing={0}>
+                    <Skeleton height="16px" width="120px" mb={1} />
+                    <Skeleton height="12px" width="80px" />
+                  </Stack>
+                </Flex>
+                <Skeleton height="25px" width="70px" borderRadius="52px" />
+              </Flex>
+            </GradientBorderWrapper>
+          ))
+        ) : (
+          filteredTasks.map((task, index) => (
+            <GradientBorderWrapper
+              startColor="#793BC7"
+              endColor="#C2D2FF"
+              strokeWidth={1.5}
+              key={index}
+            >
+              <Flex
+                bg="transparent"
+                borderRadius="12px"
+                p={4}
+                h="50px"
+                align="center"
+                justify="space-between"
+              >
+                <Flex align="center">
+                  <Image
+                    src="/icons/star_icon.svg"
+                    alt="Task Icon"
+                    boxSize="23px"
+                    mr={3}
+                  />
+                  <Stack spacing={0}>
+                    <Text
+                      fontFamily="'PixelifySans-Bold', sans-serif"
+                      fontSize="16px"
+                    >
+                      {task.name}
+                    </Text>
+                    <Text fontSize="12px" color={colors.secondaryText}>
+                      {task.reward_coins} Points
+                    </Text>
+                  </Stack>
+                </Flex>
+                <Button
+                  height="25px"
+                  width="70px"
+                  border="1px solid white"
+                  borderRadius="52px"
+                  bg="transparent"
+                  fontFamily="'PixelifySans-Bold', sans-serif"
+                  fontWeight="normal"
+                  fontSize="14px"
+                  _hover={{ bg: "rgba(255, 255, 255, 0.1)" }}
+                  color={colors.primaryText}
+                  onClick={() => openRewardPopup(task)}
+                >
+                  Start
+                </Button>
+              </Flex>
+            </GradientBorderWrapper>
+          ))
+        )}
       </Grid>
 
      {/* Task Popup */}
