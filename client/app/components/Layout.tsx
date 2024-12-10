@@ -55,20 +55,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
       setIsLoading(true);
       console.log("initData");
 
-      const response = await initUser({
-        query_id: "AAF03wc0AgAAAHTfBzROOCVW",
-        user: {
-          id: 78984845667992822,
-          first_name: "Иван",
-          last_name: "Иванов",
-          username: "ivanivanov",
-          language_code: "ru",
-          is_premium: true,
-          allows_write_to_pm: true,
-        },
-        auth_date: 1722938610,
-        hash: "8654c8c617c143abf656f4f159be2539880a56f58c2d9be622f90c0346aa162b",
-      });
+      const response = await initUser(initData);
       const data = response.data;
 
       if (data?.user) {
