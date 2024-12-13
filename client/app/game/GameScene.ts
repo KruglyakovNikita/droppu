@@ -146,9 +146,10 @@ class GameScene extends Phaser.Scene {
     });
 
     // Загрузка коинов
-    this.load.spritesheet("coin", "/blocks/coin-sprite.png", {
-      frameWidth: 20, // Ширина кадра
-      frameHeight: 20, // Высота кадра
+    this.load.spritesheet("coin", "/sptires/Coin/Coin-Sheet.png", {
+      frameWidth: 64,
+      frameHeight: 64,
+      endFrame: 5,
     });
 
     this.load.image("healIcon", "/icons/heal-icon.png");
@@ -207,8 +208,8 @@ class GameScene extends Phaser.Scene {
     // Создание анимации вращения для коинов
     this.anims.create({
       key: "spin",
-      frames: this.anims.generateFrameNumbers("coin", { start: 0, end: 3 }),
-      frameRate: 10,
+      frames: this.anims.generateFrameNumbers("coin", { start: 0, end: 5 }),
+      frameRate: 5,
       repeat: -1,
     });
 
@@ -298,7 +299,8 @@ class GameScene extends Phaser.Scene {
     // СОЗДАНИЕ ПРЕПЯТСТВИЙ
     this.coinPool = new ObjectPool(() => {
       const coin = this.matter.add.sprite(0, 0, "coin");
-      coin.setDisplaySize(this.scale.width * 0.03, this.scale.height * 0.05);
+      coin.setDisplaySize(this.scale.width * 0.06, this.scale.height * 0.1);
+      coin.setRectangle(this.scale.width * 0.03, this.scale.height * 0.05);
       coin.setSensor(true); // Устанавливаем как сенсор
       coin.setIgnoreGravity(true); // Игнорируем гравитацию
       coin.setDepth(1); // Устанавливаем слой отрисовки
