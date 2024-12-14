@@ -13,7 +13,7 @@ export class DynamicRocket extends Rocket {
     speed: number,
     amplitude: number
   ) {
-    super(scene, x, y, "dynamicRocketTexture", target, speed);
+    super(scene, x, y, target, speed, "dynamic");
     this.amplitude = amplitude;
     this.baseY = y;
     this.time = 0;

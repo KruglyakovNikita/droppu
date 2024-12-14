@@ -33,6 +33,9 @@ export const PLAYER_SPEED = 2.5; // Постоянная скорость впр
 
 export const MIN_DISTANCE_BETWEEN_PRESETS = 175; // Минимальное расстояние между пресетами
 const INIT_PLATFORM_DISTANCE = 400;
+const ROCKET_DISPLAY_WIDTH = 90;
+const ROCKET_DISPLAY_HEIGHT = 40;
+
 class GameScene extends Phaser.Scene {
   testInd: number = 0;
   player!: Phaser.Physics.Matter.Sprite;
@@ -107,6 +110,8 @@ class GameScene extends Phaser.Scene {
 
   fpsText!: Phaser.GameObjects.Text;
 
+  rocketPool!: ObjectPool<Rocket>;
+
   constructor() {
     super({ key: "GameScene" });
   }
@@ -171,6 +176,35 @@ class GameScene extends Phaser.Scene {
       "/blocks/rocket_default_dynamic.png"
     );
 
+    this.load.spritesheet("rocket1", "/sptires/rocket2/Rocket1.png", {
+      frameWidth: 100,
+      frameHeight: 100,
+    });
+    this.load.spritesheet("rocket2", "/sptires/rocket2/Rocket2.png", {
+      frameWidth: 100,
+      frameHeight: 100,
+    });
+    this.load.spritesheet("rocket3", "/sptires/rocket2/Rocket3.png", {
+      frameWidth: 100,
+      frameHeight: 100,
+    });
+
+    this.load.spritesheet("point1", "/sptires/Point2/Point1.png", {
+      frameWidth: 100,
+      frameHeight: 100,
+      endFrame: 4,
+    });
+    this.load.spritesheet("point2", "/sptires/Point2/Point2.png", {
+      frameWidth: 100,
+      frameHeight: 100,
+      endFrame: 4,
+    });
+    this.load.spritesheet("point3", "/sptires/Point2/Point3.png", {
+      frameWidth: 100,
+      frameHeight: 100,
+      endFrame: 4,
+    });
+
     // Текстура для дыма
     this.load.image("smoke", "/blocks/smoke.png");
 
@@ -212,6 +246,58 @@ class GameScene extends Phaser.Scene {
       key: "spin",
       frames: this.anims.generateFrameNumbers("coin", { start: 0, end: 5 }),
       frameRate: 5,
+      repeat: -1,
+    });
+    this.anims.create({
+      key: "rocket_static",
+      frames: this.anims.generateFrameNumbers("rocket1", {
+        start: 0,
+        end: 5,
+      }),
+      frameRate: 10,
+      repeat: -1,
+    });
+
+    this.anims.create({
+      key: "rocket_homing",
+      frames: this.anims.generateFrameNumbers("rocket2", {
+        start: 0,
+        end: 5,
+      }),
+      frameRate: 10,
+      repeat: -1,
+    });
+
+    this.anims.create({
+      key: "rocket_dynamic",
+      frames: this.anims.generateFrameNumbers("rocket3", {
+        start: 0,
+        end: 5,
+      }),
+      frameRate: 10,
+      repeat: -1,
+    });
+
+    // Создаём анимации для предупреждающих треугольников:
+    // Всего 10 кадров: start:0, end:9
+    this.anims.create({
+      key: "point_static",
+      frames: this.anims.generateFrameNumbers("point1", { start: 0, end: 9 }),
+      frameRate: 10,
+      repeat: -1,
+    });
+
+    this.anims.create({
+      key: "point_homing",
+      frames: this.anims.generateFrameNumbers("point2", { start: 0, end: 9 }),
+      frameRate: 10,
+      repeat: -1,
+    });
+
+    this.anims.create({
+      key: "point_dynamic",
+      frames: this.anims.generateFrameNumbers("point3", { start: 0, end: 9 }),
+      frameRate: 10,
       repeat: -1,
     });
 
@@ -349,6 +435,7 @@ class GameScene extends Phaser.Scene {
       color: "#ffffff",
     });
     this.fpsText.setScrollFactor(0);
+
     GameData.instance.notifyGameReady();
   }
 
@@ -493,6 +580,8 @@ class GameScene extends Phaser.Scene {
           rocket = new HomingRocket(this, initialX, yPosition, this.player, 5);
           break;
         case "dynamic":
+          console.log("IM HERE");
+
           // Одиночная динамическая ракета, отслеживающая игрока
           rocket = new DynamicRocket(
             this,

@@ -205,6 +205,7 @@ const Game: FC<GameSceneData> = ({
             gravity: { x: 0, y: 0 },
             positionIterations: 6,
             velocityIterations: 4,
+            debug: true,
           },
         },
         scene: GameScene,

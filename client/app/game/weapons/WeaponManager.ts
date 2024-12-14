@@ -63,7 +63,7 @@ export class WeaponManager {
           obj.instance.x < camera.scrollX - 200 || // Левый край за пределами камеры
           obj.instance.x > camera.scrollX + camera.width + 200 || // Правый край за пределами камеры
           obj.instance.y <= camera.scrollY || // Верхний край за пределами камеры
-          obj.instance.y >= camera.scrollY + camera.height // Нижний край за пределами камеры
+          obj.instance.y >= camera.scrollY + camera.height + 200 // Нижний край за пределами камеры
         ) {
           this.removeObject(obj.instance);
           return false;
