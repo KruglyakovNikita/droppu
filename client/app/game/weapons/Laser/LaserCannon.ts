@@ -13,6 +13,14 @@ const DYNAMIC_OSCILLATION_AMPLITUDE = 15;
 const DYNAMIC_OSCILLATION_FREQUENCY = 2;
 const DYNAMIC_OSCILLATION_DURATION = 3000;
 
+type LazerType = "static" | "homing" | "dynamic";
+type LazerSpriteType = "lazer_static" | "lazer_homing" | "lazer_dynamic";
+type PointSpriteType = "point_static" | "point_homing" | "point_dynamic";
+type LazerPlasmaSpriteType =
+  | "lazerPlasma_static"
+  | "lazerPlasma_homing"
+  | "lazerPlasma_dynamic";
+
 export class LaserCannon {
   scene: Phaser.Scene;
   player: Phaser.Physics.Matter.Sprite;
@@ -26,6 +34,9 @@ export class LaserCannon {
   private updateWarningPosition: (() => void) | null = null;
   type: ObstacleVariantType;
   initialY: number;
+  lazerSprite: LazerSpriteType = "lazer_static";
+  pointSprite: PointSpriteType = "point_static";
+  lazerPlasmaSprite: LazerPlasmaSpriteType = "lazerPlasma_static";
 
   private plasmaY: number | null = null;
 
@@ -40,7 +51,8 @@ export class LaserCannon {
     scene: Phaser.Scene,
     type: ObstacleVariantType,
     player: Phaser.Physics.Matter.Sprite,
-    initialY?: number
+    initialY?: number,
+    typeOfLazer: LazerType = "static"
   ) {
     this.scene = scene;
     this.type = type;
@@ -58,19 +70,34 @@ export class LaserCannon {
       this.initialY = this.player.y;
     }
 
+    if (typeOfLazer === "dynamic") {
+      this.lazerSprite = "lazer_dynamic";
+      this.pointSprite = "point_dynamic";
+      this.lazerPlasmaSprite = "lazerPlasma_dynamic";
+    } else if (typeOfLazer === "homing") {
+      this.lazerSprite = "lazer_homing";
+      this.pointSprite = "point_homing";
+      this.lazerPlasmaSprite = "lazerPlasma_homing";
+    } else {
+      this.lazerSprite = "lazer_static";
+      this.pointSprite = "point_static";
+      this.lazerPlasmaSprite = "lazerPlasma_static";
+    }
+    console.log(this.lazerSprite);
+
     // Создаём лазерные пушки
-    this.leftGun = this.scene.add.image(
-      -this.GUN_MOVE_DISTANCE,
-      this.initialY,
-      "laserGun"
-    );
-    this.rightGun = this.scene.add.image(
-      this.scene.cameras.main.width + this.GUN_MOVE_DISTANCE,
-      this.initialY,
-      "laserGun"
-    );
-    this.leftGun.setScale(0.5);
-    this.rightGun.setScale(0.5);
+    this.leftGun = this.scene.add
+      .sprite(-this.GUN_MOVE_DISTANCE, this.initialY, this.lazerSprite)
+      .play(this.lazerSprite);
+    this.rightGun = this.scene.add
+      .sprite(
+        this.scene.cameras.main.width + this.GUN_MOVE_DISTANCE,
+        this.initialY,
+        this.lazerSprite
+      )
+      .play(this.lazerSprite);
+    this.leftGun.setScale(0.6);
+    this.rightGun.setScale(0.6);
     this.rightGun.setFlipX(true);
     this.leftGun.setDepth(2);
     this.rightGun.setDepth(2);
@@ -85,24 +112,31 @@ export class LaserCannon {
 
   startSequence() {
     // Отображаем предупреждающие треугольники
-    this.warningLeft = this.scene.add.image(
-      CAMER_GAP,
-      this.initialY,
-      "warningTriangle"
-    );
-    this.warningRight = this.scene.add.image(
-      this.scene.cameras.main.width - CAMER_GAP,
-      this.initialY,
-      "warningTriangle"
-    );
-    this.warningLeft.setScale(0.5);
-    this.warningRight.setScale(0.5);
-    this.warningLeft.setAlpha(0.8);
-    this.warningRight.setAlpha(0.8);
+    this.warningLeft = this.scene.add
+      .sprite(CAMER_GAP, this.initialY, this.pointSprite)
+      .play(this.pointSprite);
+
+    this.warningRight = this.scene.add
+      .sprite(
+        this.scene.cameras.main.width - CAMER_GAP,
+        this.initialY,
+        this.pointSprite
+      )
+      .play(this.pointSprite);
+
     this.warningLeft.setVisible(true);
     this.warningRight.setVisible(true);
     this.warningLeft.setDepth(2);
     this.warningRight.setDepth(2);
+
+    this.warningRight.setDisplaySize(
+      this.scene.scale.width * 0.06,
+      this.scene.scale.height * 0.09
+    );
+    this.warningLeft.setDisplaySize(
+      this.scene.scale.width * 0.06,
+      this.scene.scale.height * 0.09
+    );
 
     // Фиксируем предупреждения на экране
     this.warningLeft.setScrollFactor(0);
@@ -110,16 +144,6 @@ export class LaserCannon {
 
     // Воспроизводим звук предупреждения
     this.scene.sound.play("laserCannonWarning");
-
-    // Анимация мигания предупреждений
-    this.scene.tweens.add({
-      targets: [this.warningLeft, this.warningRight],
-      alpha: { from: 0.8, to: 0 },
-      ease: "Linear",
-      duration: 300,
-      repeat: -1,
-      yoyo: true,
-    });
 
     // Для 'homing' и 'dynamic' устанавливаем разные поведения
     if (this.type === "homing" || this.type === "dynamic") {
@@ -214,18 +238,20 @@ export class LaserCannon {
     const leftGunX = this.leftGun.x + cameraScrollX;
     const rightGunX = this.rightGun.x + cameraScrollX;
 
-    const plasmaHeight = 20;
+    const plasmaHeight = 25;
     const laserLength = rightGunX - leftGunX - this.leftGun.displayWidth;
 
     // Создаём один большой сегмент плазмы между пушками
     const x = leftGunX + this.leftGun.displayWidth / 2 + laserLength / 2;
     const y = fixedY + cameraScrollY;
 
-    const segment = this.scene.matter.add.image(x, y, "laserPlazm", undefined, {
-      isSensor: true,
-      isStatic: true,
-    });
-    segment.setDisplaySize(laserLength, plasmaHeight);
+    const segment = this.scene.matter.add
+      .sprite(x, y, this.lazerPlasmaSprite, undefined, {
+        isSensor: true,
+        isStatic: true,
+      })
+      .play(this.lazerPlasmaSprite);
+    segment.setDisplaySize(40, plasmaHeight);
     segment.setDepth(1);
 
     this.laserPlasma.push(segment);

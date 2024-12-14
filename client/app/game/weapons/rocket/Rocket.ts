@@ -1,5 +1,8 @@
 // Rocket.ts
 type RocketType = "static" | "homing" | "dynamic";
+type RocketSpriteType = "rocket_static" | "rocket_homing" | "rocket_dynamic";
+type PointSpriteType = "point_static" | "point_homing" | "point_dynamic";
+
 export class Rocket extends Phaser.Physics.Matter.Sprite {
   target?: Phaser.GameObjects.Sprite;
   speed: number;
@@ -8,7 +11,8 @@ export class Rocket extends Phaser.Physics.Matter.Sprite {
   private updateWarningPosition: (() => void) | null = null;
   private warningDelayedCall: Phaser.Time.TimerEvent | null = null;
   private warningTriangle: Phaser.GameObjects.Sprite | null = null;
-  typeOfRocket: RocketType = "static";
+  rocketSprite: RocketSpriteType = "rocket_static";
+  pointSprite: PointSpriteType = "point_static";
 
   constructor(
     scene: Phaser.Scene,
@@ -18,11 +22,19 @@ export class Rocket extends Phaser.Physics.Matter.Sprite {
     speed: number,
     typeOfRocket: RocketType = "static"
   ) {
-    let rocketSprite = "rocket_static";
+    let rocketSprite: RocketSpriteType = "rocket_static";
+    let pointSprite: PointSpriteType = "point_static";
 
-    if (typeOfRocket === "dynamic") rocketSprite = "rocket_dynamic";
-    else if (typeOfRocket === "homing") rocketSprite = "rocket_homing";
-    else rocketSprite = "rocket_static";
+    if (typeOfRocket === "dynamic") {
+      rocketSprite = "rocket_dynamic";
+      pointSprite = "point_dynamic";
+    } else if (typeOfRocket === "homing") {
+      rocketSprite = "rocket_homing";
+      pointSprite = "point_homing";
+    } else {
+      rocketSprite = "rocket_static";
+      pointSprite = "point_static";
+    }
 
     super(scene.matter.world, x, y, rocketSprite);
     this.scene = scene;
@@ -30,6 +42,9 @@ export class Rocket extends Phaser.Physics.Matter.Sprite {
       this.target = target;
     }
     this.speed = speed;
+
+    this.pointSprite = pointSprite;
+    this.rocketSprite = rocketSprite;
 
     this.scene.add.existing(this);
 
@@ -40,9 +55,9 @@ export class Rocket extends Phaser.Physics.Matter.Sprite {
     this.setFrictionAir(0); // Отключаем сопротивление воздуха
     this.setFriction(0); // Отключаем трение
     this.setFixedRotation();
-    this.setRectangle(80, 30);
+
+    this.setRectangle(85, 30);
     this.setSensor(true);
-    this.typeOfRocket = typeOfRocket;
   }
 
   /**
@@ -53,17 +68,11 @@ export class Rocket extends Phaser.Physics.Matter.Sprite {
   setWarning(getX: () => number, getY: () => number) {
     this.isWarning = true;
 
-    let pointSprite = "rocket_static";
-
-    if (this.typeOfRocket === "dynamic") pointSprite = "point_dynamic";
-    else if (this.typeOfRocket === "homing") pointSprite = "point_homing";
-    else pointSprite = "point_static";
-
     // Создаём треугольник-предупреждение
     this.warningTriangle = this.scene.matter.add.sprite(
       getX(),
       getY(),
-      pointSprite
+      this.pointSprite
     );
     this.warningTriangle?.setDepth(1);
     this.warningTriangle.setDisplaySize(
@@ -71,8 +80,8 @@ export class Rocket extends Phaser.Physics.Matter.Sprite {
       this.scene.scale.height * 0.03
     );
 
-    if (this.typeOfRocket) {
-      this.warningTriangle.play(`point_${this.typeOfRocket}`);
+    if (this.pointSprite) {
+      this.warningTriangle.play(this.pointSprite);
     }
 
     // Обновляем позицию треугольника при обновлении сцены
@@ -111,9 +120,7 @@ export class Rocket extends Phaser.Physics.Matter.Sprite {
     // Устанавливаем начальную позицию ракеты
     this.setPosition(getX() + 50, getY());
 
-    if (this.typeOfRocket === "dynamic") this.play("rocket_dynamic");
-    else if (this.typeOfRocket === "homing") this.play("rocket_homing");
-    else this.play("rocket_static");
+    if (this.rocketSprite) this.play(this.rocketSprite);
 
     // Делаем ракету видимой и активной
     this.setVisible(true);

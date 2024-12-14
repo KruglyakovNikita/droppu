@@ -1,8 +1,8 @@
 import { DifficultyLevel } from "../presets/types";
 
 const initialScore = 0;
-const initialScoreEnd = 2500;
-const intermediateScoreEnd = 5000;
+const initialScoreEnd = 7000;
+const intermediateScoreEnd = 7500;
 const advancedScoreEnd = 10000;
 const expertScoreEnd = 15000;
 const masterScoreEnd = Infinity;
@@ -40,12 +40,34 @@ export const difficultyLevels: DifficultyLevel[] = [
     name: "Initial",
     minScore: initialScore,
     maxScore: initialScoreEnd,
-    presetTypes: ["easy", "medium"],
+    presetTypes: [],
     obstacles: {
-      spawnRateMultiplier: 1,
-      obstacleConfigs: [],
+      spawnRateMultiplier: 3,
+      obstacleConfigs: [
+        // {
+        //   name: "homingLaserCannon",
+        //   weight: 15,
+        //   obstacleType: "laserCannon",
+        //   variants: [{ type: "homing" }],
+        // },
+        // {
+        //   name: "dynamicLaserCannon",
+        //   weight: 30,
+        //   obstacleType: "laserCannon",
+        //   variants: [{ type: "dynamic" }],
+        // },
+        {
+          name: "doubleDynamicLasers",
+          weight: 10,
+          obstacleType: "laserCannon",
+          variants: [
+            { type: "static", position: { y: "top" } },
+            { type: "static", position: { y: "bottom" } },
+          ],
+        },
+      ],
     },
-    coinPresetFrequency: 1.5,
+    coinPresetFrequency: 10,
   },
   {
     name: "Intermediate",

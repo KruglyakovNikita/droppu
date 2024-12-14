@@ -205,6 +205,25 @@ class GameScene extends Phaser.Scene {
       endFrame: 4,
     });
 
+    this.load.spritesheet("lazer1", "/sptires/Gun/Lazer1.png", {
+      frameWidth: 100,
+      frameHeight: 100,
+    });
+    this.load.spritesheet("lazer2", "/sptires/Gun/Lazer2.png", {
+      frameWidth: 100,
+      frameHeight: 100,
+    });
+    this.load.spritesheet("lazer3", "/sptires/Gun/Lazer3.png", {
+      frameWidth: 100,
+      frameHeight: 100,
+    });
+
+    // Загрузка спрайта лазерной плазмы
+    this.load.spritesheet("lazerPlasma", "/sptires/Gun/Lazer-Plasma.png", {
+      frameWidth: 20,
+      frameHeight: 40,
+    });
+
     // Текстура для дыма
     this.load.image("smoke", "/blocks/smoke.png");
 
@@ -298,6 +317,61 @@ class GameScene extends Phaser.Scene {
       key: "point_dynamic",
       frames: this.anims.generateFrameNumbers("point3", { start: 0, end: 9 }),
       frameRate: 10,
+      repeat: -1,
+    });
+    // Анимации для лазерных пушек
+    this.anims.create({
+      key: "lazer_static",
+      frames: this.anims.generateFrameNumbers("lazer1", { start: 0, end: 10 }),
+      frameRate: 10,
+      repeat: -1,
+    });
+
+    this.anims.create({
+      key: "lazer_homing",
+      frames: this.anims.generateFrameNumbers("lazer2", { start: 0, end: 10 }),
+      frameRate: 10,
+      repeat: -1,
+    });
+
+    this.anims.create({
+      key: "lazer_dynamic",
+      frames: this.anims.generateFrameNumbers("lazer3", { start: 0, end: 10 }),
+      frameRate: 10,
+      repeat: -1,
+    });
+
+    // Анимации для предупреждающего треугольника у лазерных пушек — они те же, что и для ракет, уже созданы:
+    // point_static, point_homing, point_dynamic уже есть.
+
+    // Анимации для лазерной плазмы
+    this.anims.create({
+      key: "lazerPlasma_static",
+      frames: this.anims.generateFrameNumbers("lazerPlasma", {
+        start: 0,
+        end: 1,
+      }),
+      frameRate: 4,
+      repeat: -1,
+    });
+
+    this.anims.create({
+      key: "lazerPlasma_homing",
+      frames: this.anims.generateFrameNumbers("lazerPlasma", {
+        start: 0,
+        end: 1,
+      }),
+      frameRate: 4,
+      repeat: -1,
+    });
+
+    this.anims.create({
+      key: "lazerPlasma_dynamic",
+      frames: this.anims.generateFrameNumbers("lazerPlasma", {
+        start: 0,
+        end: 1,
+      }),
+      frameRate: 4,
       repeat: -1,
     });
 
