@@ -147,8 +147,10 @@ class GameScene extends Phaser.Scene {
 
     // Загрузка коинов
     this.load.spritesheet("coin", "/sptires/Coin/Coin-Sheet.png", {
-      frameWidth: 64,
-      frameHeight: 64,
+      frameWidth: 40,
+      frameHeight: 40,
+      margin: 12,
+      spacing: 24,
       endFrame: 5,
     });
 
@@ -299,8 +301,7 @@ class GameScene extends Phaser.Scene {
     // СОЗДАНИЕ ПРЕПЯТСТВИЙ
     this.coinPool = new ObjectPool(() => {
       const coin = this.matter.add.sprite(0, 0, "coin");
-      coin.setDisplaySize(this.scale.width * 0.06, this.scale.height * 0.1);
-      coin.setRectangle(this.scale.width * 0.03, this.scale.height * 0.05);
+      coin.setDisplaySize(this.scale.width * 0.045, this.scale.height * 0.075);
       coin.setSensor(true); // Устанавливаем как сенсор
       coin.setIgnoreGravity(true); // Игнорируем гравитацию
       coin.setDepth(1); // Устанавливаем слой отрисовки
