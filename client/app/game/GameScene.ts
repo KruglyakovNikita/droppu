@@ -577,7 +577,7 @@ class GameScene extends Phaser.Scene {
           break;
         case "homing":
           // Одиночная homing ракета, отслеживающая игрока
-          rocket = new HomingRocket(this, initialX, yPosition, this.player, 5);
+          rocket = new HomingRocket(this, initialX, yPosition, this.player, 4);
           break;
         case "dynamic":
           console.log("IM HERE");
@@ -588,8 +588,8 @@ class GameScene extends Phaser.Scene {
             initialX,
             yPosition,
             this.player,
-            4,
-            20
+            3.5,
+            25
           );
           break;
         default:

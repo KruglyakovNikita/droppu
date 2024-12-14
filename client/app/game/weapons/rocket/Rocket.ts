@@ -123,7 +123,7 @@ export class Rocket extends Phaser.Physics.Matter.Sprite {
     this.scene.sound.play("rocketLaunch");
 
     // Задаем скорость ракете влево
-    this.setVelocityX(this.speed);
+    this.setVelocityX(-this.speed);
     this.setVelocityY(0); // Фиксируем скорость по оси Y
     this.setSensor(true);
   }

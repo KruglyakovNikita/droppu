@@ -33,7 +33,7 @@ export class DynamicRocket extends Rocket {
     super.update();
     if (this.active) {
       if (this.active) {
-        const currentTime = this.scene.time.now / 1000; // Получаем текущее время в секундах
+        const currentTime = this.scene.time.now / 1700; // Получаем текущее время в секундах
         const waveOffsetY =
           this.amplitude * Math.sin((this.amplitude / 2) * currentTime); // Генерируем плавное смещение
 
