@@ -301,21 +301,21 @@ class GameScene extends Phaser.Scene {
     // Всего 10 кадров: start:0, end:9
     this.anims.create({
       key: "point_static",
-      frames: this.anims.generateFrameNumbers("point1", { start: 0, end: 9 }),
+      frames: this.anims.generateFrameNumbers("point1", { start: 0, end: 4 }),
       frameRate: 10,
       repeat: -1,
     });
 
     this.anims.create({
       key: "point_homing",
-      frames: this.anims.generateFrameNumbers("point2", { start: 0, end: 9 }),
+      frames: this.anims.generateFrameNumbers("point2", { start: 0, end: 4 }),
       frameRate: 10,
       repeat: -1,
     });
 
     this.anims.create({
       key: "point_dynamic",
-      frames: this.anims.generateFrameNumbers("point3", { start: 0, end: 9 }),
+      frames: this.anims.generateFrameNumbers("point3", { start: 0, end: 4 }),
       frameRate: 10,
       repeat: -1,
     });

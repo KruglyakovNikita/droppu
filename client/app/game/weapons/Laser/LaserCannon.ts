@@ -24,11 +24,11 @@ type LazerPlasmaSpriteType =
 export class LaserCannon {
   scene: Phaser.Scene;
   player: Phaser.Physics.Matter.Sprite;
-  laserPlasma: Phaser.Physics.Matter.Image[] = [];
-  leftGun: Phaser.GameObjects.Image;
-  rightGun: Phaser.GameObjects.Image;
-  warningLeft: Phaser.GameObjects.Image | undefined;
-  warningRight: Phaser.GameObjects.Image | undefined;
+  laserPlasma: Phaser.Physics.Matter.Sprite[] = [];
+  leftGun: Phaser.GameObjects.Sprite;
+  rightGun: Phaser.GameObjects.Sprite;
+  warningLeft: Phaser.GameObjects.Sprite | undefined;
+  warningRight: Phaser.GameObjects.Sprite | undefined;
   active: boolean = false;
   timers: Phaser.Time.TimerEvent[] = [];
   private updateWarningPosition: (() => void) | null = null;
@@ -46,6 +46,9 @@ export class LaserCannon {
 
   GUN_MOVE_DISTANCE!: number;
   PLASMA_SCREEN_X!: number;
+
+  // Хранение относительных смещений для каждого сегмента плазмы
+  private plasmaOffsets: { offsetX: number; offsetY: number }[] = [];
 
   constructor(
     scene: Phaser.Scene,
@@ -83,19 +86,19 @@ export class LaserCannon {
       this.pointSprite = "point_static";
       this.lazerPlasmaSprite = "lazerPlasma_static";
     }
-    console.log(this.lazerSprite);
+    console.log("Laser Sprite:", this.lazerSprite);
 
     // Создаём лазерные пушки
     this.leftGun = this.scene.add
       .sprite(-this.GUN_MOVE_DISTANCE, this.initialY, this.lazerSprite)
-      .play(this.lazerSprite);
+      .play(this.lazerSprite) as Phaser.GameObjects.Sprite;
     this.rightGun = this.scene.add
       .sprite(
         this.scene.cameras.main.width + this.GUN_MOVE_DISTANCE,
         this.initialY,
         this.lazerSprite
       )
-      .play(this.lazerSprite);
+      .play(this.lazerSprite) as Phaser.GameObjects.Sprite;
     this.leftGun.setScale(0.6);
     this.rightGun.setScale(0.6);
     this.rightGun.setFlipX(true);
@@ -114,7 +117,7 @@ export class LaserCannon {
     // Отображаем предупреждающие треугольники
     this.warningLeft = this.scene.add
       .sprite(CAMER_GAP, this.initialY, this.pointSprite)
-      .play(this.pointSprite);
+      .play(this.pointSprite) as Phaser.GameObjects.Sprite;
 
     this.warningRight = this.scene.add
       .sprite(
@@ -122,7 +125,7 @@ export class LaserCannon {
         this.initialY,
         this.pointSprite
       )
-      .play(this.pointSprite);
+      .play(this.pointSprite) as Phaser.GameObjects.Sprite;
 
     this.warningLeft.setVisible(true);
     this.warningRight.setVisible(true);
@@ -238,23 +241,68 @@ export class LaserCannon {
     const leftGunX = this.leftGun.x + cameraScrollX;
     const rightGunX = this.rightGun.x + cameraScrollX;
 
-    const plasmaHeight = 25;
-    const laserLength = rightGunX - leftGunX - this.leftGun.displayWidth;
+    // Немного "заезжаем" под пушки, чтобы было красивее
+    // Допустим, 0.4 от ширины пушки заходим под пушку
+    const leftInside = this.leftGun.displayWidth * 0.4;
+    const rightInside = this.rightGun.displayWidth * 0.4;
 
-    // Создаём один большой сегмент плазмы между пушками
-    const x = leftGunX + this.leftGun.displayWidth / 2 + laserLength / 2;
-    const y = fixedY + cameraScrollY;
+    const startX = leftGunX + (this.leftGun.displayWidth * 0.5 - leftInside);
+    const endX = rightGunX - (this.rightGun.displayWidth * 0.5 - rightInside);
 
-    const segment = this.scene.matter.add
-      .sprite(x, y, this.lazerPlasmaSprite, undefined, {
-        isSensor: true,
-        isStatic: true,
-      })
-      .play(this.lazerPlasmaSprite);
-    segment.setDisplaySize(40, plasmaHeight);
-    segment.setDepth(1);
+    const laserLength = endX - startX;
 
-    this.laserPlasma.push(segment);
+    // Ширина одного сегмента плазмы
+    const segmentWidth = 12;
+    const originalSegmentWidth = 20;
+    // Высота плазмы
+    const plasmaHeight = 20;
+
+    // Рассчитываем количество сегментов
+    const numberOfSegments = Math.floor(laserLength / segmentWidth);
+
+    // Если места мало, хотя бы 1 сегмент
+    const actualSegments = Math.max(1, numberOfSegments);
+
+    // Остаток пространства, если сегменты не идеально уложатся
+    // Можно распределить остаток по сегментам или просто оставить так
+    const extraSpace = 0;
+
+    // Устанавливаем базовую позицию Y (с учётом скролла)
+    this.plasmaY = fixedY;
+
+    // Очистка предыдущих сегментов, если вдруг остались
+    this.laserPlasma.forEach((segment) => segment.destroy());
+    this.laserPlasma = [];
+    this.plasmaOffsets = [];
+
+    // Создаём сегменты плазмы
+    for (let i = 0; i < actualSegments; i++) {
+      const segmentX =
+        startX + extraSpace + i * segmentWidth + segmentWidth / 2;
+      const segmentY = this.plasmaY + cameraScrollY;
+
+      const segment = this.scene.matter.add
+        .sprite(segmentX, segmentY, this.lazerPlasmaSprite, undefined, {
+          isSensor: true,
+          isStatic: true,
+        })
+        .play(this.lazerPlasmaSprite) as Phaser.Physics.Matter.Sprite;
+
+      // Устанавливаем точные размеры без масштабирования
+      segment.setDisplaySize(originalSegmentWidth, plasmaHeight);
+      segment.setDepth(1);
+
+      // Сохраняем относительное смещение сегмента от начальной позиции плазмы
+      const relativeOffsetX = i * segmentWidth;
+      const relativeOffsetY = 0; // Плазма горизонтальная
+
+      this.plasmaOffsets.push({
+        offsetX: relativeOffsetX,
+        offsetY: relativeOffsetY,
+      });
+
+      this.laserPlasma.push(segment);
+    }
 
     // Воспроизводим звук активации
     this.scene.sound.play("laserCannonActivate");
@@ -264,12 +312,13 @@ export class LaserCannon {
       this.startOscillation();
     }
 
-    // Через LASER_DURATION миллисекунд скрываем плазму
+    // Через LASER_DURATION миллисекунд скрываем плазму и деактивируем лазер
     const plasmaTimer = this.scene.time.delayedCall(
       LASER_DURATION,
       () => {
         this.laserPlasma.forEach((segment) => segment.destroy());
         this.laserPlasma = [];
+        this.plasmaOffsets = [];
 
         // После этого пушки уходят за экран и удаляются
         this.deactivateLaser();
@@ -342,22 +391,27 @@ export class LaserCannon {
           this.scene.scale.height - 15
         );
 
-        // Устанавливаем новое положение пушек
+        // Обновляем положение пушек
         this.leftGun.setY(clampedY);
         this.rightGun.setY(clampedY);
 
         // Обновляем позицию плазмы
-        const cameraScrollX = this.scene.cameras.main.scrollX;
         const cameraScrollY = this.scene.cameras.main.scrollY;
 
-        const newX =
-          cameraScrollX +
-          this.PLASMA_SCREEN_X +
-          (this.scene.cameras.main.width - 2 * this.PLASMA_SCREEN_X) / 2;
-        const newYPos = clampedY + cameraScrollY;
+        // Пересчитываем начальные координаты плазмы
+        const leftGunX = this.leftGun.x + this.scene.cameras.main.scrollX;
+        const startX =
+          leftGunX +
+          (this.leftGun.displayWidth * 0.5 - this.leftGun.displayWidth * 0.4);
 
-        this.laserPlasma.forEach((segment) => {
-          segment.setPosition(newX, newYPos);
+        // Обновляем позицию каждого сегмента плазмы
+        this.laserPlasma.forEach((segment, index) => {
+          const relativeOffset = this.plasmaOffsets[index];
+          const newX = startX + relativeOffset.offsetX;
+          const newY = clampedY + cameraScrollY + relativeOffset.offsetY;
+
+          // Устанавливаем позицию сегмента
+          segment.setPosition(newX, newY);
         });
       }
     }
@@ -370,14 +424,20 @@ export class LaserCannon {
       const cameraScrollX = this.scene.cameras.main.scrollX;
       const cameraScrollY = this.scene.cameras.main.scrollY;
 
-      const newX =
-        cameraScrollX +
-        this.PLASMA_SCREEN_X +
-        (this.scene.cameras.main.width - 2 * this.PLASMA_SCREEN_X) / 2;
-      const newYPos = this.plasmaY + cameraScrollY;
+      // Пересчитываем начальные координаты плазмы
+      const leftGunX = this.leftGun.x + cameraScrollX;
+      const startX =
+        leftGunX +
+        (this.leftGun.displayWidth * 0.5 - this.leftGun.displayWidth * 0.4);
 
-      this.laserPlasma.forEach((segment) => {
-        segment.setPosition(newX, newYPos);
+      this.laserPlasma.forEach((segment, index) => {
+        const relativeOffset = this.plasmaOffsets[index];
+        const newX = startX + relativeOffset.offsetX;
+        const newY =
+          (this.plasmaY ?? 0) + cameraScrollY + relativeOffset.offsetY;
+
+        // Устанавливаем позицию сегмента
+        segment.setPosition(newX, newY);
       });
     }
   }
@@ -388,6 +448,7 @@ export class LaserCannon {
 
     this.laserPlasma.forEach((segment) => segment.destroy());
     this.laserPlasma = [];
+    this.plasmaOffsets = [];
     this.leftGun.destroy();
     this.rightGun.destroy();
 
