@@ -96,8 +96,7 @@ export default function GamePage() {
       <Game
         session_id={100}
         booster={1}
-        userSkinUrl="/player/granny1.png"
-        userSpriteUrl="/player/granny2.png"
+        userSpriteUrl="/sptires/officeClerk/officeClerk"
         onGameEnd={() => {
           console.log("FOFOFOFOSAFASFAS");
           router.push("/");

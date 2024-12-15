@@ -18,7 +18,6 @@ import "./Game.css";
 export interface GameSceneData {
   session_id: number;
   booster: number;
-  userSkinUrl: string;
   userSpriteUrl: string;
   onGameEnd: () => void;
   onPurchaseAttempt: (
@@ -32,7 +31,6 @@ export interface GameSceneData {
 const Game: FC<GameSceneData> = ({
   session_id,
   booster = 0,
-  userSkinUrl,
   userSpriteUrl,
   onGameEnd,
   onPurchaseAttempt,
@@ -184,7 +182,6 @@ const Game: FC<GameSceneData> = ({
       GameData.instance.setData({
         session_id,
         booster,
-        userSkinUrl,
         userSpriteUrl,
         onGameEnd: handleGameEnd,
         handleStartNextGame: handleStartNextGameHandler,

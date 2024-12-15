@@ -66,7 +66,6 @@ class GameScene extends Phaser.Scene {
   // For game
   session_id!: number;
   booster!: number;
-  userSkinUrl!: string;
   userSpriteUrl!: string;
   onGameEnd!: (body: IEndGame) => void;
   handleStartNextGame!: (body: IEndGame) => Promise<IEndGameResponse>;
@@ -112,6 +111,10 @@ class GameScene extends Phaser.Scene {
 
   rocketPool!: ObjectPool<Rocket>;
 
+  // Флаги для логики анимаций
+  spawnCompleted: boolean = false; // Закончилась ли анимация spawn
+  wasInAir: boolean = false; // Был ли персонаж в воздухе на предыдущем кадре (для определения момента приземления)
+
   constructor() {
     super({ key: "GameScene" });
   }
@@ -125,7 +128,6 @@ class GameScene extends Phaser.Scene {
 
     this.session_id = data.session_id;
     this.booster = data.booster;
-    this.userSkinUrl = data.userSkinUrl;
     this.userSpriteUrl = data.userSpriteUrl;
     this.onGameEnd = data.onGameEnd;
     this.onPurchaseAttempt = data.onPurchaseAttempt;
@@ -135,8 +137,8 @@ class GameScene extends Phaser.Scene {
     this.hasTickets = data.hasTickets || false;
 
     // Устанавливаем адаптивные константы
-    this.MIN_Y = this.scale.height * 0.05; // 5% от верха
-    this.MAX_Y = this.scale.height * 0.95; // 95% от верха
+    this.MIN_Y = this.scale.height * 0.09; // 5% от верха
+    this.MAX_Y = this.scale.height * 0.91; // 95% от верха
     this.ASCENT_FORCE = -0.0003 * this.scale.height;
     this.DESCENT_ACCELERATION = 0.0003 * this.scale.height;
     this.MAX_DESCENT_SPEED = 0.01625 * this.scale.height;
@@ -144,13 +146,48 @@ class GameScene extends Phaser.Scene {
   }
 
   preload() {
-    // Загрузка спрайтов для анимаций
-    this.load.spritesheet("playerRun", this.userSpriteUrl, {
-      frameWidth: 128, // Ширина кадра
-      frameHeight: 204, // Высота кадра
+    // Загружаем один спрайт для персонажа (office_clerk) - в userSpriteUrl
+    // Предполагаем, что в одном листе все анимации: spawn, up, down, downEnd, run
+    console.log(`${this.userSpriteUrl}_run.png`);
+
+    this.load.spritesheet(
+      "person_run_sprite",
+      `${this.userSpriteUrl}_run.png`,
+      {
+        frameWidth: 128,
+        frameHeight: 256,
+      }
+    );
+    this.load.spritesheet(
+      "person_down_sprite",
+      `${this.userSpriteUrl}_down.png`,
+      {
+        frameWidth: 128,
+        frameHeight: 256,
+      }
+    );
+    this.load.spritesheet(
+      "person_downEnd_sprite",
+      `${this.userSpriteUrl}_downEnd.png`,
+      {
+        frameWidth: 128,
+        frameHeight: 256,
+      }
+    );
+    this.load.spritesheet(
+      "person_spawn_sprite",
+      `${this.userSpriteUrl}_spawn.png`,
+      {
+        frameWidth: 128,
+        frameHeight: 256,
+      }
+    );
+    this.load.spritesheet("person_up_sprite", `${this.userSpriteUrl}_up.png`, {
+      frameWidth: 128,
+      frameHeight: 256,
     });
 
-    // Загрузка коинов
+    // Остальные ресурсы уже загружены у вас, оставляем без изменений
     this.load.spritesheet("coin", "/sptires/Coin/Coin-Sheet.png", {
       frameWidth: 40,
       frameHeight: 40,
@@ -159,11 +196,10 @@ class GameScene extends Phaser.Scene {
       endFrame: 5,
     });
 
+    // ... остальные загрузки как у вас сейчас ...
     this.load.image("healIcon", "/icons/heal-icon.png");
-
-    // Загрузка других ресурсов
     this.load.image("laser", "/blocks/laser.png");
-    this.load.image("back1", "/map/back1.webp"); // Замените пути на ваши файлы
+    this.load.image("back1", "/map/back1.webp");
     this.load.image("back2", "/map/back2.webp");
     this.load.image("back3", "/map/back3.webp");
     this.load.image("back4", "/map/back4.webp");
@@ -240,26 +276,176 @@ class GameScene extends Phaser.Scene {
     this.load.audio("laserCannonWarning", "/audio/laser_cannon_start.mp3");
     this.load.audio("laserCannonActivate", "/audio/laser_cannon_touch.mp3");
     this.load.audio("laserCannonDeactivate", "/audio/laser_cannon_start.mp3");
-
-    // Если userSpriteUrl передан, загружаем пользовательский спрайт
-    if (this.userSpriteUrl) {
-      this.load.image("userSprite", this.userSpriteUrl);
-    }
   }
 
   create() {
     console.log("create");
     // Создание анимации бега
     this.anims.create({
-      key: "run",
-      frames: this.anims.generateFrameNumbers("playerRun", {
+      key: "person_spawn",
+      frames: this.anims.generateFrameNumbers("person_spawn_sprite", {
         start: 0,
-        end: 3,
+        end: 14,
+      }),
+      frameRate: 10,
+      repeat: 0,
+    });
+
+    // up: кадры 6-10
+    this.anims.create({
+      key: "person_up",
+      frames: this.anims.generateFrameNumbers("person_up_sprite", {
+        start: 0,
+        end: 9,
       }),
       frameRate: 10,
       repeat: -1,
     });
 
+    // down: кадры 11-15
+    this.anims.create({
+      key: "person_down",
+      frames: this.anims.generateFrameNumbers("person_down_sprite", {
+        start: 0,
+        end: 5,
+      }),
+      frameRate: 10,
+      repeat: -1,
+    });
+
+    // downEnd: кадры 16-20
+    this.anims.create({
+      key: "person_downEnd",
+      frames: this.anims.generateFrameNumbers("person_downEnd_sprite", {
+        start: 0,
+        end: 5,
+      }),
+      frameRate: 10,
+      repeat: 0,
+    });
+
+    // run: кадры 21-29
+    this.anims.create({
+      key: "person_run",
+      frames: this.anims.generateFrameNumbers("person_run_sprite", {
+        start: 0,
+        end: 9,
+      }),
+      frameRate: 10,
+      repeat: -1,
+    });
+
+    // Создание игрока
+    this.player = this.matter.add.sprite(40, 80, "person_spawn_sprite");
+
+    this.player.setFixedRotation();
+    this.player.setIgnoreGravity(true);
+    this.player.setFrictionAir(0);
+    this.player.setFriction(0);
+    this.player.setMass(10);
+
+    // Масштабируем игрока
+    const targetWidth = this.scale.width * 0.06;
+    const targetHeight = this.scale.height * 0.18;
+
+    this.player.setDisplaySize(targetWidth, targetHeight);
+    this.player.setRectangle(targetWidth, this.scale.height * 0.14);
+
+    this.cursors = this.input.keyboard!.createCursorKeys();
+
+    this.cameras.main.startFollow(this.player, true, 0.1, 0.1);
+    this.cameras.main.setBounds(
+      0,
+      0,
+      Number.MAX_SAFE_INTEGER,
+      this.scale.height
+    );
+
+    // Пока не двигаемся, ждём spawn
+    this.player.setVelocityX(0);
+
+    // Запускаем spawn
+    this.player.play(`person_spawn`);
+
+    // После окончания spawn начинаем движение в зависимости от состояния
+    this.player.on(
+      Phaser.Animations.Events.ANIMATION_COMPLETE,
+      (anim: Phaser.Animations.Animation) => {
+        if (anim.key === `person_spawn`) {
+          this.spawnCompleted = true;
+          // Начинаем движение
+          this.player.setVelocityX(PLAYER_SPEED);
+          // Определяем состояние
+          this.updateAnimationState();
+        } else if (anim.key === `person_downEnd`) {
+          // После downEnd переходим в run
+          this.player.play(`person_run`);
+        }
+      }
+    );
+
+    // Настройка UI
+    this.score = 0;
+    this.scoreText = this.add
+      .text(this.scale.width * 0.02, this.scale.height * 0.02, "Score: 0", {
+        fontSize: `${this.scale.height * 0.05}px`,
+        color: "#ffffff`",
+      })
+      .setScrollFactor(0);
+
+    this.coinText = this.add
+      .text(this.scale.width * 0.02, this.scale.height * 0.08, "Coins: 0", {
+        fontSize: `${this.scale.height * 0.05}px`,
+        color: "#ffffff`",
+      })
+      .setScrollFactor(0);
+
+    // Фон, и т.д. оставляем как есть
+    this.background1 = this.add
+      .image(0, 0, "back1")
+      .setOrigin(0, 0)
+      .setScrollFactor(0)
+      .setDepth(-Infinity);
+    this.background1.setDisplaySize(this.scale.width, this.scale.height);
+    this.background2 = this.add
+      .image(this.background1.displayWidth, 0, "back2")
+      .setOrigin(0, 0)
+      .setScrollFactor(0)
+      .setDepth(-Infinity);
+    this.background2.setDisplaySize(this.scale.width, this.scale.height);
+
+    this.coinPool = new ObjectPool(() => {
+      const coin = this.matter.add.sprite(0, 0, "coin");
+      coin.setDisplaySize(this.scale.width * 0.045, this.scale.height * 0.075);
+      coin.setSensor(true);
+      coin.setIgnoreGravity(true);
+      coin.setDepth(1);
+      coin.setVisible(true);
+      coin.play("spin");
+      this.coins.push(coin);
+      return coin;
+    });
+
+    // Остальная логика загрузки оружий, лазеров и пресетов не меняется
+
+    this.events.on("playerHit", this.handlePlayerHit, this);
+
+    // Инициализация таймера препятствий
+    const currentDifficulty = getCurrentDifficultyLevel(this.score);
+    const baseDelay = 10000;
+    this.nextObstacleTime =
+      this.time.now +
+      baseDelay / currentDifficulty.obstacles.spawnRateMultiplier;
+
+    this.fpsText = this.add
+      .text(this.scale.width - 100, 10, "", {
+        fontSize: "16px",
+        color: "#ffffff",
+      })
+      .setScrollFactor(0);
+
+    // Уведомляем что готовы
+    GameData.instance.notifyGameReady();
     // Создание анимации вращения для коинов
     this.anims.create({
       key: "spin",
@@ -377,33 +563,6 @@ class GameScene extends Phaser.Scene {
 
     this.objectManager = new WeaponManager(this);
 
-    // Создаем игрока с физикой Matter
-    if (!this.userSpriteUrl) {
-      this.player = this.matter.add.sprite(128, 204, "userSprite");
-    } else {
-      this.player = this.matter.add.sprite(100, 200, "playerRun");
-      this.player.play("run");
-    }
-
-    this.player.setFixedRotation();
-    this.player.setIgnoreGravity(true);
-    this.player.setFrictionAir(0);
-    this.player.setFriction(0);
-    this.player.setMass(10);
-
-    // Масштабируем игрока
-    const targetWidth = this.scale.width * 0.05;
-    const targetHeight = this.scale.height * 0.1;
-    const scaleX = targetWidth / this.player.width;
-    const scaleY = targetHeight / this.player.height;
-    this.player.setScale(scaleX, scaleY);
-    // // Then adjust the body size
-    // this.player.setBody({
-    //   type: "rectangle",
-    //   width: this.player.displayWidth,
-    //   height: this.player.displayHeight,
-    // });
-
     // Настройка управления
     this.cursors = this.input.keyboard!.createCursorKeys();
 
@@ -496,13 +655,6 @@ class GameScene extends Phaser.Scene {
     }
 
     this.events.on("playerHit", this.handlePlayerHit, this);
-
-    // Инициализация таймера препятствий
-    const currentDifficulty = getCurrentDifficultyLevel(this.score);
-    const baseDelay = 10000;
-    this.nextObstacleTime =
-      this.time.now +
-      baseDelay / currentDifficulty.obstacles.spawnRateMultiplier;
 
     this.fpsText = this.add.text(this.scale.width - 100, 10, "", {
       fontSize: "16px",
@@ -1561,39 +1713,24 @@ class GameScene extends Phaser.Scene {
   /**
    * Метод обновления сцены
    */
+
   update() {
     const fps = Math.floor(this.game.loop.actualFps);
     this.fpsText.setText(`FPS: ${fps}`);
 
-    if (this.isStoped) {
-      return;
-    }
+    if (this.isStoped) return;
 
-    // Обновляем все объекты
     if (this.objectManager) {
       this.objectManager.update(this.player);
     }
 
-    // Обновляем счёт
-    const distance = this.player?.x ?? 0;
-    const score = Math.floor(distance - 100);
-    this.score = Math.max(this.score, score);
-    this.scoreText.setText("Score: " + this.score);
-
-    const currentDifficulty = getCurrentDifficultyLevel(this.score);
-
-    // Генерируем препятствия на основе текущей сложности
-    if (this.time.now >= this.nextObstacleTime) {
-      this.generateObstacle(currentDifficulty);
+    // Логика анимаций: только если spawn закончился
+    if (this.spawnCompleted) {
+      this.updateAnimationState();
     }
 
-    // Прокручиваем фон
-    this.scrollBackgrounds();
-
-    // Постоянная скорость вправо
-    this.player.setVelocityX(PLAYER_SPEED);
-
-    // Управление полетом
+    // Остальная логика update() остаётся как есть
+    // Управление полётом и ограничение по Y
     if (
       this.cursors.up.isDown ||
       this.cursors.space.isDown ||
@@ -1612,10 +1749,49 @@ class GameScene extends Phaser.Scene {
       this.player.setVelocityY(newVelocityY);
     }
 
-    // Добавляем пресеты из очереди
+    if (this.player.y < this.MIN_Y) {
+      this.player.setPosition(this.player.x, this.MIN_Y);
+      this.player.setVelocityY(0);
+    } else if (this.player.y > this.MAX_Y) {
+      this.player.setPosition(this.player.x, this.MAX_Y);
+      this.player.setVelocityY(0);
+    }
+
+    // Определяем, приземлились ли мы
+    const onGround = this.player.y >= this.MAX_Y - 1; // Пример: если y ~ MAX_Y, значит на земле
+    const wasOnGround = !this.wasInAir;
+    const nowInAir = !onGround;
+    if (wasOnGround && nowInAir) {
+      // Взлетели
+      this.wasInAir = true;
+    } else if (!wasOnGround && !nowInAir) {
+      // Приземлились
+      if (this.wasInAir) {
+        // Запускаем downEnd
+        this.player.play(`person_downEnd`);
+      }
+      this.wasInAir = false;
+    }
+
+    // Обновляем счёт
+    const distance = this.player?.x ?? 0;
+    const score = Math.floor(distance - 100);
+    if (score > this.score) {
+      this.score = score;
+      this.scoreText.setText("Score: " + this.score);
+    }
+
+    // Обработка препятствий...
+    if (this.time.now >= this.nextObstacleTime) {
+      const currentDifficulty = getCurrentDifficultyLevel(this.score);
+      this.generateObstacle(currentDifficulty);
+    }
+
+    this.scrollBackgrounds();
+
     this.addPresetFromQueue();
 
-    // Удаляем лазеры, вышедшие за экран
+    // Удаляем объекты за экраном ...
     this.lasers = this.lasers.filter((laser) => {
       if (
         laser &&
@@ -1628,23 +1804,6 @@ class GameScene extends Phaser.Scene {
       return true;
     });
 
-    // Ограничиваем движение игрока по вертикали
-    if (this.player.y < this.MIN_Y) {
-      this.player.setPosition(this.player.x, this.MIN_Y);
-      this.player.setVelocityY(0);
-    } else if (this.player.y > this.MAX_Y) {
-      this.player.setPosition(this.player.x, this.MAX_Y);
-      this.player.setVelocityY(0);
-    }
-
-    // Обновляем счёт
-    const currentScore = Math.max(this.score, Math.floor(this.player.x - 100));
-    if (currentScore !== this.score) {
-      this.score = currentScore;
-      this.scoreText.setText("Score: " + this.score);
-    }
-
-    // Удаляем коины, вышедшие за экран
     this.coins = this.coins.filter((coin) => {
       if (coin && coin?.x < this.cameras.main.scrollX - 100) {
         this.coinPool.release(coin);
@@ -1652,6 +1811,41 @@ class GameScene extends Phaser.Scene {
       }
       return true;
     });
+  }
+
+  updateAnimationState() {
+    // Если spawn не закончен — ничего не делаем
+    if (!this.spawnCompleted) return;
+
+    const onGround = this.player.y >= this.MAX_Y - 1;
+    const vy = this.player.body?.velocity.y ?? 0;
+
+    if (onGround) {
+      // На земле — run (если не был downEnd)
+      // Но если мы только что приземлились, downEnd уже запустит run после завершения
+      // Проверим анимацию, если сейчас не downEnd и не spawn, включим run
+      const currentAnim = this.player.anims.currentAnim?.key;
+      if (currentAnim !== `person_downEnd` && currentAnim !== `person_spawn`) {
+        if (currentAnim !== `person_run`) {
+          this.player.play(`person_run`);
+        }
+      }
+    } else {
+      // В воздухе
+      if (vy < 0) {
+        // Летим вверх
+        const currentAnim = this.player.anims.currentAnim?.key;
+        if (currentAnim !== `person_up`) {
+          this.player.play(`person_up`);
+        }
+      } else {
+        // Падаем вниз
+        const currentAnim = this.player.anims.currentAnim?.key;
+        if (currentAnim !== `person_down`) {
+          this.player.play(`person_down`);
+        }
+      }
+    }
   }
 
   /**
