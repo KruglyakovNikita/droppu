@@ -42,7 +42,7 @@ export const difficultyLevels: DifficultyLevel[] = [
     maxScore: initialScoreEnd,
     presetTypes: [],
     obstacles: {
-      spawnRateMultiplier: 3,
+      spawnRateMultiplier: 2,
       obstacleConfigs: [
         // {
         //   name: "homingLaserCannon",

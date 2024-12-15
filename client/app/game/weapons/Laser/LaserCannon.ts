@@ -86,7 +86,6 @@ export class LaserCannon {
       this.pointSprite = "point_static";
       this.lazerPlasmaSprite = "lazerPlasma_static";
     }
-    console.log("Laser Sprite:", this.lazerSprite);
 
     // Создаём лазерные пушки
     this.leftGun = this.scene.add
@@ -288,7 +287,6 @@ export class LaserCannon {
         })
         .play(this.lazerPlasmaSprite) as Phaser.Physics.Matter.Sprite;
 
-      // Устанавливаем точные размеры без масштабирования
       segment.setDisplaySize(originalSegmentWidth, plasmaHeight);
       segment.setDepth(1);
 
