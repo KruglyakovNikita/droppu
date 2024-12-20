@@ -114,6 +114,7 @@ class GameScene extends Phaser.Scene {
   // Флаги для логики анимаций
   spawnCompleted: boolean = false; // Закончилась ли анимация spawn
   wasInAir: boolean = false; // Был ли персонаж в воздухе на предыдущем кадре (для определения момента приземления)
+  isSpawning: boolean = false;
 
   constructor() {
     super({ key: "GameScene" });
@@ -279,8 +280,6 @@ class GameScene extends Phaser.Scene {
   }
 
   create() {
-    console.log("create");
-    // Создание анимации бега
     this.anims.create({
       key: "person_spawn",
       frames: this.anims.generateFrameNumbers("person_spawn_sprite", {
@@ -291,7 +290,6 @@ class GameScene extends Phaser.Scene {
       repeat: 0,
     });
 
-    // up: кадры 6-10
     this.anims.create({
       key: "person_up",
       frames: this.anims.generateFrameNumbers("person_up_sprite", {
@@ -302,7 +300,6 @@ class GameScene extends Phaser.Scene {
       repeat: -1,
     });
 
-    // down: кадры 11-15
     this.anims.create({
       key: "person_down",
       frames: this.anims.generateFrameNumbers("person_down_sprite", {
@@ -313,7 +310,6 @@ class GameScene extends Phaser.Scene {
       repeat: -1,
     });
 
-    // downEnd: кадры 16-20
     this.anims.create({
       key: "person_downEnd",
       frames: this.anims.generateFrameNumbers("person_downEnd_sprite", {
@@ -324,7 +320,6 @@ class GameScene extends Phaser.Scene {
       repeat: 0,
     });
 
-    // run: кадры 21-29
     this.anims.create({
       key: "person_run",
       frames: this.anims.generateFrameNumbers("person_run_sprite", {
@@ -335,21 +330,17 @@ class GameScene extends Phaser.Scene {
       repeat: -1,
     });
 
-    // Создание игрока
-    this.player = this.matter.add.sprite(40, 80, "person_spawn_sprite");
-
+    this.player = this.matter.add.sprite(40, this.MAX_Y, "person_spawn_sprite");
     this.player.setFixedRotation();
     this.player.setIgnoreGravity(true);
     this.player.setFrictionAir(0);
     this.player.setFriction(0);
     this.player.setMass(10);
 
-    // Масштабируем игрока
     const targetWidth = this.scale.width * 0.06;
     const targetHeight = this.scale.height * 0.18;
-
     this.player.setDisplaySize(targetWidth, targetHeight);
-    this.player.setRectangle(targetWidth, this.scale.height * 0.14);
+    this.player.setRectangle(this.scale.width * 0.04, this.scale.height * 0.12);
 
     this.cursors = this.input.keyboard!.createCursorKeys();
 
@@ -361,46 +352,33 @@ class GameScene extends Phaser.Scene {
       this.scale.height
     );
 
-    // Пока не двигаемся, ждём spawn
-    this.player.setVelocityX(0);
+    // Добавляем обработчик для downEnd, чтобы после его завершения переключиться на run
+    this.player.on("animationcomplete-person_downEnd", () => {
+      // После downEnd переходим обратно в run и восстанавливаем скорость по X
+      this.player.setFrictionAir(0);
+      this.player.setMass(10);
+      this.player.play("person_run");
+      this.player.setVelocityX(PLAYER_SPEED);
+    });
 
-    // Запускаем spawn
-    this.player.play(`person_spawn`);
+    // Вызываем spawn
+    this.triggerSpawn();
 
-    // После окончания spawn начинаем движение в зависимости от состояния
-    this.player.on(
-      Phaser.Animations.Events.ANIMATION_COMPLETE,
-      (anim: Phaser.Animations.Animation) => {
-        if (anim.key === `person_spawn`) {
-          this.spawnCompleted = true;
-          // Начинаем движение
-          this.player.setVelocityX(PLAYER_SPEED);
-          // Определяем состояние
-          this.updateAnimationState();
-        } else if (anim.key === `person_downEnd`) {
-          // После downEnd переходим в run
-          this.player.play(`person_run`);
-        }
-      }
-    );
-
-    // Настройка UI
     this.score = 0;
     this.scoreText = this.add
       .text(this.scale.width * 0.02, this.scale.height * 0.02, "Score: 0", {
         fontSize: `${this.scale.height * 0.05}px`,
-        color: "#ffffff`",
+        color: "#ffffff",
       })
       .setScrollFactor(0);
 
     this.coinText = this.add
       .text(this.scale.width * 0.02, this.scale.height * 0.08, "Coins: 0", {
         fontSize: `${this.scale.height * 0.05}px`,
-        color: "#ffffff`",
+        color: "#ffffff",
       })
       .setScrollFactor(0);
 
-    // Фон, и т.д. оставляем как есть
     this.background1 = this.add
       .image(0, 0, "back1")
       .setOrigin(0, 0)
@@ -426,11 +404,20 @@ class GameScene extends Phaser.Scene {
       return coin;
     });
 
-    // Остальная логика загрузки оружий, лазеров и пресетов не меняется
+    this.laserPool = new ObjectPool(() => {
+      console.log("ONE");
+
+      const laser = this.matter.add.image(0, 0, "laser", undefined);
+
+      laser.setSensor(false);
+      laser.setActive(false);
+      laser.setVisible(false);
+
+      return laser;
+    });
 
     this.events.on("playerHit", this.handlePlayerHit, this);
 
-    // Инициализация таймера препятствий
     const currentDifficulty = getCurrentDifficultyLevel(this.score);
     const baseDelay = 10000;
     this.nextObstacleTime =
@@ -444,9 +431,7 @@ class GameScene extends Phaser.Scene {
       })
       .setScrollFactor(0);
 
-    // Уведомляем что готовы
-    GameData.instance.notifyGameReady();
-    // Создание анимации вращения для коинов
+    // Анимации для других объектов
     this.anims.create({
       key: "spin",
       frames: this.anims.generateFrameNumbers("coin", { start: 0, end: 5 }),
@@ -483,8 +468,6 @@ class GameScene extends Phaser.Scene {
       repeat: -1,
     });
 
-    // Создаём анимации для предупреждающих треугольников:
-    // Всего 10 кадров: start:0, end:9
     this.anims.create({
       key: "point_static",
       frames: this.anims.generateFrameNumbers("point1", { start: 0, end: 4 }),
@@ -505,7 +488,7 @@ class GameScene extends Phaser.Scene {
       frameRate: 10,
       repeat: -1,
     });
-    // Анимации для лазерных пушек
+
     this.anims.create({
       key: "lazer_static",
       frames: this.anims.generateFrameNumbers("lazer1", { start: 0, end: 10 }),
@@ -527,10 +510,6 @@ class GameScene extends Phaser.Scene {
       repeat: -1,
     });
 
-    // Анимации для предупреждающего треугольника у лазерных пушек — они те же, что и для ракет, уже созданы:
-    // point_static, point_homing, point_dynamic уже есть.
-
-    // Анимации для лазерной плазмы
     this.anims.create({
       key: "lazerPlasma_static",
       frames: this.anims.generateFrameNumbers("lazerPlasma", {
@@ -563,10 +542,7 @@ class GameScene extends Phaser.Scene {
 
     this.objectManager = new WeaponManager(this);
 
-    // Настройка управления
     this.cursors = this.input.keyboard!.createCursorKeys();
-
-    // Настройка камеры
     this.cameras.main.startFollow(this.player, true, 0.1, 0.1);
     this.cameras.main.setBounds(
       0,
@@ -575,16 +551,9 @@ class GameScene extends Phaser.Scene {
       this.scale.height
     );
 
-    // Установка начальной постоянной скорости вправо
-    this.player.setVelocityX(PLAYER_SPEED);
-
-    // Обработка столкновений
     this.matter.world.on("collisionstart", this.handleCollision, this);
 
-    // Создаем два изображения для плавной бесконечной прокрутки
-    // Создаем два изображения для плавной бесконечной прокрутки
     this.background1 = this.add.image(0, 0, "back1");
-    // Масштабируем изображения до размеров экрана
     this.background1.setDisplaySize(this.scale.width, this.scale.height);
 
     this.background2 = this.add.image(
@@ -594,55 +563,8 @@ class GameScene extends Phaser.Scene {
     );
     this.background2.setDisplaySize(this.scale.width, this.scale.height);
 
-    // Устанавливаем оба изображения в верхний левый угол и закрепляем на заднем плане
     this.background1.setOrigin(0, 0).setScrollFactor(0).setDepth(-Infinity);
     this.background2.setOrigin(0, 0).setScrollFactor(0).setDepth(-Infinity);
-
-    // Настройка счета
-    this.score = 0;
-    this.scoreText = this.add.text(
-      this.scale.width * 0.02,
-      this.scale.height * 0.02,
-      "Score: 0",
-      { fontSize: `${this.scale.height * 0.05}px`, color: "#ffffff" }
-    );
-    this.scoreText.setScrollFactor(0);
-
-    // Настройка счета коинов
-    this.coinText = this.add.text(
-      this.scale.width * 0.02,
-      this.scale.height * 0.08,
-      "Coins: 0",
-      { fontSize: `${this.scale.height * 0.05}px`, color: "#ffffff" }
-    );
-    this.coinText.setScrollFactor(0);
-
-    // СОЗДАНИЕ ПРЕПЯТСТВИЙ
-    this.coinPool = new ObjectPool(() => {
-      const coin = this.matter.add.sprite(0, 0, "coin");
-      coin.setDisplaySize(this.scale.width * 0.045, this.scale.height * 0.075);
-      coin.setSensor(true); // Устанавливаем как сенсор
-      coin.setIgnoreGravity(true); // Игнорируем гравитацию
-      coin.setDepth(1); // Устанавливаем слой отрисовки
-      coin.setVisible(true); // Делаем монеты видимыми
-
-      coin.play("spin"); // Запускаем анимацию
-      this.coins.push(coin);
-      return coin;
-    });
-
-    const heightScale = this.scale.height / 400;
-
-    this.laserPool = new ObjectPool(() => {
-      const laser = this.matter.add.image(0, 0, "laser", undefined, {
-        isStatic: true,
-      });
-
-      laser.setSensor(false);
-      laser.setActive(false);
-      laser.setVisible(false);
-      return laser;
-    });
 
     // Инициализация очереди пресетов
     for (let i = 0; i < 3; i++) {
@@ -653,15 +575,6 @@ class GameScene extends Phaser.Scene {
     for (let i = 0; i < 3; i++) {
       this.addPresetFromQueue();
     }
-
-    this.events.on("playerHit", this.handlePlayerHit, this);
-
-    this.fpsText = this.add.text(this.scale.width - 100, 10, "", {
-      fontSize: "16px",
-      color: "#ffffff",
-    });
-    this.fpsText.setScrollFactor(0);
-
     GameData.instance.notifyGameReady();
   }
 
@@ -669,8 +582,14 @@ class GameScene extends Phaser.Scene {
    * Метод добавления пресета в очередь
    */
   enqueuePreset() {
+    console.log("CREATE");
+
     const distance = this.player?.x ?? 0;
-    const score = Math.floor(distance - 100);
+    const score =
+      Math.floor(distance - 100) > 0 ? Math.floor(distance - 100) : 1;
+    console.log("MY SCORE");
+    console.log(score);
+
     const currentDifficulty = getCurrentDifficultyLevel(score);
 
     // Решаем, добавить ли пресет с монетами на основе частоты
@@ -685,10 +604,13 @@ class GameScene extends Phaser.Scene {
 
     // Добавляем пресет, соответствующий текущей сложности
     const presetPool = this.getPresetPool(currentDifficulty.presetTypes);
+    console.log(presetPool);
+
     const preset = Phaser.Utils.Array.GetRandom(presetPool);
     if (preset) {
       this.presetQueue.push(preset);
     }
+    console.log(this.presetQueue);
   }
 
   /**
@@ -696,6 +618,8 @@ class GameScene extends Phaser.Scene {
    */
   getPresetPool(difficulties: PresetDifficulty[]): Preset[] {
     let pool: Preset[] = [];
+    console.log("difficulties");
+    console.log(difficulties);
 
     difficulties.forEach((difficulty) => {
       switch (difficulty) {
@@ -715,6 +639,7 @@ class GameScene extends Phaser.Scene {
           break;
       }
     });
+    console.log(pool);
 
     return pool;
   }
@@ -806,8 +731,6 @@ class GameScene extends Phaser.Scene {
           rocket = new HomingRocket(this, initialX, yPosition, this.player, 4);
           break;
         case "dynamic":
-          console.log("IM HERE");
-
           // Одиночная динамическая ракета, отслеживающая игрока
           rocket = new DynamicRocket(
             this,
@@ -937,8 +860,6 @@ class GameScene extends Phaser.Scene {
   createPreset(preset: Preset) {
     let maxOffsetX = 0;
     const heightScale = this.scale.height / 400; // 400 - базовая высота
-    console.log("heightScale", heightScale);
-
     preset.lasers.forEach((laserConfig) => {
       const x = this.lastPlatformX + laserConfig.x * this.scale.width; // x now relative
       const y = laserConfig.y * this.scale.height; // y now relative
@@ -952,7 +873,6 @@ class GameScene extends Phaser.Scene {
         laser.setRotation(angle);
         laser.setDisplaySize(25, laserLength);
         laser.setSize(25, laserLength);
-        console.log(laserLength);
 
         laser.setActive(true);
         laser.setVisible(true);
@@ -983,8 +903,6 @@ class GameScene extends Phaser.Scene {
    * @param event Событие столкновения
    */
   handleCollision(event: Phaser.Physics.Matter.Events.CollisionStartEvent) {
-    console.log("Collision detected!");
-
     event.pairs.forEach((pair) => {
       const { bodyA, bodyB } = pair;
 
@@ -1116,7 +1034,9 @@ class GameScene extends Phaser.Scene {
       }
     });
 
-    setTimeout(() => this.clearGame(), 50);
+    setTimeout(() => {
+      this.clearGame(), this.triggerSpawn();
+    }, 50);
     this.showModal();
   }
   /**
@@ -1533,6 +1453,7 @@ class GameScene extends Phaser.Scene {
     if (response?.session_id) {
       // Очищаем текущую игру
       this.clearGame();
+      this.triggerSpawn();
 
       // Сброс позиции генерации препятствий
       this.lastPlatformX = INIT_PLATFORM_DISTANCE;
@@ -1701,6 +1622,7 @@ class GameScene extends Phaser.Scene {
 
   continueGame() {
     this.player.clearTint();
+
     this.matter.world.resume();
     this.isStoped = false;
     this.cameras.main.startFollow(this.player, true, 0.1, 0.1);
@@ -1710,6 +1632,32 @@ class GameScene extends Phaser.Scene {
     // this.generateLaserCannonsByTimer();
   }
 
+  triggerSpawn() {
+    this.isSpawning = true;
+    this.spawnCompleted = false;
+    this.player.setVelocityX(0);
+    this.player.setY(this.MAX_Y);
+    this.player.setIgnoreGravity(true);
+    this.player.setFrictionAir(0);
+    this.player.setFriction(0);
+    this.player.setMass(10);
+    this.player.play("person_spawn");
+
+    this.player.once(Phaser.Animations.Events.ANIMATION_COMPLETE, (anim) => {
+      if (anim.key === "person_spawn") {
+        this.spawnCompleted = true;
+        this.isSpawning = false;
+        this.player.setVelocityX(PLAYER_SPEED);
+        this.player.setFixedRotation();
+        this.player.setIgnoreGravity(true);
+        this.player.setFrictionAir(0);
+        this.player.setFriction(0);
+        this.player.setMass(10);
+        this.updateAnimationState();
+        this.player.play("person_run");
+      }
+    });
+  }
   /**
    * Метод обновления сцены
    */
@@ -1724,13 +1672,14 @@ class GameScene extends Phaser.Scene {
       this.objectManager.update(this.player);
     }
 
-    // Логика анимаций: только если spawn закончился
+    if (this.isSpawning) {
+      return;
+    }
+
     if (this.spawnCompleted) {
       this.updateAnimationState();
     }
 
-    // Остальная логика update() остаётся как есть
-    // Управление полётом и ограничение по Y
     if (
       this.cursors.up.isDown ||
       this.cursors.space.isDown ||
@@ -1750,24 +1699,24 @@ class GameScene extends Phaser.Scene {
     }
 
     if (this.player.y < this.MIN_Y) {
-      this.player.setPosition(this.player.x, this.MIN_Y);
+      this.player.setY(this.MIN_Y);
       this.player.setVelocityY(0);
     } else if (this.player.y > this.MAX_Y) {
-      this.player.setPosition(this.player.x, this.MAX_Y);
+      this.player.setY(this.MAX_Y);
       this.player.setVelocityY(0);
     }
+    const scrollSpeed = PLAYER_SPEED;
+    this.cameras.main.scrollX += scrollSpeed;
 
-    // Определяем, приземлились ли мы
-    const onGround = this.player.y >= this.MAX_Y - 1; // Пример: если y ~ MAX_Y, значит на земле
+    const onGround = this.player.y >= this.MAX_Y - 1;
     const wasOnGround = !this.wasInAir;
     const nowInAir = !onGround;
+
     if (wasOnGround && nowInAir) {
-      // Взлетели
       this.wasInAir = true;
     } else if (!wasOnGround && !nowInAir) {
-      // Приземлились
       if (this.wasInAir) {
-        // Запускаем downEnd
+        // Приземлились - включаем downEnd
         this.player.play(`person_downEnd`);
       }
       this.wasInAir = false;
@@ -1781,17 +1730,14 @@ class GameScene extends Phaser.Scene {
       this.scoreText.setText("Score: " + this.score);
     }
 
-    // Обработка препятствий...
     if (this.time.now >= this.nextObstacleTime) {
       const currentDifficulty = getCurrentDifficultyLevel(this.score);
       this.generateObstacle(currentDifficulty);
     }
 
     this.scrollBackgrounds();
-
     this.addPresetFromQueue();
 
-    // Удаляем объекты за экраном ...
     this.lasers = this.lasers.filter((laser) => {
       if (
         laser &&
@@ -1814,35 +1760,36 @@ class GameScene extends Phaser.Scene {
   }
 
   updateAnimationState() {
-    // Если spawn не закончен — ничего не делаем
     if (!this.spawnCompleted) return;
 
     const onGround = this.player.y >= this.MAX_Y - 1;
     const vy = this.player.body?.velocity.y ?? 0;
+    const topThreshold = 10;
+    const nearTop = this.player.y < this.MIN_Y + topThreshold;
 
     if (onGround) {
-      // На земле — run (если не был downEnd)
-      // Но если мы только что приземлились, downEnd уже запустит run после завершения
-      // Проверим анимацию, если сейчас не downEnd и не spawn, включим run
       const currentAnim = this.player.anims.currentAnim?.key;
       if (currentAnim !== `person_downEnd` && currentAnim !== `person_spawn`) {
         if (currentAnim !== `person_run`) {
+          this.player.setFrictionAir(0);
+          this.player.setMass(10);
           this.player.play(`person_run`);
         }
       }
     } else {
-      // В воздухе
       if (vy < 0) {
-        // Летим вверх
-        const currentAnim = this.player.anims.currentAnim?.key;
-        if (currentAnim !== `person_up`) {
+        if (this.player.anims.currentAnim?.key !== `person_up`) {
           this.player.play(`person_up`);
         }
       } else {
-        // Падаем вниз
-        const currentAnim = this.player.anims.currentAnim?.key;
-        if (currentAnim !== `person_down`) {
-          this.player.play(`person_down`);
+        if (nearTop) {
+          if (this.player.anims.currentAnim?.key !== `person_up`) {
+            this.player.play(`person_up`);
+          }
+        } else {
+          if (this.player.anims.currentAnim?.key !== `person_down`) {
+            this.player.play(`person_down`);
+          }
         }
       }
     }

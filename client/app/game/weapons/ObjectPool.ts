@@ -25,12 +25,14 @@ export class ObjectPool<T extends Phaser.GameObjects.Image> {
 
     if ((obj as any).setActive) (obj as any).setActive(false);
     if ((obj as any).setVisible) (obj as any).setVisible(false);
+    if ((obj as any).setSensor) (obj as any).setSensor(false);
   }
 
   releaseAll() {
     this.pool.forEach((obj) => {
       if ((obj as any).setActive) (obj as any).setActive(false);
       if ((obj as any).setVisible) (obj as any).setVisible(false);
+      if ((obj as any).setSensor) (obj as any).setSensor(false);
     });
   }
 }
