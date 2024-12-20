@@ -35,39 +35,17 @@ export const difficultyLevels: DifficultyLevel[] = [
   //     ],
   //   },
   //   coinPresetFrequency: 100,
-  // },
+  // },{
   {
     name: "Initial",
     minScore: initialScore,
     maxScore: initialScoreEnd,
-    presetTypes: [],
+    presetTypes: ["easy", "medium"],
     obstacles: {
-      spawnRateMultiplier: 2,
-      obstacleConfigs: [
-        // {
-        //   name: "homingLaserCannon",
-        //   weight: 15,
-        //   obstacleType: "laserCannon",
-        //   variants: [{ type: "homing" }],
-        // },
-        // {
-        //   name: "dynamicLaserCannon",
-        //   weight: 30,
-        //   obstacleType: "laserCannon",
-        //   variants: [{ type: "dynamic" }],
-        // },
-        {
-          name: "doubleDynamicLasers",
-          weight: 10,
-          obstacleType: "laserCannon",
-          variants: [
-            { type: "static", position: { y: "top" } },
-            { type: "static", position: { y: "bottom" } },
-          ],
-        },
-      ],
+      spawnRateMultiplier: 1,
+      obstacleConfigs: [],
     },
-    coinPresetFrequency: 10,
+    coinPresetFrequency: 1.5,
   },
   {
     name: "Intermediate",

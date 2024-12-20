@@ -39,7 +39,7 @@ const ROCKET_DISPLAY_HEIGHT = 40;
 class GameScene extends Phaser.Scene {
   testInd: number = 0;
   player!: Phaser.Physics.Matter.Sprite;
-  lasers: Phaser.Physics.Matter.Image[] = [];
+  lasers: Phaser.Physics.Matter.Sprite[] = [];
   cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
   score!: number;
   background1!: Phaser.GameObjects.Image;
@@ -105,7 +105,7 @@ class GameScene extends Phaser.Scene {
 
   //Optimize
   coinPool!: ObjectPool<Phaser.Physics.Matter.Image>;
-  laserPool!: ObjectPool<Phaser.Physics.Matter.Image>;
+  laserPool!: ObjectPool<Phaser.Physics.Matter.Sprite>;
 
   fpsText!: Phaser.GameObjects.Text;
 
@@ -199,7 +199,6 @@ class GameScene extends Phaser.Scene {
 
     // ... остальные загрузки как у вас сейчас ...
     this.load.image("healIcon", "/icons/heal-icon.png");
-    this.load.image("laser", "/blocks/laser.png");
     this.load.image("back1", "/map/back1.webp");
     this.load.image("back2", "/map/back2.webp");
     this.load.image("back3", "/map/back3.webp");
@@ -261,6 +260,11 @@ class GameScene extends Phaser.Scene {
       frameHeight: 40,
     });
 
+    this.load.spritesheet("laser", "sptires/static_laser/Laser-Sheet.png", {
+      frameWidth: 125,
+      frameHeight: 45,
+    });
+
     // Текстура для дыма
     this.load.image("smoke", "/blocks/smoke.png");
 
@@ -280,6 +284,13 @@ class GameScene extends Phaser.Scene {
   }
 
   create() {
+    this.anims.create({
+      key: "laser_anim",
+      frames: this.anims.generateFrameNumbers("laser", { start: 0, end: 3 }),
+      frameRate: 8,
+      repeat: -1,
+    });
+
     this.anims.create({
       key: "person_spawn",
       frames: this.anims.generateFrameNumbers("person_spawn_sprite", {
@@ -407,11 +418,22 @@ class GameScene extends Phaser.Scene {
     this.laserPool = new ObjectPool(() => {
       console.log("ONE");
 
-      const laser = this.matter.add.image(0, 0, "laser", undefined);
+      // Используем Matter.Sprite для поддержки анимаций
+      const laser = this.matter.add.sprite(0, 0, "laser_anim");
+
+      // Запускаем анимацию
+      laser.anims.play("laser_anim");
 
       laser.setSensor(false);
       laser.setActive(false);
       laser.setVisible(false);
+
+      // Устанавливаем размер лазера в игре
+      laser.setScale(0.52488); // Масштабируем спрайт-лист на 72.9% от оригинального размера
+      laser.setRectangle(
+        this.scale.width * 0.10935,
+        this.scale.height * 0.054675
+      );
 
       return laser;
     });
@@ -871,8 +893,11 @@ class GameScene extends Phaser.Scene {
       if (laser) {
         laser.setPosition(x, y);
         laser.setRotation(angle);
-        laser.setDisplaySize(25, laserLength);
-        laser.setSize(25, laserLength);
+
+        // Убедитесь, что анимация запущена
+        if (!laser.anims.isPlaying) {
+          laser.anims.play("laser_anim");
+        }
 
         laser.setActive(true);
         laser.setVisible(true);
@@ -929,9 +954,9 @@ class GameScene extends Phaser.Scene {
       // Столкновение с лазером
       if (
         (gameObjectA === this.player &&
-          this.lasers.includes(gameObjectB as Phaser.Physics.Matter.Image)) ||
+          this.lasers.includes(gameObjectB as Phaser.Physics.Matter.Sprite)) ||
         (gameObjectB === this.player &&
-          this.lasers.includes(gameObjectA as Phaser.Physics.Matter.Image))
+          this.lasers.includes(gameObjectA as Phaser.Physics.Matter.Sprite))
       ) {
         console.log("Player hit by laser!");
         this.handlePlayerHit();
@@ -1615,6 +1640,9 @@ class GameScene extends Phaser.Scene {
   clearGame() {
     // Очистка старых объектов и таймеров
     this.objectManager.removeAllObjects();
+    this.lasers.forEach((laser) => {
+      laser.anims.stop(); // Останавливаем анимацию
+    });
     this.lasers = [];
     this.laserPool.destroyAll();
     this.destroyCoin();
