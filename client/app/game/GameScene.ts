@@ -1301,7 +1301,7 @@ class GameScene extends Phaser.Scene {
 
       // Иконка хилки на кнопке
       const healIcon = this.add
-        .image(centerX + 130, continueButtonY, "healIcon")
+        .image(centerX + 110, continueButtonY, "healIcon")
         .setDisplaySize(30, 30)
         .setDepth(1010);
       modalElements.push(healIcon);
@@ -1616,7 +1616,7 @@ class GameScene extends Phaser.Scene {
     // Очистка старых объектов и таймеров
     this.objectManager.removeAllObjects();
     this.lasers = [];
-    this.laserPool.releaseAll();
+    this.laserPool.destroyAll();
     this.destroyCoin();
   }
 
