@@ -21,7 +21,6 @@ import { hardPresets } from "./presets/hard-presets";
 import { ultraHardPresets } from "./presets/ultra-hard-presets";
 import { getCurrentDifficultyLevel } from "./utils/difficultyLevels";
 import {
-  ICreatePayTicketAttempt,
   ICreatePurchaseAttempt,
   IEndGame,
   IEndGameResponse,
@@ -33,8 +32,6 @@ export const PLAYER_SPEED = 2.5; // Постоянная скорость впр
 
 export const MIN_DISTANCE_BETWEEN_PRESETS = 175; // Минимальное расстояние между пресетами
 const INIT_PLATFORM_DISTANCE = 400;
-const ROCKET_DISPLAY_WIDTH = 90;
-const ROCKET_DISPLAY_HEIGHT = 40;
 
 class GameScene extends Phaser.Scene {
   testInd: number = 0;
@@ -794,8 +791,6 @@ class GameScene extends Phaser.Scene {
   }
 
   generateLaserCannonObstacle(config: ObstacleConfig) {
-    const cameraScrollX = this.cameras.main.scrollX;
-
     config.variants.forEach((variant) => {
       const laserType = variant.type;
       let yPosition: number;
@@ -886,7 +881,6 @@ class GameScene extends Phaser.Scene {
       const x = this.lastPlatformX + laserConfig.x * this.scale.width; // x now relative
       const y = laserConfig.y * this.scale.height; // y now relative
       const angle = Phaser.Math.DegToRad(laserConfig.angle || 0);
-      const laserLength = 80 * heightScale;
 
       // Acquire laser from the pool
       const laser = this.laserPool?.acquire();
@@ -1060,7 +1054,8 @@ class GameScene extends Phaser.Scene {
     });
 
     setTimeout(() => {
-      this.clearGame(), this.triggerSpawn();
+      this?.clearGame();
+      this?.triggerSpawn();
     }, 50);
     this.showModal();
   }
@@ -1506,10 +1501,6 @@ class GameScene extends Phaser.Scene {
   async payTicketForGameHandler(
     modalElements: Phaser.GameObjects.GameObject[]
   ) {
-    // Предположим стоимость тикета фиксированная, или равноценна какому-то значению.
-    // Можно определить cost = 1 или любой другой механизм.
-    const ticketCost = 1; // например, 1 единица условной валюты
-
     // Вызываем onPurchaseAttempt
     const purchaseResult = await this.payTicketForGame();
 
