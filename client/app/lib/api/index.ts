@@ -68,10 +68,10 @@ class ApiService {
       "Content-Type": "application/json",
     };
 
-    // if (this.accessToken) {
-    //   headers.Authorization = `Bearer ${this.accessToken}`;
-    // }
-    headers.Authorization = `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMCIsImV4cCI6MTczNDI2NzgxMn0.oFDbctU0uQs-zNSBqi2GeC00Ir0XfsWD40nX8Ott4x0`;
+    if (this.accessToken) {
+      headers.Authorization = `Bearer ${this.accessToken}`;
+    }
+    // headers.Authorization = `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMCIsImV4cCI6MTczNDc5NzE2M30.3B6mFgKL-i96Z_LRXh6xl73pWz3sAVGlotVgEJNjXOw`;
     return headers;
   }
 }
