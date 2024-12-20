@@ -7,7 +7,7 @@ export class ObjectPool<T extends Phaser.GameObjects.Image> {
   }
 
   acquire(): T {
-    let obj = this.pool.find((o) => !o.active);
+    let obj = this.pool?.find((o) => !o.active);
     if (obj) {
       obj.setActive(true);
       obj.setVisible(true);
@@ -17,20 +17,28 @@ export class ObjectPool<T extends Phaser.GameObjects.Image> {
       obj = this.factory();
       this.pool.push(obj);
     }
+
     return obj;
   }
 
   release(obj: T) {
     console.log("DEACTIVATE");
 
-    if ((obj as any).setActive) (obj as any).setActive(false);
-    if ((obj as any).setVisible) (obj as any).setVisible(false);
+    if (obj.setActive) obj.setActive(false);
+    if (obj.setVisible) obj.setVisible(false);
   }
 
   releaseAll() {
     this.pool.forEach((obj) => {
-      if ((obj as any).setActive) (obj as any).setActive(false);
-      if ((obj as any).setVisible) (obj as any).setVisible(false);
+      if (obj.setActive) obj.setActive(false);
+      if (obj.setVisible) obj.setVisible(false);
     });
+  }
+
+  destroyAll() {
+    this.pool.forEach((obj) => {
+      if (obj.destroy) obj.destroy();
+    });
+    this.pool = [];
   }
 }

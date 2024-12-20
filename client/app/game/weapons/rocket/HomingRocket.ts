@@ -11,7 +11,7 @@ export class HomingRocket extends Rocket {
     target: Phaser.GameObjects.Sprite,
     speed: number
   ) {
-    super(scene, x, y, "homingRocketTexture", target, speed);
+    super(scene, x, y, target, speed, "homing");
     this.baseY = y;
     this.x = x;
   }

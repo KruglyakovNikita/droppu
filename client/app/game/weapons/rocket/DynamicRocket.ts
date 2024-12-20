@@ -13,7 +13,7 @@ export class DynamicRocket extends Rocket {
     speed: number,
     amplitude: number
   ) {
-    super(scene, x, y, "dynamicRocketTexture", target, speed);
+    super(scene, x, y, target, speed, "dynamic");
     this.amplitude = amplitude;
     this.baseY = y;
     this.time = 0;
@@ -33,7 +33,7 @@ export class DynamicRocket extends Rocket {
     super.update();
     if (this.active) {
       if (this.active) {
-        const currentTime = this.scene.time.now / 1000; // Получаем текущее время в секундах
+        const currentTime = this.scene.time.now / 1700; // Получаем текущее время в секундах
         const waveOffsetY =
           this.amplitude * Math.sin((this.amplitude / 2) * currentTime); // Генерируем плавное смещение
 

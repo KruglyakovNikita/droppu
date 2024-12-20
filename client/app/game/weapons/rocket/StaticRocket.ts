@@ -3,7 +3,7 @@ import { Rocket } from "./Rocket";
 
 export class StaticRocket extends Rocket {
   constructor(scene: Phaser.Scene, x: number, y: number, speed: number) {
-    super(scene, x, y, "staticRocketTexture", null, speed);
+    super(scene, x, y, null, speed, "static");
   }
 
   update() {

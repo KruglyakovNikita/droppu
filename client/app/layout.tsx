@@ -13,28 +13,28 @@ const geistMono = localFont({
   weight: "100 900",
 });
 
-const pixelifySansBold = localFont({
-  src: "./fonts/PixelifySans-Bold.ttf",
-  variable: "--font-pixelifySans-bold",
-  weight: "100 900",
-});
+// const pixelifySansBold = localFont({
+//   src: "./fonts/PixelifySans-Bold.ttf",
+//   variable: "--font-pixelifySans-bold",
+//   weight: "100 900",
+// });
 
-const pixelifySansMedium = localFont({
-  src: "./fonts/PixelifySans-Medium.ttf",
-  variable: "--font-pixelifySans-medium",
-  weight: "100 900",
-});
+// const pixelifySansMedium = localFont({
+//   src: "./fonts/PixelifySans-Medium.ttf",
+//   variable: "--font-pixelifySans-medium",
+//   weight: "100 900",
+// });
 
-const pixelifySansRegular = localFont({
-  src: "./fonts/PixelifySans-Regular.ttf",
-  variable: "--font-pixelifySans-regular",
-  weight: "100 900",
-});
-const pixelifySansSemiBold = localFont({
-  src: "./fonts/PixelifySans-SemiBold.ttf",
-  variable: "--font-pixelifySans-semibold",
-  weight: "100 900",
-});
+// const pixelifySansRegular = localFont({
+//   src: "./fonts/PixelifySans-Regular.ttf",
+//   variable: "--font-pixelifySans-regular",
+//   weight: "100 900",
+// });
+// const pixelifySansSemiBold = localFont({
+//   src: "./fonts/PixelifySans-SemiBold.ttf",
+//   variable: "--font-pixelifySans-semibold",
+//   weight: "100 900",
+// });
 
 export const metadata: Metadata = {
   title: "Create Next App",
@@ -50,10 +50,8 @@ export default function RootLayout({
     <html lang="en">
       <body
         className={`${geistSans.variable} ${geistMono.variable}
-        ${pixelifySansBold.variable}
-        ${pixelifySansMedium.variable}
-        ${pixelifySansRegular.variable}
-        ${pixelifySansSemiBold.variable} antialiased`}
+       
+         antialiased`}
       >
         {children}
       </body>

@@ -1,8 +1,8 @@
 import { DifficultyLevel } from "../presets/types";
 
 const initialScore = 0;
-const initialScoreEnd = 2500;
-const intermediateScoreEnd = 5000;
+const initialScoreEnd = 7000;
+const intermediateScoreEnd = 7500;
 const advancedScoreEnd = 10000;
 const expertScoreEnd = 15000;
 const masterScoreEnd = Infinity;
@@ -35,7 +35,7 @@ export const difficultyLevels: DifficultyLevel[] = [
   //     ],
   //   },
   //   coinPresetFrequency: 100,
-  // },
+  // },{
   {
     name: "Initial",
     minScore: initialScore,
