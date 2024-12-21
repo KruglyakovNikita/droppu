@@ -1267,7 +1267,6 @@ class GameScene extends Phaser.Scene {
         )
         .setInteractive({ useHandCursor: true });
       interactiveArea.setDepth(1016);
-      modalElements.push(interactiveArea);
 
       // Таймер сбоку кнопки "Продолжить"
       const timerCircleRadius = 15;
@@ -1318,7 +1317,7 @@ class GameScene extends Phaser.Scene {
       });
 
       // Обработчик нажатия на кнопку "Продолжить"
-      continueButton.on("pointerdown", async () => {
+      interactiveArea.on("pointerdown", async () => {
         console.log("Continue button clicked.");
         this.isPurchasing = true;
 
@@ -1349,6 +1348,7 @@ class GameScene extends Phaser.Scene {
           }
         }
       });
+      modalElements.push(interactiveArea);
     } else {
       // Если достигнуто максимальное количество продолжений, кнопка "Продолжить" отключена
       const continueButtonWidth = 260;
@@ -1472,10 +1472,9 @@ class GameScene extends Phaser.Scene {
       )
       .setInteractive({ useHandCursor: true });
     interactiveArea.setDepth(1016);
-    modalElements.push(interactiveArea);
 
     // Обработчик нажатия на среднюю кнопку
-    middleButton.on("pointerdown", async () => {
+    interactiveArea.on("pointerdown", async () => {
       if (hasTickets) {
         // Продолжить за тикет
         console.log("Continue with ticket button clicked.");
@@ -1487,6 +1486,7 @@ class GameScene extends Phaser.Scene {
         await this.payTicketForGameHandler(modalElements);
       }
     });
+    modalElements.push(interactiveArea);
 
     // === Кнопка "Закончить игру" ===
     const finishButtonWidth = 200;
@@ -1544,7 +1544,8 @@ class GameScene extends Phaser.Scene {
       .setDepth(1012);
 
     finishButtonArea.setInteractive({ useHandCursor: true });
-    finishButton.on("pointerdown", () => {
+
+    finishButtonArea.on("pointerdown", () => {
       this.closeModal(modalElements);
       this.isStoped = true;
       this.onGameEnd({
@@ -1555,6 +1556,7 @@ class GameScene extends Phaser.Scene {
         isPaid: false,
       });
     });
+    modalElements.push(finishButtonArea);
   }
 
   async startNextGame() {
