@@ -156,6 +156,58 @@ const Game: FC<GameSceneData> = ({
     });
   }
 
+  const initializeGame = async () => {
+    // Устанавливаем обратный вызов для уведомления о готовности игры
+    GameData.instance.setOnGameReady(() => {
+      setIsLoading(false); // Скрываем индикатор загрузки
+    });
+
+    const session_id = await startGameData(); // Дожидаемся завершения startGameData
+
+    const payForGame = async () => {
+      console.log(")*())()()()()()(()()()())(");
+
+      await payTicketForGame({ session_id });
+      // return await mockPaymentProcess(1);
+    };
+    GameData.instance.setData({
+      session_id,
+      booster,
+      userSpriteUrl,
+      onGameEnd: handleGameEnd,
+      handleStartNextGame: handleStartNextGameHandler,
+      onPurchaseAttempt,
+      payTicketForGame: payForGame,
+      game_type: "paid", // или "paid"
+      hasTickets: true,
+    });
+
+    const { gameWidth, gameHeight } = calculateGameDimensions();
+
+    const config: Phaser.Types.Core.GameConfig = {
+      type: Phaser.AUTO,
+      parent: gameRef.current,
+      physics: {
+        default: "matter",
+        matter: {
+          gravity: { x: 0, y: 0 },
+          positionIterations: 6,
+          velocityIterations: 4,
+        },
+      },
+      scene: GameScene,
+      width: gameWidth,
+      height: gameHeight,
+      fps: {
+        target: 60, // Максимальное количество FPS
+        forceSetTimeOut: true, // Использовать setTimeout вместо requestAnimationFrame
+      },
+    };
+
+    const game = new Phaser.Game(config);
+    phaserGameRef.current = game;
+  };
+
   useEffect(() => {
     if (
       typeof window === "undefined" ||
@@ -164,58 +216,6 @@ const Game: FC<GameSceneData> = ({
     ) {
       return;
     }
-
-    const initializeGame = async () => {
-      // Устанавливаем обратный вызов для уведомления о готовности игры
-      GameData.instance.setOnGameReady(() => {
-        setIsLoading(false); // Скрываем индикатор загрузки
-      });
-
-      const session_id = await startGameData(); // Дожидаемся завершения startGameData
-
-      const payForGame = async () => {
-        console.log(")*())()()()()()(()()()())(");
-
-        await payTicketForGame({ session_id });
-        // return await mockPaymentProcess(1);
-      };
-      GameData.instance.setData({
-        session_id,
-        booster,
-        userSpriteUrl,
-        onGameEnd: handleGameEnd,
-        handleStartNextGame: handleStartNextGameHandler,
-        onPurchaseAttempt,
-        payTicketForGame: payForGame,
-        game_type: "paid", // или "paid"
-        hasTickets: true,
-      });
-
-      const { gameWidth, gameHeight } = calculateGameDimensions();
-
-      const config: Phaser.Types.Core.GameConfig = {
-        type: Phaser.AUTO,
-        parent: gameRef.current,
-        physics: {
-          default: "matter",
-          matter: {
-            gravity: { x: 0, y: 0 },
-            positionIterations: 6,
-            velocityIterations: 4,
-          },
-        },
-        scene: GameScene,
-        width: gameWidth,
-        height: gameHeight,
-        fps: {
-          target: 60, // Максимальное количество FPS
-          forceSetTimeOut: true, // Использовать setTimeout вместо requestAnimationFrame
-        },
-      };
-
-      const game = new Phaser.Game(config);
-      phaserGameRef.current = game;
-    };
 
     initializeGame(); // Запускаем асинхронную инициализацию игры
 
@@ -234,9 +234,6 @@ const Game: FC<GameSceneData> = ({
       }
     }
   }, [isGameOver]);
-
-  console.log(currentGameHeight);
-  console.log(currentGameWidth);
 
   return (
     <div

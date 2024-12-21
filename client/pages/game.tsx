@@ -6,6 +6,7 @@ import {
 import { Box } from "@chakra-ui/react";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/router";
+import { useEffect } from "react";
 
 const Game = dynamic(() => import("../app/game/Game"), { ssr: false });
 
@@ -90,6 +91,13 @@ export default function GamePage() {
     }
     return "canceled";
   };
+
+  useEffect(() => {
+    window.Telegram.WebApp.requestFullscreen();
+    return () => {
+      window.Telegram.WebApp.expand();
+    };
+  }, []);
 
   return (
     <Box p={4} textAlign="center">
