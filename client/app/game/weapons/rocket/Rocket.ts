@@ -131,6 +131,8 @@ export class Rocket extends Phaser.Physics.Matter.Sprite {
 
     // Задаем скорость ракете влево
     this.setVelocityX(-this.speed);
+    this.setFrictionAir(0);
+    this.setFriction(0);
     this.setVelocityY(0); // Фиксируем скорость по оси Y
     this.setSensor(true);
   }

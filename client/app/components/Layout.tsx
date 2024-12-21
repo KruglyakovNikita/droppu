@@ -38,6 +38,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
           });
           tg.ready();
           tg.expand();
+          tg.lockOrientation();
           tg.setHeaderColor("#0D1478");
           tg.HapticFeedback.notificationOccurred("warning");
           window.Telegram.WebApp.disableVerticalSwipes();

@@ -15,6 +15,7 @@ import colors from "../theme/colors";
 import { useStore } from "../app/lib/store/store";
 import { ButtonIfoLink } from "@/app/components/ButtonIfoLink";
 import { useRouter } from "next/router";
+import { useEffect } from "react";
 
 declare global {
   interface Window {
@@ -46,6 +47,11 @@ const Home: React.FC = () => {
     50% { transform: translateY(-10px); }
     100% { transform: translateY(0px); }
   `;
+  useEffect(() => {
+    try {
+      if (window.Telegram.WebApp.expand) window.Telegram.WebApp.expand();
+    } catch {}
+  });
 
   return (
     <Flex
@@ -60,19 +66,25 @@ const Home: React.FC = () => {
       w="full"
       pb="calc(var(--tg-viewport-stable-height) * 0.15 + 10px)"
       css={{
-        '&::-webkit-scrollbar': {
-          width: '4px',
+        "&::-webkit-scrollbar": {
+          width: "4px",
         },
-        '&::-webkit-scrollbar-track': {
-          background: 'transparent',
+        "&::-webkit-scrollbar-track": {
+          background: "transparent",
         },
-        '&::-webkit-scrollbar-thumb': {
-          background: 'rgba(255, 255, 255, 0.2)',
-          borderRadius: '2px',
+        "&::-webkit-scrollbar-thumb": {
+          background: "rgba(255, 255, 255, 0.2)",
+          borderRadius: "2px",
         },
       }}
     >
-      <Grid mt={0} gap={4} templateColumns="repeat(2, 1fr)" w="full" maxW="container.sm">
+      <Grid
+        mt={0}
+        gap={4}
+        templateColumns="repeat(2, 1fr)"
+        w="full"
+        maxW="container.sm"
+      >
         <ButtonIfoLink
           title="DROPPU NEWS"
           description="Follow us for updates"
@@ -214,7 +226,13 @@ const Home: React.FC = () => {
       </GradientBorderWrapper>
 
       {/* INVENTORY AND STATS */}
-      <Grid mt={30} gap={4} templateColumns="repeat(2, 1fr)" w="full" maxW="container.sm">
+      <Grid
+        mt={30}
+        gap={4}
+        templateColumns="repeat(2, 1fr)"
+        w="full"
+        maxW="container.sm"
+      >
         {/* Inventory */}
         <GradientBorderWrapper
           startColor="#793BC7"
@@ -451,7 +469,7 @@ const Home: React.FC = () => {
 
         {/* Текст "PLAY" */}
         <Text
-          fontSize={["2xl", "3xl"]}  // Адаптивный шрифт
+          fontSize={["2xl", "3xl"]} // Адаптивный шрифт
           color="white"
           fontFamily="'PixelifySans-Bold', sans-serif"
           zIndex="1"
