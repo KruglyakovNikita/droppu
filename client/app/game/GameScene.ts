@@ -1258,8 +1258,8 @@ class GameScene extends Phaser.Scene {
       // Создаём кликабельную область поверх всей кнопки
       const interactiveArea = this.add
         .rectangle(
-          centerX,
-          continueButtonY,
+          centerX - continueButtonWidth / 2,
+          continueButtonY - continueButtonHeight / 2,
           continueButtonWidth,
           continueButtonHeight,
           0xff0000,
@@ -1461,20 +1461,20 @@ class GameScene extends Phaser.Scene {
       .setOrigin(0.5)
       .setDepth(1011);
     modalElements.push(middleButtonText);
-    const interactiveArea = this.add
+    const interactiveAreaMiddle = this.add
       .rectangle(
-        centerX,
-        middleButtonY,
+        centerX - middleButtonWidth / 2,
+        middleButtonY - middleButtonHeight / 2,
         middleButtonWidth,
         middleButtonHeight,
         0xff0000,
         0 // Полностью прозрачный
       )
       .setInteractive({ useHandCursor: true });
-    interactiveArea.setDepth(1016);
+    interactiveAreaMiddle.setDepth(1016);
 
     // Обработчик нажатия на среднюю кнопку
-    interactiveArea.on("pointerdown", async () => {
+    interactiveAreaMiddle.on("pointerdown", async () => {
       if (hasTickets) {
         // Продолжить за тикет
         console.log("Continue with ticket button clicked.");
@@ -1486,7 +1486,7 @@ class GameScene extends Phaser.Scene {
         await this.payTicketForGameHandler(modalElements);
       }
     });
-    modalElements.push(interactiveArea);
+    modalElements.push(interactiveAreaMiddle);
 
     // === Кнопка "Закончить игру" ===
     const finishButtonWidth = 200;
@@ -1534,8 +1534,8 @@ class GameScene extends Phaser.Scene {
 
     const finishButtonArea = this.add
       .rectangle(
-        centerX,
-        finishButtonY,
+        centerX - finishButtonWidth / 2,
+        finishButtonY - finishButtonHeight / 2,
         finishButtonWidth,
         finishButtonHeight,
         0x000000,
