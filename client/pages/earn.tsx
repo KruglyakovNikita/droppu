@@ -108,19 +108,18 @@ const Earn: React.FC = () => {
     <Flex
       direction="column"
       align="center"
-      bgGradient="linear(to-b, #0D1478, #130B3D, #0D1478)"
       color="white"
       minH="100vh"
-      p={4}
+      p={[2, 4]}
     >
       {/* Weekly Header */}
-      <Box w="90%" maxW="360px" alignSelf="flex-start" mb={4}>
+      <Box w={{ base: "95%", sm: "90%" }} maxW="360px" alignSelf="flex-start" mb={4}>
         <Heading
-          fontSize="20px"
+          fontSize={{ base: "18px", sm: "20px" }}
           fontFamily="'PixelifySans-Bold', sans-serif"
           fontWeight="bold"
           textAlign="left"
-          ml={3}
+          ml={{ base: 2, sm: 3 }}
         >
           Weekly
         </Heading>
@@ -129,7 +128,7 @@ const Earn: React.FC = () => {
       {/* Weekly Card with Skeleton */}
       {isTasksLoading ? (
         <GradientBorderWrapper
-          width="360px"
+          width={{ base: "95%", sm: "360px" }}
           height="110px"
           startColor="#793BC7"
           endColor="#C2D2FF"
@@ -153,7 +152,7 @@ const Earn: React.FC = () => {
         </GradientBorderWrapper>
       ) : (
         <GradientBorderWrapper
-          width="360px"
+          width={{ base: "95%", sm: "360px" }}
           height="110px"
           startColor="#793BC7"
           endColor="#C2D2FF"
@@ -213,17 +212,25 @@ const Earn: React.FC = () => {
 
       {/* Navigation Bar */}
       <Flex
-        w="90%"
+        w={{ base: "95%", sm: "90%" }}
         maxW="500px"
-        justify="space-around"
+        justify="space-between"
         alignSelf="flex-start"
         mb={4}
         mt="4"
+        overflowX={{ base: "auto", sm: "visible" }}
+        css={{
+          '&::-webkit-scrollbar': {
+            display: 'none'
+          }
+        }}
       >
         {["New", "Socials", "Frens", "Farming"].map((item) => (
           <Text
             fontFamily="'PixelifySans-Bold', sans-serif"
-            fontSize="20px"
+            fontSize={{ base: "16px", sm: "20px" }}
+            px={{ base: 2, sm: "1.5" }}
+            whiteSpace="nowrap"
             fontWeight="bold"
             ml="3"
             p="1.5"
@@ -240,7 +247,7 @@ const Earn: React.FC = () => {
       </Flex>
 
       {/* Task List */}
-      <Grid templateColumns="1fr" gap={4} w="100%" maxW="360px">
+      <Grid templateColumns="1fr" gap={4} w={{ base: "95%", sm: "100%" }} maxW="360px">
         {isTasksLoading ? (
           Array(3).fill(0).map((_, index) => (
             <GradientBorderWrapper

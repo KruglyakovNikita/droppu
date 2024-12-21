@@ -42,9 +42,9 @@ const Home: React.FC = () => {
   };
 
   const floatAnimation = keyframes`
-  0% { transform: translateY(0px); }
-  50% { transform: translateY(-10px); }
-  100% { transform: translateY(0px); }
+    0% { transform: translateY(0px); }
+    50% { transform: translateY(-10px); }
+    100% { transform: translateY(0px); }
   `;
 
   return (
@@ -53,13 +53,29 @@ const Home: React.FC = () => {
       align="center"
       color={colors.primaryText}
       minH="100vh"
-      overflowY="scroll"
-      p={4}
+      maxH="100vh"
+      overflowY="auto"
+      px={6}
+      py={4}
+      w="full"
+      pb="calc(var(--tg-viewport-stable-height) * 0.15 + 10px)"
+      css={{
+        '&::-webkit-scrollbar': {
+          width: '4px',
+        },
+        '&::-webkit-scrollbar-track': {
+          background: 'transparent',
+        },
+        '&::-webkit-scrollbar-thumb': {
+          background: 'rgba(255, 255, 255, 0.2)',
+          borderRadius: '2px',
+        },
+      }}
     >
-      <Grid mt={0} gap={4} templateColumns="repeat(2, 1fr)">
+      <Grid mt={0} gap={4} templateColumns="repeat(2, 1fr)" w="full" maxW="container.sm">
         <ButtonIfoLink
           title="DROPPU NEWS"
-          description=" Follow us for updates"
+          description="Follow us for updates"
           onClick={chanelLink}
           startIcon={
             <Image
@@ -75,8 +91,6 @@ const Home: React.FC = () => {
           title="Invite Friends"
           description="Get more tickets and coins"
           onClick={inviteFriendsLink}
-          descriptionFontSize="8px"
-          titleFontSize="16px"
           endIcon={
             <Image
               src="/icons/frens_icon.svg"
@@ -93,7 +107,8 @@ const Home: React.FC = () => {
         startColor="#793BC7"
         endColor="#C2D2FF"
         strokeWidth={1.5}
-        w="360px"
+        w="full"
+        maxW="360px"
         h="180px"
         mt="30px"
       >
@@ -111,7 +126,8 @@ const Home: React.FC = () => {
               />
               <Text
                 fontFamily="'PixelifySans-Bold', sans-serif"
-                fontSize="15px"
+                // Делаем адаптивный размер шрифта
+                fontSize={["sm", "md"]}
                 color={colors.primaryText}
               >
                 {telegramUser?.username || "None"}
@@ -142,14 +158,14 @@ const Home: React.FC = () => {
                   />
                   <Stack spacing={0} ml={3}>
                     <Heading
-                      fontSize="16px"
+                      fontSize={["md", "lg"]} // Адаптивный
                       color={colors.primaryText}
                       fontFamily="'PixelifySans-Bold', sans-serif"
                       mb={-1.5}
                     >
                       {userInfo?.coins ?? 1}
                     </Heading>
-                    <Text fontSize="12px" color={colors.secondaryText}>
+                    <Text fontSize={["xs", "sm"]} color={colors.secondaryText}>
                       Coins
                     </Text>
                   </Stack>
@@ -179,14 +195,14 @@ const Home: React.FC = () => {
                   />
                   <Stack spacing={0} ml={3}>
                     <Heading
-                      fontSize="16px"
+                      fontSize={["md", "lg"]} // Адаптивный
                       color={colors.primaryText}
                       fontFamily="'PixelifySans-Bold', sans-serif"
                       mb={-1.5}
                     >
                       {userInfo?.tickets ?? 1}
                     </Heading>
-                    <Text fontSize="12px" color={colors.secondaryText}>
+                    <Text fontSize={["xs", "sm"]} color={colors.secondaryText}>
                       Tickets
                     </Text>
                   </Stack>
@@ -198,7 +214,7 @@ const Home: React.FC = () => {
       </GradientBorderWrapper>
 
       {/* INVENTORY AND STATS */}
-      <Grid mt={30} gap={4} templateColumns="repeat(2, 1fr)">
+      <Grid mt={30} gap={4} templateColumns="repeat(2, 1fr)" w="full" maxW="container.sm">
         {/* Inventory */}
         <GradientBorderWrapper
           startColor="#793BC7"
@@ -229,7 +245,7 @@ const Home: React.FC = () => {
             />
             <Stack spacing={0}>
               <Heading
-                fontSize="18px"
+                fontSize={["md", "lg"]}
                 color={colors.primaryText}
                 fontFamily="'PixelifySans-Bold', sans-serif"
                 fontWeight="bold"
@@ -237,7 +253,7 @@ const Home: React.FC = () => {
               >
                 Inventory
               </Heading>
-              <Text fontSize="10px" color={colors.secondaryText}>
+              <Text fontSize={["xs", "sm"]} color={colors.secondaryText}>
                 183 items
               </Text>
             </Stack>
@@ -274,7 +290,7 @@ const Home: React.FC = () => {
             />
             <Stack spacing={0}>
               <Heading
-                fontSize="18px"
+                fontSize={["md", "lg"]}
                 color={colors.primaryText}
                 fontFamily="'PixelifySans-Bold', sans-serif"
                 fontWeight="bold"
@@ -282,13 +298,14 @@ const Home: React.FC = () => {
               >
                 Top
               </Heading>
-              <Text fontSize="10px" color={colors.secondaryText}>
+              <Text fontSize={["xs", "sm"]} color={colors.secondaryText}>
                 Score: {userInfo?.game_high_score ?? 0}
               </Text>
             </Stack>
           </Card>
         </GradientBorderWrapper>
       </Grid>
+
       {/* PLAY BTN */}
       <Box
         onClick={() => {
@@ -297,8 +314,12 @@ const Home: React.FC = () => {
           window.Telegram.WebApp.requestFullscreen();
         }}
         mt={30}
-        w="360px"
+        mb={4}
+        w="full"
+        maxW="360px"
+        minH="185px"
         h="185px"
+        flexShrink={0}
         borderRadius="12px"
         display="flex"
         alignItems="center"
@@ -306,7 +327,7 @@ const Home: React.FC = () => {
         position="relative"
         overflow="hidden"
         cursor="pointer"
-        bg="transparent" // Прозрачный фон
+        bg="transparent"
         _before={{
           content: '""',
           position: "absolute",
@@ -358,7 +379,7 @@ const Home: React.FC = () => {
           top="20px"
           right="50px"
           w="50px"
-          filter="blur(1px)" // Размытие на звезде
+          filter="blur(1px)"
           animation={`${floatAnimation} 4s ease-in-out infinite`}
         />
         <Box
@@ -394,7 +415,6 @@ const Home: React.FC = () => {
           filter="blur(1px)"
           animation={`${floatAnimation} 2s ease-in-out infinite`}
         />
-        {/* Добавление еще звезд для заполнения фона */}
         <Box
           as="img"
           src="/icons/star.svg"
@@ -431,7 +451,7 @@ const Home: React.FC = () => {
 
         {/* Текст "PLAY" */}
         <Text
-          fontSize="32px"
+          fontSize={["2xl", "3xl"]}  // Адаптивный шрифт
           color="white"
           fontFamily="'PixelifySans-Bold', sans-serif"
           zIndex="1"

@@ -60,13 +60,20 @@ const StatsPage: React.FC = () => {
       align="center"
       color="white"
       minH="100vh"
-      p={4}
-      pb="80px"
+      p={{ base: 4, md: 4, xl: 6, "2xl": 8 }}
+      pb={{ base: "100px", md: "80px", xl: "100px", "2xl": "120px" }}
     >
       {/* Header */}
       <Flex align="center" mb={1}>
-        <Image src="/icons/trophy.gif" alt="Trophy" boxSize="35px" />
-        <Heading fontSize="24px" fontFamily="'PixelifySans-Bold', sans-serif">
+        <Image 
+          src="/icons/trophy.gif" 
+          alt="Trophy" 
+          boxSize={{ base: "30px", md: "35px", xl: "40px", "2xl": "45px" }} 
+        />
+        <Heading 
+          fontSize={{ base: "20px", md: "24px", xl: "28px", "2xl": "32px" }} 
+          fontFamily="'PixelifySans-Bold', sans-serif"
+        >
           Leaderboard
         </Heading>
       </Flex>
@@ -77,6 +84,7 @@ const StatsPage: React.FC = () => {
         variant="soft-rounded"
         colorScheme="purple"
         mb={4}
+        width={{ base: "100%", md: "auto" }}
       >
         <TabList>
           {periods.map((period) => (
@@ -87,7 +95,8 @@ const StatsPage: React.FC = () => {
                 bg: "rgba(255, 255, 255, 0.1)",
               }}
               fontFamily="'PixelifySans-Bold', sans-serif"
-              fontSize="14px"
+              fontSize={{ base: "12px", md: "14px", xl: "16px", "2xl": "18px" }}
+              px={{ base: 2, md: 4, xl: 6, "2xl": 8 }}
             >
               {period.label}
             </Tab>
@@ -98,12 +107,12 @@ const StatsPage: React.FC = () => {
       {/* Leaderboard List */}
       <Box
         w="100%"
-        maxW="360px"
-        h="calc(100vh - 250px)"
+        maxW={{ base: "100%", md: "360px", xl: "400px", "2xl": "440px" }}
+        h={{ base: "calc(100vh - 220px)", md: "calc(100vh - 250px)", xl: "calc(100vh - 280px)", "2xl": "calc(100vh - 300px)" }}
         overflowY="auto"
         mb={4}
       >
-        <Stack spacing={4} pr={2}>
+        <Stack spacing={{ base: 4, xl: 5, "2xl": 6 }} pr={2}>
           {loading
             ? // Skeleton loading state
               Array(5)
@@ -167,12 +176,15 @@ const StatsPage: React.FC = () => {
                       <Stack spacing={0}>
                         <Text
                           fontFamily="'PixelifySans-Bold', sans-serif"
-                          fontSize="16px"
+                          fontSize={{ base: "16px", md: "16px", xl: "18px", "2xl": "20px" }}
                           color={colors.primaryText}
                         >
                           {user.username}
                         </Text>
-                        <Text fontSize="12px" color={colors.secondaryText}>
+                        <Text 
+                          fontSize={{ base: "12px", md: "12px", xl: "14px", "2xl": "16px" }} 
+                          color={colors.secondaryText}
+                        >
                           {user.score} points
                         </Text>
                       </Stack>
@@ -205,15 +217,15 @@ const StatsPage: React.FC = () => {
           startColor="#FFD700"
           endColor="#FFAA00"
           strokeWidth={2}
-          w="360px"
+          w={{ base: "calc(100% - 32px)", md: "360px", xl: "400px", "2xl": "440px" }}
           position="fixed"
-          bottom="110px"
+          bottom={{ base: "80px", md: "110px", xl: "120px", "2xl": "140px" }}
           zIndex="10"
         >
           <Flex
             bg="rgba(255, 223, 0, 0.2)"
-            p={4}
-            h="65px"
+            p={{ base: 4, xl: 5, "2xl": 6 }}
+            h={{ base: "65px", xl: "75px", "2xl": "85px" }}
             align="center"
             justify="space-between"
             borderRadius="20px"
@@ -234,16 +246,15 @@ const StatsPage: React.FC = () => {
             borderRadius={20}
             startColor="#FFD700"
             endColor="#FFAA00"
-            strokeWidth={2}
-            w="360px"
+            w={{ base: "calc(100% - 32px)", md: "360px", xl: "400px", "2xl": "440px" }}
             position="fixed"
-            bottom="110px"
+            bottom={{ base: "80px", md: "110px", xl: "120px", "2xl": "140px" }}
             zIndex="10"
           >
             <Flex
               bg="rgba(255, 223, 0, 0.2)"
-              p={4}
-              h="65px"
+              p={{ base: 4, xl: 5, "2xl": 6 }}
+              h={{ base: "65px", xl: "75px", "2xl": "85px" }}
               align="center"
               justify="space-between"
               borderRadius="20px"
@@ -251,7 +262,7 @@ const StatsPage: React.FC = () => {
               <Flex align="center">
                 <Avatar
                   src="/icons/user_icon.svg"
-                  size="md"
+                  size={{ base: "md", xl: "lg", "2xl": "xl" }}
                   mr={3}
                   bg="transparent"
                   border="2px solid #FFD700"
@@ -259,19 +270,22 @@ const StatsPage: React.FC = () => {
                 <Stack spacing={0}>
                   <Text
                     fontFamily="'PixelifySans-Bold', sans-serif"
-                    fontSize="18px"
+                    fontSize={{ base: "18px", xl: "20px", "2xl": "22px" }}
                     color="#FFD700"
                   >
                     {leaderboardData.me.username}
                   </Text>
-                  <Text fontSize="14px" color="#FFE066">
+                  <Text 
+                    fontSize={{ base: "14px", xl: "16px", "2xl": "18px" }} 
+                    color="#FFE066"
+                  >
                     {leaderboardData.me.score} points
                   </Text>
                 </Stack>
               </Flex>
               <Text
                 fontFamily="'PixelifySans-Bold', sans-serif"
-                fontSize="18px"
+                fontSize={{ base: "18px", xl: "20px", "2xl": "22px" }}
                 color="#FFD700"
               >
                 #{leaderboardData.me.rank}

@@ -12,11 +12,14 @@ import {
   Image,
   Grid,
   Skeleton,
+  HStack,
+  useBreakpointValue,
 } from "@chakra-ui/react";
 import GradientBorderWrapper from "../app/components/GradientBorderWrapper";
 import colors from "../theme/colors";
 import { ButtonIfoLink } from "@/app/components/ButtonIfoLink";
 import { InventoryItem } from "../app/lib/api/inventory";
+import { LockIcon } from '@chakra-ui/icons';
 
 // Редкости
 const rarities = [
@@ -94,58 +97,69 @@ const Inventory: React.FC = () => {
     window.Telegram.WebApp.HapticFeedback.impactOccurred("soft");
   };
 
+  // Адаптивные значения для разных размеров экрана
+  const gridColumns = useBreakpointValue({ base: "repeat(2, 1fr)", md: "repeat(3, 1fr)", lg: "repeat(4, 1fr)" });
+  const itemWidth = useBreakpointValue({ base: "140px", md: "150px" });
+  const itemHeight = useBreakpointValue({ base: "120px", md: "130px" });
+  const fontSize = useBreakpointValue({ base: "18px", md: "24px" });
+  const buttonWidth = useBreakpointValue({ base: "90px", md: "100px" });
+  const spacing = useBreakpointValue({ base: 3, md: 4 });
+  const padding = useBreakpointValue({ base: 3, md: 4 });
+
   return (
     <>
-      <Flex direction="column" align="center" color="white" minH="100vh" p={4}>
-        {/* Заголовок */}
-        <Heading
-          fontSize="24px"
-          fontFamily="'PixelifySans-Bold', sans-serif"
-          mb={4}
-        >
-          Inventory
-        </Heading>
+      <Flex direction="column" align="center" color="white" minH="100vh" p={padding}>
+        {/* Слайдер страниц */}
+        <HStack spacing={spacing} mb={spacing} position="relative">
+          <Text
+            fontSize={fontSize}
+            fontFamily="'PixelifySans-Bold', sans-serif"
+            color={colors.primaryText}
+            borderBottom="4px solid"
+            borderColor="purple.500"
+            pb={1}
+          >
+            Inventory
+          </Text>
+          <Flex align="center" opacity={0.5}>
+            <Text
+              fontSize={fontSize}
+              fontFamily="'PixelifySans-Bold', sans-serif"
+              color="gray.500"
+              pb={1}
+            >
+              Shop
+            </Text>
+            <LockIcon ml={2} color="gray.500" />
+          </Flex>
+        </HStack>
 
         {/* Информация о монетах и предметах */}
-        <Flex gap={4} mb={6}>
+        <Flex gap={spacing} mb={spacing}>
           <ButtonIfoLink
             title={isLoading ? "..." : userInfo?.coins.toString() || "0"}
-            width="100px"
+            width={buttonWidth}
             description="Points"
             onClick={chanelLink}
             startIcon={
               <Image
                 src="/icons/star_icon.svg"
                 alt="Points Icon"
-                boxSize="23px"
-                mr={2}
-              />
-            }
-          />
-          <ButtonIfoLink
-            title="Shop"
-            width="100px"
-            description="Buy items"
-            onClick={() => (window.location.href = "/shop")}
-            startIcon={
-              <Image
-                src="/icons/shop_icon.svg"
-                alt="Shop Icon"
-                boxSize="23px"
+                boxSize={useBreakpointValue({ base: "20px", md: "23px" })}
                 mr={2}
               />
             }
           />
           <ButtonIfoLink
             title={isLoading ? "..." : inventoryItems.length.toString()}
-            width="100px"
+            width={buttonWidth}
             description="Items"
             onClick={chanelLink}
             startIcon={
               <Image
                 src="/icons/bag_icon.svg"
                 alt="Bag Icon"
-                boxSize="23px"
+                boxSize={useBreakpointValue({ base: "20px", md: "23px" })}
                 mr={2}
               />
             }
@@ -154,27 +168,27 @@ const Inventory: React.FC = () => {
 
         {/* Навбар редкостей */}
         <Flex
-          overflowX="auto" // Включаем горизонтальный скролл
-          gap={6}
-          w="100%" // Указываем ширину Flex
-          mb={6}
+          overflowX="auto"
+          gap={useBreakpointValue({ base: 4, md: 6 })}
+          w="100%"
+          mb={spacing}
           css={{
             "&::-webkit-scrollbar": {
-              display: "none", // Убираем стандартный скроллбар
+              display: "none",
             },
           }}
         >
           {rarities.map((rarity) => (
             <Box key={rarity.name} textAlign="center">
               <Text
-                fontSize="20px"
+                fontSize={useBreakpointValue({ base: "16px", md: "20px" })}
                 fontFamily="'PixelifySans-Bold', sans-serif"
                 cursor="pointer"
                 color={colors.primaryText}
                 onClick={() => setSelectedRarity(rarity.name)}
                 position="relative"
-                px={0} // Увеличиваем кликабельную область
-                whiteSpace="nowrap" // Убираем перенос ткста
+                px={0}
+                whiteSpace="nowrap"
                 _after={{
                   content: '""',
                   position: "absolute",
@@ -183,8 +197,7 @@ const Inventory: React.FC = () => {
                   transform: "translateX(-50%)",
                   width: "100%",
                   height: "5px",
-                  background:
-                    selectedRarity === rarity.name ? rarity.neon : "none",
+                  background: selectedRarity === rarity.name ? rarity.neon : "none",
                   filter: "blur(6px)",
                   borderRadius: "8px",
                 }}
@@ -196,21 +209,18 @@ const Inventory: React.FC = () => {
         </Flex>
 
         {/* Сетка предметов */}
-        <Grid templateColumns="repeat(2, 1fr)" gap={6}>
+        <Grid templateColumns={gridColumns} gap={spacing}>
           {isLoading
-            ? // Skeleton loading state
-              Array(6)
-                .fill(0)
-                .map((_, index) => (
-                  <Skeleton
-                    key={index}
-                    height="130px"
-                    width="150px"
-                    borderRadius="12px"
-                    startColor="#1a1a1a"
-                    endColor="#2d2d2d"
-                  />
-                ))
+            ? Array(6).fill(0).map((_, index) => (
+                <Skeleton
+                  key={index}
+                  height={itemHeight}
+                  width={itemWidth}
+                  borderRadius="12px"
+                  startColor="#1a1a1a"
+                  endColor="#2d2d2d"
+                />
+              ))
             : filteredItems.map((item, index) => {
                 const rarity = rarities.find(
                   (r) => r.name === item.inventory_item.rarity
@@ -228,9 +238,9 @@ const Inventory: React.FC = () => {
                       direction="column"
                       align="center"
                       justify="center"
-                      p={4}
-                      h="130px"
-                      w="150px"
+                      p={3}
+                      h={itemHeight}
+                      w={itemWidth}
                       bg="transparent"
                       borderRadius="12px"
                       position="relative"
@@ -238,8 +248,8 @@ const Inventory: React.FC = () => {
                       <Box
                         position="absolute"
                         bottom="35px"
-                        width="70px"
-                        height="70px"
+                        width={useBreakpointValue({ base: "60px", md: "70px" })}
+                        height={useBreakpointValue({ base: "60px", md: "70px" })}
                         borderRadius="50%"
                         bg={rarity?.neon}
                         filter="blur(10px)"
@@ -248,12 +258,17 @@ const Inventory: React.FC = () => {
                       <Image
                         src={`https://droppu.ru:7777/api/v1/uploads/${item.inventory_item.image_url}`}
                         alt={item.inventory_item.name}
-                        boxSize="80px"
+                        boxSize={useBreakpointValue({ base: "70px", md: "80px" })}
                         objectFit="contain"
                         mb={0}
                         zIndex={1}
                       />
-                      <Text fontSize="12px" color={colors.secondaryText}>
+                      <Text 
+                        fontSize={useBreakpointValue({ base: "11px", md: "12px" })} 
+                        color={colors.secondaryText}
+                        textAlign="center"
+                        mt={1}
+                      >
                         {item.inventory_item.name}
                       </Text>
                     </Flex>

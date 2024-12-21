@@ -145,17 +145,30 @@ export default function Invites() {
     <Flex
       direction="column"
       align="center"
-      bgGradient="linear(to-b, #0D1478, #130B3D, #0D1478)"
       color="white"
       minH="100vh"
-      p={4}
+      maxH="100vh"
+      overflowY="auto"
+      p={[2, 4]}
+      pb="calc(var(--tg-viewport-stable-height) * 0.15 + 10px)"
       position="relative"
+      css={{
+        '&::-webkit-scrollbar': {
+          width: '4px',
+        },
+        '&::-webkit-scrollbar-track': {
+          background: 'transparent',
+        },
+        '&::-webkit-scrollbar-thumb': {
+          background: 'rgba(255, 255, 255, 0.2)',
+          borderRadius: '2px',
+        },
+      }}
     >
-      {/* Заголовок */}
       <Heading
-        fontSize="24px"
+        fontSize={["20px", "24px"]}
         fontFamily="'PixelifySans-Bold', sans-serif"
-        mb={4}
+        mb={[2, 4]}
       >
         Invite Friends
       </Heading>
@@ -165,14 +178,15 @@ export default function Invites() {
         startColor="#793BC7"
         endColor="#C2D2FF"
         strokeWidth={1.5}
-        w="100%"
+        w={["90%", "100%"]}
         maxW="360px"
         h="130px"
-        p="16px"
+        p={["12px", "16px"]}
         display="flex"
         flexDirection="column"
         alignItems="center"
         mb={3}
+        mx={2}
         position="relative"
       >
         <Box
@@ -191,7 +205,7 @@ export default function Invites() {
             </>
           ) : (
             <>
-              <Flex w="full" justify="space-around" mb={1} gap={5}>
+              <Flex w="full" justify="space-around" mb={1} gap={[2, 5]}>
                 {[
                   { label: "Points", value: pendingRewards.total_coins.toString() },
                   {
@@ -205,33 +219,33 @@ export default function Invites() {
                     startColor="#793BC7"
                     endColor="#C2D2FF"
                     strokeWidth={1.5}
-                    w="95px"
-                    h="45px"
+                    w={["85px", "95px"]}
+                    h={["40px", "45px"]}
                   >
                     <Flex
                       align="center"
                       justify="left"
                       h="100%"
-                      pl={2}
-                      pr={4}
+                      pl={[1, 2]}
+                      pr={[2, 4]}
                       bg="transparent"
                       borderRadius="12px"
                     >
                       <Image
                         src="/icons/star_icon.svg"
                         alt="Tickets Icon"
-                        boxSize="23px"
+                        boxSize={["20px", "23px"]}
                       />
-                      <Stack spacing={0} ml={1}>
+                      <Stack spacing={0} ml={[0.5, 1]}>
                         <Heading
-                          fontSize="16px"
+                          fontSize={["14px", "16px"]}
                           color={colors.primaryText}
                           fontFamily="'PixelifySans-Bold', sans-serif"
                           mb={-1.5}
                         >
                           {stat.value}
                         </Heading>
-                        <Text fontSize="12px" color={colors.secondaryText}>
+                        <Text fontSize={["10px", "12px"]} color={colors.secondaryText}>
                           {stat.label}
                         </Text>
                       </Stack>
@@ -384,50 +398,57 @@ export default function Invites() {
       )}
 
       {/* Кнопка Invite Friend */}
-      <GradientBorderWrapper
+      <Box
         position="fixed"
-        bottom="120px"
+        bottom="calc(var(--tg-viewport-stable-height) * 0.15 + 10px)"
         left="50%"
         transform="translateX(-50%)"
-        startColor="#793BC7"
-        endColor="#C2D2FF"
-        strokeWidth={1.5}
-        w="200px"
-        h="50px"
+        w="full"
+        display="flex"
+        justifyContent="center"
         zIndex="2"
+        pb={4}
       >
-        <Flex
-          onClick={inviteFriendsLink}
-          direction="row"
-          alignItems="center"
-          justifyContent="space-between"
-          bg="transparent"
-          h="100%"
-          p={0.5}
-          pl={4}
+        <GradientBorderWrapper
+          startColor="#793BC7"
+          endColor="#C2D2FF"
+          strokeWidth={1.5}
+          w={["180px", "200px"]}
+          h={["45px", "50px"]}
         >
-          <Stack spacing={0}>
-            <Heading
-              fontSize="18px"
-              color={colors.primaryText}
-              fontFamily="'PixelifySans-Bold', sans-serif"
-              fontWeight="bold"
-              mb={-1}
-            >
-              Invite Friends
-            </Heading>
-            <Text fontSize="10px" color={colors.secondaryText}>
-              Get more tickets and points
-            </Text>
-          </Stack>
-          <Image
-            src="/icons/frens_icon.svg"
-            alt="Invite Friend Icon"
-            boxSize="30px"
-            mr={2}
-          />
-        </Flex>
-      </GradientBorderWrapper>
+          <Flex
+            onClick={inviteFriendsLink}
+            direction="row"
+            alignItems="center"
+            justifyContent="space-between"
+            bg="transparent"
+            h="100%"
+            p={0.5}
+            pl={[2, 4]}
+          >
+            <Stack spacing={0}>
+              <Heading
+                fontSize={["16px", "18px"]}
+                color={colors.primaryText}
+                fontFamily="'PixelifySans-Bold', sans-serif"
+                fontWeight="bold"
+                mb={-1}
+              >
+                Invite Friends
+              </Heading>
+              <Text fontSize={["9px", "10px"]} color={colors.secondaryText}>
+                Get more tickets and points
+              </Text>
+            </Stack>
+            <Image
+              src="/icons/frens_icon.svg"
+              alt="Invite Friend Icon"
+              boxSize={["25px", "30px"]}
+              mr={[1, 2]}
+            />
+          </Flex>
+        </GradientBorderWrapper>
+      </Box>
     </Flex>
   );
 }
