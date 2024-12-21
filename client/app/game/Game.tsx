@@ -248,9 +248,6 @@ const Game: FC<GameSceneData> = ({
         padding: 0,
         top: 0,
         left: 0,
-        userSelect: "none", // Отключаем выделение текста
-        WebkitUserSelect: "none", // Для Safari
-        touchAction: "none", // Отключаем стандартные действия при касании
       }}
       onContextMenu={(e) => e.preventDefault()} // Предотвращаем контекстное меню
     >
