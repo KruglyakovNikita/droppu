@@ -557,12 +557,12 @@ class GameScene extends Phaser.Scene {
       this.time.now +
       baseDelay / currentDifficulty.obstacles.spawnRateMultiplier;
 
-    this.fpsText = this.add
-      .text(this.scale.width - 100, 10, "", {
-        fontSize: "16px",
-        color: "#ffffff",
-      })
-      .setScrollFactor(0);
+    // this.fpsText = this.add
+    //   .text(this.scale.width - 100, 10, "", {
+    //     fontSize: "16px",
+    //     color: "#ffffff",
+    //   })
+    //   .setScrollFactor(0);
 
     // Анимации для других объектов
     this.anims.create({
@@ -1250,16 +1250,11 @@ class GameScene extends Phaser.Scene {
 
       // Текст на кнопке "Продолжить"
       const continueButtonText = this.add
-        .text(
-          centerX,
-          continueButtonY,
-          `Продолжить x${this.continueCount + 1}`,
-          {
-            fontSize: "24px",
-            color: "#ffffff",
-            fontStyle: "bold",
-          }
-        )
+        .text(centerX, continueButtonY, `Revive x${this.continueCount + 1}`, {
+          fontSize: "24px",
+          color: "#ffffff",
+          fontStyle: "bold",
+        })
         .setOrigin(0.5);
       continueButtonText.setDepth(1011);
       modalElements.push(continueButtonText);
@@ -1401,7 +1396,7 @@ class GameScene extends Phaser.Scene {
 
       // Текст на отключённой кнопке
       const disabledContinueText = this.add
-        .text(centerX, continueButtonY, `Продолжить x${this.continueCount}`, {
+        .text(centerX, continueButtonY, `Revive x${this.continueCount}`, {
           fontSize: "24px",
           color: "#ffffff",
           fontStyle: "bold",
@@ -1420,10 +1415,10 @@ class GameScene extends Phaser.Scene {
       // Кнопка не интерактивна, поэтому нет обработчика
     }
 
-    // === Кнопка "Продолжить за тикет" или "Купить тикет и получить монеты" ===
+    // === Кнопка "Продолжить за тикет" или "Получить монеты" ===
     const middleButtonLabel = hasTickets
-      ? "Продолжить за тикет"
-      : "Купить тикет и получить монеты";
+      ? "Start the next game"
+      : "Get the coins";
     const middleButtonTextureKey = hasTickets
       ? "ticketGradient"
       : "buyTicketGradient";
@@ -1477,9 +1472,20 @@ class GameScene extends Phaser.Scene {
       .setOrigin(0.5)
       .setDepth(1011);
     modalElements.push(middleButtonText);
+    const middleButtonArea = this.add
+      .rectangle(
+        centerX,
+        middleButtonY,
+        middleButtonWidth,
+        middleButtonHeight,
+        0x000000,
+        0
+      )
+      .setDepth(1013);
 
+    middleButtonArea.setInteractive({ useHandCursor: true });
     // Обработчик нажатия на среднюю кнопку
-    middleButton.on("pointerdown", async () => {
+    middleButtonArea.on("pointerdown", async () => {
       if (hasTickets) {
         // Продолжить за тикет
         console.log("Continue with ticket button clicked.");
@@ -1528,7 +1534,7 @@ class GameScene extends Phaser.Scene {
 
     // Добавляем текст на кнопку "Закончить игру"
     const finishButtonText = this.add
-      .text(centerX, finishButtonY, "Закончить игру", {
+      .text(centerX, finishButtonY, "End game", {
         fontSize: "20px",
         color: "#ffffff",
       })
@@ -1536,9 +1542,21 @@ class GameScene extends Phaser.Scene {
       .setDepth(1011);
     modalElements.push(finishButtonText);
 
-    // Обработчик нажатия на кнопку "Закончить игру"
-    finishButton.on("pointerdown", () => {
+    const finishButtonArea = this.add
+      .rectangle(
+        centerX,
+        finishButtonY,
+        finishButtonWidth,
+        finishButtonHeight,
+        0x000000,
+        0
+      )
+      .setDepth(1012);
+
+    finishButtonArea.setInteractive({ useHandCursor: true });
+    finishButtonArea.on("pointerdown", () => {
       this.closeModal(modalElements);
+      this.isStoped = true;
       this.onGameEnd({
         score: this.score,
         coins_earned: this.coinCount,
@@ -1546,7 +1564,6 @@ class GameScene extends Phaser.Scene {
         // При обычном завершении без тикета isPaid:false
         isPaid: false,
       });
-      this.isStoped = true;
     });
   }
 
@@ -1845,8 +1862,8 @@ class GameScene extends Phaser.Scene {
    * Метод обновления сцены
    */
   update() {
-    const fps = Math.floor(this.game.loop.actualFps);
-    this.fpsText.setText(`FPS: ${fps}`);
+    // const fps = Math.floor(this.game.loop.actualFps);
+    // this.fpsText.setText(`FPS: ${fps}`);
 
     if (this.isStoped) return;
 
@@ -2029,55 +2046,6 @@ class GameScene extends Phaser.Scene {
       }
     }
   }
-
-  /**
-   * Метод переключения на новый набор фонов
-   */
-  // switchBackgrounds() {
-  //   if (this.currentBackgroundSet === 1) {
-  //     // Создаем новые фоны для второго набора за пределами экрана справа
-  //     this.background3 = this.add.image(
-  //       this.background2.x + this.background2.displayWidth + 400,
-  //       0,
-  //       "back3"
-  //     );
-  //     this.background3.setDisplaySize(this.scale.width, this.scale.height);
-  //     this.background4 = this.add.image(
-  //       this.background3.displayWidth,
-  //       0,
-  //       "back4"
-  //     );
-
-  //     // Масштабируем изображения до размеров экрана
-  //     this.background4.setDisplaySize(this.scale.width, this.scale.height);
-
-  //     // Устанавливаем оба изображения в верхний левый угол и закрепляем на заднем плане
-  //     this.background3.setOrigin(0, 0).setScrollFactor(0).setDepth(-Infinity);
-  //     this.background4.setOrigin(0, 0).setScrollFactor(0).setDepth(-Infinity);
-
-  //     // Обновляем текущий набор фонов
-  //     this.currentBackgroundSet = 2;
-
-  //     console.log("Switched to Background Set 2");
-  //   } else if (this.currentBackgroundSet === 2) {
-  //     // Создаем новые фоны для первого набора за пределами экрана справа
-  //     this.background1 = this.add.image(this.scale.width, 0, "back1");
-  //     this.background2 = this.add.image(this.scale.width * 2, 0, "back2");
-
-  //     // Масштабируем изображения до размеров экрана
-  //     this.background1.setDisplaySize(this.scale.width, this.scale.height);
-  //     this.background2.setDisplaySize(this.scale.width, this.scale.height);
-
-  //     // Устанавливаем оба изображения в верхний левый угол и закрепляем на заднем плане
-  //     this.background1.setOrigin(0, 0).setScrollFactor(0).setDepth(-Infinity);
-  //     this.background2.setOrigin(0, 0).setScrollFactor(0).setDepth(-Infinity);
-
-  //     // Обновляем текущий набор фонов
-  //     this.currentBackgroundSet = 1;
-
-  //     console.log("Switched to Background Set 1");
-  //   }
-  // }
 }
 
 export default GameScene;
