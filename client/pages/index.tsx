@@ -272,7 +272,7 @@ const Home: React.FC = () => {
                 Inventory
               </Heading>
               <Text fontSize={["xs", "sm"]} color={colors.secondaryText}>
-                183 items
+                0 items
               </Text>
             </Stack>
           </Card>

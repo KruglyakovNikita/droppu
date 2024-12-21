@@ -35,6 +35,8 @@ const Earn: React.FC = () => {
   const [isChecked, setIsChecked] = useState(false);
   const toast = useToast();
   const [isTasksLoading, setIsTasksLoading] = useState(true);
+  const userInfo = useStore((state) => state.user);
+
 
   useEffect(() => {
     const fetchTasks = async () => {
@@ -91,6 +93,8 @@ const Earn: React.FC = () => {
         isClosable: true,
         position: "top",
       });
+
+      if(userInfo?.coins) userInfo.coins += selectedTask.reward_coins??0;
     }
     else{
       toast({
@@ -184,7 +188,7 @@ const Earn: React.FC = () => {
               mt="-1"
               isTruncated
             >
-              300 Points
+              300 Coins
             </Text>
             <Button
               mt="3"
@@ -264,7 +268,8 @@ const Earn: React.FC = () => {
                 h="50px"
                 align="center"
                 justify="space-between"
-              >
+                overflowY="auto"
+                >
                 <Flex align="center">
                   <Skeleton boxSize="23px" mr={3} />
                   <Stack spacing={0}>
@@ -308,7 +313,7 @@ const Earn: React.FC = () => {
                       {task.name}
                     </Text>
                     <Text fontSize="12px" color={colors.secondaryText} isTruncated>
-                      {task.reward_coins} Points
+                      {task.reward_coins} Coins
                     </Text>
                   </Stack>
                 </Flex>
