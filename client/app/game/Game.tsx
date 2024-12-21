@@ -295,9 +295,6 @@ const Game: FC<GameSceneData> = ({
                 : "",
             borderRadius:
               currentGameWidth > 0 && currentGameWidth > 0 ? "2rem" : "",
-            userSelect: "none", // Отключаем выделение текста
-            WebkitUserSelect: "none", // Для Safari
-            touchAction: "none", // Отключаем стандартные действия при касании
           }}
           onContextMenu={(e) => e.preventDefault()} // Предотвращаем контекстное меню
         >
@@ -308,9 +305,7 @@ const Game: FC<GameSceneData> = ({
               outlineWidth: "3px",
               outlineColor: "green",
               outlineOffset: "3px",
-              userSelect: "none", // Отключаем выделение текста
-              WebkitUserSelect: "none", // Для Safari
-              touchAction: "none", // Отключаем стандартные действия при касании
+
               visibility: isLoading ? "hidden" : "visible",
             }}
             onContextMenu={(e) => e.preventDefault()} // Предотвращаем контекстное меню
