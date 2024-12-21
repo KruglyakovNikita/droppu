@@ -12,6 +12,8 @@ interface ButtonIfoLinkProps {
   endIcon?: ReactNode;
   descriptionFontSize?: string;
   titleFontSize?: string;
+  startColor?: string;
+  endColor?: string;
 }
 
 export const ButtonIfoLink: FC<ButtonIfoLinkProps> = ({
@@ -23,11 +25,13 @@ export const ButtonIfoLink: FC<ButtonIfoLinkProps> = ({
   width="165px",
   descriptionFontSize = "9px",
   titleFontSize = "14px",
+  startColor="#793BC7",
+  endColor="#C2D2FF",
 }) => {
   return (
     <GradientBorderWrapper
-      startColor="#793BC7"
-      endColor="#C2D2FF"
+      startColor={startColor}
+      endColor={endColor}
       strokeWidth={1.5}
       w={width}
       h="45px"

@@ -77,7 +77,6 @@ const Earn: React.FC = () => {
     }, 6000);
   };
 
-  // Handle the Check button click
   const handleCheck = () => {
     if (selectedTask.type === 'New' || selectedTask.type === 'Socials'){
       console.log(selectedTask.type)
@@ -174,6 +173,7 @@ const Earn: React.FC = () => {
               fontFamily="'PixelifySans-Bold', sans-serif"
               color={colors.primaryText}
               textAlign="left"
+              isTruncated
             >
               Earn for checking socials
             </Text>
@@ -182,6 +182,7 @@ const Earn: React.FC = () => {
               fontFamily="'PixelifySans-Bold', sans-serif"
               color={colors.secondaryText}
               mt="-1"
+              isTruncated
             >
               300 Points
             </Text>
@@ -302,10 +303,11 @@ const Earn: React.FC = () => {
                     <Text
                       fontFamily="'PixelifySans-Bold', sans-serif"
                       fontSize="16px"
+                      isTruncated
                     >
                       {task.name}
                     </Text>
-                    <Text fontSize="12px" color={colors.secondaryText}>
+                    <Text fontSize="12px" color={colors.secondaryText} isTruncated>
                       {task.reward_coins} Points
                     </Text>
                   </Stack>

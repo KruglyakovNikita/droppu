@@ -14,12 +14,13 @@ import {
   Skeleton,
   HStack,
   useBreakpointValue,
+  Button,
 } from "@chakra-ui/react";
 import GradientBorderWrapper from "../app/components/GradientBorderWrapper";
 import colors from "../theme/colors";
-import { ButtonIfoLink } from "@/app/components/ButtonIfoLink";
 import { InventoryItem } from "../app/lib/api/inventory";
-import { LockIcon } from '@chakra-ui/icons';
+import { LockIcon } from "@chakra-ui/icons";
+import { ButtonIfoLink } from "@/app/components/ButtonIfoLink";
 
 // Редкости
 const rarities = [
@@ -51,6 +52,15 @@ const Inventory: React.FC = () => {
       if (response.data) {
         setInventoryItems(response.data);
       }
+    } catch (error) {
+      console.error("Failed to fetch inventory:", error);
+      toast({
+        title: "Error fetching inventory",
+        description:"An unexpected error occurred.",
+        status: "error",
+        duration: 3000,
+        isClosable: true,
+      });
     } finally {
       setIsLoading(false);
     }
@@ -71,17 +81,11 @@ const Inventory: React.FC = () => {
   const handleEquip = async () => {
     if (!selectedItem) return;
 
-    const response = await equipItem(selectedItem.inventory_item.id);
-    if (response.error) {
-      toast({
-        isClosable: true,
-        position: "top",
-        title: "Error",
-        description: response.error,
-        status: "error",
-        duration: 3000,
-      });
-    } else {
+    try {
+      const response = await equipItem(selectedItem.inventory_item.id);
+      if (response.error) {
+        throw new Error(response.error);
+      }
       toast({
         isClosable: true,
         position: "top",
@@ -90,11 +94,20 @@ const Inventory: React.FC = () => {
         duration: 3000,
       });
       setIsPopupOpen(false);
+    } catch (error) {
+      toast({
+        isClosable: true,
+        position: "top",
+        title: "Error",
+        description: "Failed to equip item.",
+        status: "error",
+        duration: 3000,
+      });
     }
   };
 
   const chanelLink = () => {
-    window.Telegram.WebApp.HapticFeedback.impactOccurred("soft");
+    window.Telegram?.WebApp?.HapticFeedback?.impactOccurred("soft");
   };
 
   // Адаптивные значения для разных размеров экрана
