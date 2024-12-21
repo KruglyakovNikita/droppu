@@ -33,16 +33,30 @@ export const PLAYER_SPEED = 2.5; // Постоянная скорость впр
 export const MIN_DISTANCE_BETWEEN_PRESETS = 175; // Минимальное расстояние между пресетами
 const INIT_PLATFORM_DISTANCE = 400;
 
+/**
+ * NEW CODE: Мы определим структуру backgroundSets,
+ * которая будет хранить массив текстур для каждого ключа "Initial","Intermediate" и т.д.
+ * Имеем по 2 изображения, кроме Master, где могут быть 3.
+ */
+//
+//  Initial: ["map/backgrounds/sacura.png", "map/backgrounds/sacura_2.png"],
+
+const backgroundSets: Record<string, string[]> = {
+  Initial: ["map/backgrounds/snow_5.png", "map/backgrounds/snow_2.jpg"],
+  Intermediate: ["map/backgrounds/snow_5.png", "map/backgrounds/snow_2.jpg"],
+  Advanced: ["map/backgrounds/sacura.png", "map/backgrounds/sacura_2.png"],
+  Expert: ["map/backgrounds/sacura.png", "map/backgrounds/sacura_2.png"],
+  Master: ["map/backgrounds/sacura.png", "map/backgrounds/sacura_2.png"],
+};
+
 class GameScene extends Phaser.Scene {
   testInd: number = 0;
   player!: Phaser.Physics.Matter.Sprite;
   lasers: Phaser.Physics.Matter.Sprite[] = [];
   cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
   score!: number;
-  background1!: Phaser.GameObjects.Image;
-  background2!: Phaser.GameObjects.Image;
-  background3!: Phaser.GameObjects.Image;
-  background4!: Phaser.GameObjects.Image;
+  // Уберём background1..background4, сделаем массив
+  activeBackgrounds: Phaser.GameObjects.Image[] = [];
 
   scoreText!: Phaser.GameObjects.Text;
   lastPlatformX: number = INIT_PLATFORM_DISTANCE;
@@ -80,6 +94,10 @@ class GameScene extends Phaser.Scene {
   DESCENT_ACCELERATION!: number;
   MAX_DESCENT_SPEED!: number;
   MAX_ASCENT_SPEED!: number;
+
+  // Текущее имя сета
+  currentSetName: string = "Initial";
+  currentSetImageIndex: number = 0;
 
   //Back
   backgroundSwitchDistance: number = 1000;
@@ -146,9 +164,22 @@ class GameScene extends Phaser.Scene {
   }
 
   preload() {
-    // Загружаем один спрайт для персонажа (office_clerk) - в userSpriteUrl
-    // Предполагаем, что в одном листе все анимации: spawn, up, down, downEnd, run
-    console.log(`${this.userSpriteUrl}_run.png`);
+    // NEW CODE: подгружаем small_tower.png (для стыка между фонами)
+    this.load.image("small_tower", "map/tower/small_tower.png");
+
+    // Подгружаем все фоновые файлы из backgroundSets
+    // (можно вручную, либо динамически, ниже — вручную)
+    this.load.image("gravity", "map/backgrounds/gravity.png");
+    this.load.image("gravity_2", "map/backgrounds/gravity_2.png");
+    this.load.image("labaratory", "map/backgrounds/labaratory.png");
+    this.load.image("labaratory_2", "map/backgrounds/labaratory_2.png");
+    this.load.image("neon", "map/backgrounds/neon.png");
+    this.load.image("neon_2", "map/backgrounds/neon_2.png");
+    this.load.image("sacura", "map/backgrounds/sacura.png");
+    this.load.image("sacura_2", "map/backgrounds/sacura_2.png");
+    this.load.image("snow_5", "map/backgrounds/snow_5.png");
+    this.load.image("snow_3", "map/backgrounds/snow_3.png");
+    this.load.image("snow_2", "map/backgrounds/snow_2.jpg");
 
     this.load.spritesheet(
       "person_run_sprite",
@@ -287,9 +318,9 @@ class GameScene extends Phaser.Scene {
       frameHeight: 40,
     });
 
-    this.load.spritesheet("laser", "sptires/static_laser/Laser-Sheet.png", {
-      frameWidth: 125,
-      frameHeight: 45,
+    this.load.spritesheet("laser", "sptires/static_laser/laserbeam.png", {
+      frameWidth: 160,
+      frameHeight: 40,
     });
 
     // Звуки
@@ -305,8 +336,8 @@ class GameScene extends Phaser.Scene {
   create() {
     this.anims.create({
       key: "laser_anim",
-      frames: this.anims.generateFrameNumbers("laser", { start: 0, end: 3 }),
-      frameRate: 8,
+      frames: this.anims.generateFrameNumbers("laser", { start: 0, end: 5 }),
+      frameRate: 12,
       repeat: -1,
     });
 
@@ -475,18 +506,16 @@ class GameScene extends Phaser.Scene {
       })
       .setScrollFactor(0);
 
-    this.background1 = this.add
-      .image(0, 0, "back1")
-      .setOrigin(0, 0)
-      .setScrollFactor(0)
-      .setDepth(-Infinity);
-    this.background1.setDisplaySize(this.scale.width, this.scale.height);
-    this.background2 = this.add
-      .image(this.background1.displayWidth, 0, "back2")
-      .setOrigin(0, 0)
-      .setScrollFactor(0)
-      .setDepth(-Infinity);
-    this.background2.setDisplaySize(this.scale.width, this.scale.height);
+    this.activeBackgrounds = [];
+
+    // Начинаем, скажем, с "Initial"
+    this.currentSetName = "Initial";
+    this.currentSetImageIndex = 0;
+
+    // Добавим несколько фонов подряд (2-3) для заполнения первого экрана
+    this.addNextBackground();
+    this.addNextBackground();
+    this.addNextBackground();
 
     this.coinPool = new ObjectPool(() => {
       const coin = this.matter.add.sprite(0, 0, "coin");
@@ -512,12 +541,11 @@ class GameScene extends Phaser.Scene {
       laser.setVisible(false);
 
       // Устанавливаем размер лазера в игре
-      laser.setScale(0.52488); // Масштабируем спрайт-лист на 72.9% от оригинального размера
+      laser.setScale(0.47515); // Масштабируем спрайт-лист для уменьшенной высоты на дополнительные 10%
       laser.setRectangle(
-        this.scale.width * 0.10935,
-        this.scale.height * 0.054675
+        this.scale.width * 0.13997, // Ширина 160 (неизменна)
+        this.scale.height * 0.03350241 // Высота уменьшена ещё на 10%
       );
-
       return laser;
     });
 
@@ -657,19 +685,6 @@ class GameScene extends Phaser.Scene {
     );
 
     this.matter.world.on("collisionstart", this.handleCollision, this);
-
-    this.background1 = this.add.image(0, 0, "back1");
-    this.background1.setDisplaySize(this.scale.width, this.scale.height);
-
-    this.background2 = this.add.image(
-      +this.background1.displayWidth,
-      0,
-      "back2"
-    );
-    this.background2.setDisplaySize(this.scale.width, this.scale.height);
-
-    this.background1.setOrigin(0, 0).setScrollFactor(0).setDepth(-Infinity);
-    this.background2.setOrigin(0, 0).setScrollFactor(0).setDepth(-Infinity);
 
     // Инициализация очереди пресетов
     for (let i = 0; i < 3; i++) {
@@ -1764,6 +1779,68 @@ class GameScene extends Phaser.Scene {
       }
     });
   }
+
+  /**
+   * addNextBackground: Создаёт очередной фон (возможно, с tower) справа от последнего.
+   */
+  addNextBackground() {
+    // Берём список изображений для текущего уровня (Initial / Intermediate / etc.)
+    const arr = backgroundSets[this.currentSetName] || [];
+    if (arr.length === 0) return;
+
+    // Выбираем имя файла (например "map/backgrounds/gravity.png")
+    const fileFullName = arr[this.currentSetImageIndex];
+
+    // 1) Находим правый край последнего фона
+    let rightEdgeX = 0;
+    if (this.activeBackgrounds.length > 0) {
+      const lastBg = this.activeBackgrounds[this.activeBackgrounds.length - 1];
+      rightEdgeX = lastBg.x + lastBg.displayWidth;
+    }
+
+    // 2) Ставим столб (small_tower) как «стык» (по центру в X = rightEdgeX)
+    const tower = this.add.image(rightEdgeX - 15, 0, "small_tower");
+    tower.setDepth(-100); // фон/столб за другими объектами
+    tower.setOrigin(0.2, 1);
+    tower.setY(this.scale.height); // крепим низ столба к низу экрана
+
+    // 3) Следующий фон пусть начинается чуть правее столба
+    const nextBgX = rightEdgeX;
+
+    // 4) Создаём сам фон
+    const newBgKey = this.extractKeyFromPath(fileFullName);
+    const newBg = this.add.image(nextBgX, this.scale.height, newBgKey);
+
+    // НЕ вызываем setScrollFactor(0), чтобы фон скроллился при движении камеры
+    // newBg.setScrollFactor(1); // по умолчанию 1
+    newBg.setOrigin(1, 1);
+
+    newBg.setDepth(-10000);
+    newBg.setDisplaySize(
+      this.scale.width * 1.555, // Пропорциональная ширина для уменьшенной высоты
+      this.scale.height * 1
+    );
+
+    this.activeBackgrounds.push(newBg);
+
+    // Меняем индекс (если дошли до конца массива, возвращаемся к 0)
+    this.currentSetImageIndex++;
+    if (this.currentSetImageIndex >= arr.length) {
+      this.currentSetImageIndex = 0;
+      // Можно ещё переключиться на другой setName (в зависимости от score).
+      const level = getCurrentDifficultyLevel(this.score);
+      this.currentSetName = level.name;
+    }
+  }
+
+  // ...
+
+  extractKeyFromPath(path: string): string {
+    const baseName = path.split("/").pop() || "";
+    const noExt = baseName.split(".")[0];
+    return noExt;
+  }
+
   /**
    * Метод обновления сцены
    */
@@ -1841,7 +1918,27 @@ class GameScene extends Phaser.Scene {
       this.generateObstacle(currentDifficulty);
     }
 
-    this.scrollBackgrounds();
+    this.cameras.main.scrollX += scrollSpeed;
+
+    // Проверяем, не нужно ли добавить очередной фон
+    if (this.activeBackgrounds.length > 0) {
+      const lastBg = this.activeBackgrounds[this.activeBackgrounds.length - 1];
+      const cameraRight = this.cameras.main.scrollX + this.cameras.main.width;
+      // Если последний фон закончился недалеко от камеры => добавляем фон
+      if (lastBg.x <= cameraRight + 200) {
+        this.addNextBackground();
+      }
+    }
+
+    // Удаляем те фоны, которые ушли далеко слева
+    this.activeBackgrounds = this.activeBackgrounds.filter((bg) => {
+      if (bg.x + bg.displayWidth < this.cameras.main.scrollX - 200) {
+        bg.destroy();
+        return false;
+      }
+      return true;
+    });
+
     this.addPresetFromQueue();
 
     this.lasers = this.lasers.filter((laser) => {
@@ -1930,46 +2027,6 @@ class GameScene extends Phaser.Scene {
           }
         }
       }
-    }
-  }
-
-  /**
-   * Метод прокрутки текущего набора фонов.
-   * Фоны будут перемещаться вправо, заменяя друг друга циклично.
-   */
-  scrollBackgrounds() {
-    let bg1: Phaser.GameObjects.Image;
-    let bg2: Phaser.GameObjects.Image;
-
-    if (this.currentBackgroundSet === 1) {
-      bg1 = this.background1;
-      bg2 = this.background2;
-    } else if (this.currentBackgroundSet === 2) {
-      bg1 = this.background3;
-      bg2 = this.background4;
-    } else {
-      // Добавьте дополнительные наборы фонов, если необходимо
-      return;
-    }
-
-    const scrollSpeed = 1; // Скорость прокрутки. Настройте по необходимости.
-
-    // Перемещаем фоны влево
-    bg1.x -= scrollSpeed;
-    bg2.x -= scrollSpeed;
-
-    // Используем displayWidth для корректного расчета
-    const bg1DisplayWidth = bg1.displayWidth;
-    const bg2DisplayWidth = bg2.displayWidth;
-
-    // Если первый фон полностью вышел за левый край экрана, перемещаем его за второй фон
-    if (bg1.x + bg1DisplayWidth <= 0) {
-      bg1.x = bg2.x + bg2DisplayWidth;
-    }
-
-    // Если второй фон полностью вышел за левый край экрана, перемещаем его за первым фоном
-    if (bg2.x + bg2DisplayWidth <= 0) {
-      bg2.x = bg1.x + bg1DisplayWidth;
     }
   }
 
