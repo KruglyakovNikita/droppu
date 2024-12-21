@@ -1544,6 +1544,7 @@ class GameScene extends Phaser.Scene {
       .setInteractive({ useHandCursor: true });
     interactiveFinishArea.setDepth(1016);
     modalElements.push(interactiveFinishArea);
+
     interactiveFinishArea.on("pointerdown", () => {
       this.closeModal(modalElements);
       this.isStoped = true;
