@@ -1506,19 +1506,7 @@ class GameScene extends Phaser.Scene {
       .setDepth(1011);
     modalElements.push(finishButtonText);
 
-    const finishButtonArea = this.add
-      .rectangle(
-        centerX,
-        finishButtonY,
-        finishButtonWidth,
-        finishButtonHeight,
-        0x000000,
-        0
-      )
-      .setDepth(1012);
-
-    finishButtonArea.setInteractive({ useHandCursor: true });
-    finishButtonArea.on("pointerdown", () => {
+    finishButton.on("pointerdown", () => {
       this.closeModal(modalElements);
       this.isStoped = true;
       this.onGameEnd({
