@@ -1255,20 +1255,6 @@ class GameScene extends Phaser.Scene {
         .setDepth(1010);
       modalElements.push(healIcon);
 
-      // Создаём кликабельную область поверх всей кнопки
-      const interactiveArea = this.add
-        .rectangle(
-          centerX,
-          continueButtonY,
-          continueButtonWidth,
-          continueButtonHeight,
-          0xff0000,
-          0 // Полностью прозрачный
-        )
-        .setInteractive({ useHandCursor: true });
-      interactiveArea.setDepth(1016);
-      modalElements.push(interactiveArea);
-
       // Таймер сбоку кнопки "Продолжить"
       const timerCircleRadius = 15;
       const timerCircleX = centerX + 130 - 5;
@@ -1307,7 +1293,7 @@ class GameScene extends Phaser.Scene {
         callback: this.createPurchaseTimer,
         args: [
           timerText,
-          interactiveArea,
+          continueButton,
           timerCircle,
           modalElements,
           continueButtonBorder,
@@ -1318,7 +1304,7 @@ class GameScene extends Phaser.Scene {
       });
 
       // Обработчик нажатия на кнопку "Продолжить"
-      interactiveArea.on("pointerdown", async () => {
+      continueButton.on("pointerdown", async () => {
         console.log("Continue button clicked.");
         this.isPurchasing = true;
 
@@ -1461,20 +1447,9 @@ class GameScene extends Phaser.Scene {
       .setOrigin(0.5)
       .setDepth(1011);
     modalElements.push(middleButtonText);
-    const middleButtonArea = this.add
-      .rectangle(
-        centerX,
-        middleButtonY,
-        middleButtonWidth,
-        middleButtonHeight,
-        0x000000,
-        0
-      )
-      .setDepth(1013);
 
-    middleButtonArea.setInteractive({ useHandCursor: true });
     // Обработчик нажатия на среднюю кнопку
-    middleButtonArea.on("pointerdown", async () => {
+    middleButton.on("pointerdown", async () => {
       if (hasTickets) {
         // Продолжить за тикет
         console.log("Continue with ticket button clicked.");
