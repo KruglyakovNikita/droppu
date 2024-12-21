@@ -15,6 +15,7 @@ import colors from "../theme/colors";
 import { useStore } from "../app/lib/store/store";
 import { ButtonIfoLink } from "@/app/components/ButtonIfoLink";
 import { useRouter } from "next/router";
+import { useEffect } from "react";
 
 declare global {
   interface Window {
@@ -46,6 +47,11 @@ const Home: React.FC = () => {
     50% { transform: translateY(-10px); }
     100% { transform: translateY(0px); }
   `;
+  useEffect(() => {
+    try {
+      if (window.Telegram.WebApp.expand) window.Telegram.WebApp.expand();
+    } catch {}
+  });
 
   return (
     <Flex
@@ -323,6 +329,7 @@ const Home: React.FC = () => {
         onClick={() => {
           router.push("/game");
           setNavbarVisible(false);
+          window.Telegram.WebApp.requestFullscreen();
         }}
         mt={30}
         mb={4}

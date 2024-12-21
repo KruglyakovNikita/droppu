@@ -93,10 +93,11 @@ export default function GamePage() {
   };
 
   useEffect(() => {
-    window.Telegram.WebApp.requestFullscreen();
-    return () => {
-      window.Telegram.WebApp.expand();
-    };
+    // if (window?.Telegram?.WebApp?.requestFullscreen)
+    //   window.Telegram.WebApp.requestFullscreen();
+    // return () => {
+    //   if (window?.Telegram?.WebApp?.expand) window.Telegram.WebApp.expand();
+    // };
   }, []);
 
   return (

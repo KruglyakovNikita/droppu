@@ -169,16 +169,9 @@ class GameScene extends Phaser.Scene {
 
     // Подгружаем все фоновые файлы из backgroundSets
     // (можно вручную, либо динамически, ниже — вручную)
-    this.load.image("gravity", "map/backgrounds/gravity.png");
-    this.load.image("gravity_2", "map/backgrounds/gravity_2.png");
-    this.load.image("labaratory", "map/backgrounds/labaratory.png");
-    this.load.image("labaratory_2", "map/backgrounds/labaratory_2.png");
-    this.load.image("neon", "map/backgrounds/neon.png");
-    this.load.image("neon_2", "map/backgrounds/neon_2.png");
     this.load.image("sacura", "map/backgrounds/sacura.png");
     this.load.image("sacura_2", "map/backgrounds/sacura_2.png");
     this.load.image("snow_5", "map/backgrounds/snow_5.png");
-    this.load.image("snow_3", "map/backgrounds/snow_3.png");
     this.load.image("snow_2", "map/backgrounds/snow_2.jpg");
 
     this.load.spritesheet(
@@ -265,10 +258,6 @@ class GameScene extends Phaser.Scene {
 
     // ... остальные загрузки как у вас сейчас ...
     this.load.image("healIcon", "/icons/heal-icon.png");
-    this.load.image("back1", "/map/back1.webp");
-    this.load.image("back2", "/map/back2.webp");
-    this.load.image("back3", "/map/back3.webp");
-    this.load.image("back4", "/map/back4.webp");
 
     this.load.spritesheet("rocket1", "/sptires/rocket2/Rocket1.png", {
       frameWidth: 100,
@@ -471,7 +460,7 @@ class GameScene extends Phaser.Scene {
 
     this.cursors = this.input.keyboard!.createCursorKeys();
 
-    this.cameras.main.startFollow(this.player, true, 1, 1);
+    this.cameras.main.startFollow(this.player, true, 0, 0);
     this.cameras.main.setBounds(
       0,
       0,
