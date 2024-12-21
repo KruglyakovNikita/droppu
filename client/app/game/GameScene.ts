@@ -440,7 +440,7 @@ class GameScene extends Phaser.Scene {
 
     this.cursors = this.input.keyboard!.createCursorKeys();
 
-    this.cameras.main.startFollow(this.player, true, 0.1, 0.1);
+    this.cameras.main.startFollow(this.player, true, 1, 1);
     this.cameras.main.setBounds(
       0,
       0,
@@ -501,8 +501,6 @@ class GameScene extends Phaser.Scene {
     });
 
     this.laserPool = new ObjectPool(() => {
-      console.log("ONE");
-
       // Используем Matter.Sprite для поддержки анимаций
       const laser = this.matter.add.sprite(0, 0, "laser_anim");
 
@@ -689,13 +687,9 @@ class GameScene extends Phaser.Scene {
    * Метод добавления пресета в очередь
    */
   enqueuePreset() {
-    console.log("CREATE");
-
     const distance = this.player?.x ?? 0;
     const score =
       Math.floor(distance - 100) > 0 ? Math.floor(distance - 100) : 1;
-    console.log("MY SCORE");
-    console.log(score);
 
     const currentDifficulty = getCurrentDifficultyLevel(score);
 
@@ -711,13 +705,10 @@ class GameScene extends Phaser.Scene {
 
     // Добавляем пресет, соответствующий текущей сложности
     const presetPool = this.getPresetPool(currentDifficulty.presetTypes);
-    console.log(presetPool);
-
     const preset = Phaser.Utils.Array.GetRandom(presetPool);
     if (preset) {
       this.presetQueue.push(preset);
     }
-    console.log(this.presetQueue);
   }
 
   /**
@@ -725,8 +716,6 @@ class GameScene extends Phaser.Scene {
    */
   getPresetPool(difficulties: PresetDifficulty[]): Preset[] {
     let pool: Preset[] = [];
-    console.log("difficulties");
-    console.log(difficulties);
 
     difficulties.forEach((difficulty) => {
       switch (difficulty) {
@@ -746,7 +735,6 @@ class GameScene extends Phaser.Scene {
           break;
       }
     });
-    console.log(pool);
 
     return pool;
   }
