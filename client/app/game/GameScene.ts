@@ -112,6 +112,8 @@ class GameScene extends Phaser.Scene {
   spawnCompleted: boolean = false; // Закончилась ли анимация spawn
   wasInAir: boolean = false; // Был ли персонаж в воздухе на предыдущем кадре (для определения момента приземления)
   isSpawning: boolean = false;
+  backpack: Phaser.GameObjects.Sprite | null = null;
+  fire: Phaser.GameObjects.Sprite | null = null;
 
   constructor() {
     super({ key: "GameScene" });
@@ -185,6 +187,42 @@ class GameScene extends Phaser.Scene {
       frameHeight: 256,
     });
 
+    // Загрузка анимированного рюкзака
+    this.load.spritesheet(
+      "backpack_anim_sprite",
+      "/sptires/Backpuck/Backpuck3.png",
+      {
+        frameWidth: 100, // Ширина кадра рюкзака
+        frameHeight: 100, // Высота кадра рюкзака
+        endFrame: 3, // Количество кадров (укажите ваше количество)
+      }
+    );
+
+    // Загрузка анимированного огня
+    this.load.spritesheet(
+      "fire_up_anim_sprite",
+      "/sptires/Backpuck/FireUp3.png",
+      {
+        frameWidth: 100, // Ширина кадра огня
+        frameHeight: 100, // Высота кадра огня
+        endFrame: 3, // Количество кадров (укажите ваше количество)
+      }
+    );
+    this.load.spritesheet(
+      "fire_end_anim_sprite",
+      "/sptires/Backpuck/FireEnd3.png",
+      {
+        frameWidth: 100, // Ширина кадра огня
+        frameHeight: 100, // Высота кадра огня
+        endFrame: 5, // Количество кадров (укажите ваше количество)
+      }
+    );
+    this.load.spritesheet("fire_anim_sprite", "/sptires/Backpuck/Fire3.png", {
+      frameWidth: 100, // Ширина кадра огня
+      frameHeight: 100, // Высота кадра огня
+      endFrame: 5, // Количество кадров (укажите ваше количество)
+    });
+
     // Остальные ресурсы уже загружены у вас, оставляем без изменений
     this.load.spritesheet("coin", "/sptires/Coin/Coin-Sheet.png", {
       frameWidth: 40,
@@ -200,14 +238,6 @@ class GameScene extends Phaser.Scene {
     this.load.image("back2", "/map/back2.webp");
     this.load.image("back3", "/map/back3.webp");
     this.load.image("back4", "/map/back4.webp");
-
-    // Текстуры для ракет
-    this.load.image("homingRocketTexture", "/blocks/rocket_default_homing.png");
-    this.load.image("staticRocketTexture", "/blocks/rocket_default.png");
-    this.load.image(
-      "dynamicRocketTexture",
-      "/blocks/rocket_default_dynamic.png"
-    );
 
     this.load.spritesheet("rocket1", "/sptires/rocket2/Rocket1.png", {
       frameWidth: 100,
@@ -262,17 +292,9 @@ class GameScene extends Phaser.Scene {
       frameHeight: 45,
     });
 
-    // Текстура для дыма
-    this.load.image("smoke", "/blocks/smoke.png");
-
     // Звуки
     this.load.audio("rocketLaunch", "/audio/rocket_start.mp3");
     this.load.audio("playerHit", "/audio/rocket_touch.mp3");
-
-    // Предупреждающий треугольник
-    this.load.image("warningTriangle", "/blocks/warningTriangle.png");
-    this.load.image("laserGun", "/blocks/laser_gun.png");
-    this.load.image("laserPlazm", "/blocks/laser_plazm.png");
 
     // Звуки для лазерной пушки
     this.load.audio("laserCannonWarning", "/audio/laser_cannon_start.mp3");
@@ -349,6 +371,72 @@ class GameScene extends Phaser.Scene {
     const targetHeight = this.scale.height * 0.18;
     this.player.setDisplaySize(targetWidth, targetHeight);
     this.player.setRectangle(this.scale.width * 0.04, this.scale.height * 0.12);
+
+    this.anims.create({
+      key: "backpack_idle",
+      frames: this.anims.generateFrameNumbers("backpack_anim_sprite", {
+        start: 0,
+        end: 3,
+      }),
+      frameRate: 10,
+      repeat: -1,
+    });
+
+    // Создаём анимации для огня
+    this.anims.create({
+      key: "fire_up_anim",
+      frames: this.anims.generateFrameNumbers("fire_up_anim_sprite", {
+        start: 0,
+        end: 3,
+      }),
+      frameRate: 10,
+      repeat: -1,
+    });
+
+    this.anims.create({
+      key: "fire_end_anim",
+      frames: this.anims.generateFrameNumbers("fire_end_anim_sprite", {
+        start: 0,
+        end: 5,
+      }),
+      frameRate: 10,
+      repeat: -1,
+    });
+
+    this.anims.create({
+      key: "fire_idle_anim",
+      frames: this.anims.generateFrameNumbers("fire_anim_sprite", {
+        start: 0,
+        end: 5,
+      }),
+      frameRate: 10,
+      repeat: -1,
+    });
+
+    // Создаём спрайт рюкзака и добавляем его на сцену
+    this.backpack = this.add.sprite(
+      this.player.x - 15,
+      this.player.y,
+      "backpack_anim"
+    );
+
+    this.backpack.setDisplaySize(
+      this.scale.width * 0.024012, // Ширина уменьшена на 10%
+      this.scale.height * 0.036 // Высота уменьшена на 20%
+    );
+    this.backpack.play("backpack_idle");
+
+    // Создаём спрайт огня и добавляем его на сцену, привязывая к рюкзаку
+    this.fire = this.add.sprite(
+      this.backpack.x,
+      this.backpack.y,
+      "fire_idle_anim"
+    );
+    this.fire.setDisplaySize(
+      this.scale.width * 0.024012, // Ширина уменьшена на 10%
+      this.scale.height * 0.036 // Высота уменьшена на 20%
+    );
+    this.fire.play("fire_idle_anim");
 
     this.cursors = this.input.keyboard!.createCursorKeys();
 
@@ -1631,11 +1719,22 @@ class GameScene extends Phaser.Scene {
   clearGame() {
     // Очистка старых объектов и таймеров
     this.objectManager.removeAllObjects();
+
+    // Останавливаем анимации лазеров
     this.lasers.forEach((laser) => {
       laser.anims.stop(); // Останавливаем анимацию
     });
     this.lasers = [];
     this.laserPool.destroyAll();
+
+    // Удаляем спрайты рюкзака и огня
+    if (this.backpack) {
+      this.backpack.destroy();
+    }
+    if (this.fire) {
+      this.fire.destroy();
+    }
+
     this.destroyCoin();
   }
 
@@ -1680,7 +1779,6 @@ class GameScene extends Phaser.Scene {
   /**
    * Метод обновления сцены
    */
-
   update() {
     const fps = Math.floor(this.game.loop.actualFps);
     this.fpsText.setText(`FPS: ${fps}`);
@@ -1724,6 +1822,7 @@ class GameScene extends Phaser.Scene {
       this.player.setY(this.MAX_Y);
       this.player.setVelocityY(0);
     }
+
     const scrollSpeed = PLAYER_SPEED;
     this.cameras.main.scrollX += scrollSpeed;
 
@@ -1776,6 +1875,38 @@ class GameScene extends Phaser.Scene {
       }
       return true;
     });
+
+    if (this.backpack) {
+      // Обновляем позиции рюкзака и огня относительно персонажа
+      this.backpack.x = this.player.x - 15; // Настройте смещение по X
+      this.backpack.y = this.player.y; // Настройте смещение по Y
+      if (this.fire) {
+        this.fire.x = this.backpack.x;
+        this.fire.y = this.backpack.y; // Огонь ниже рюкзака, настройте смещение по Y
+      }
+    }
+
+    // Управление анимациями огня на основе состояния персонажа
+    const playerVelocityY = this.player.body?.velocity.y ?? 0;
+
+    if (playerVelocityY < -0.5 && this.fire) {
+      // Взлёт (скорость вверх)
+      if (this.fire.anims.currentAnim?.key !== "fire_up_anim") {
+        this.fire.play("fire_up_anim", true);
+      }
+    } else if (playerVelocityY > 0.5 && playerVelocityY < 0.1 && this.fire) {
+      // Снижение (скорость вниз)
+      if (this.fire.anims.currentAnim?.key !== "fire_end_anim") {
+        this.fire.play("fire_end_anim", true);
+      }
+    } else if (playerVelocityY <= 0.15 && this.fire) {
+      this.fire.play("fire_up_anim", false);
+    } else if (this.fire) {
+      // Покой
+      if (this.fire.anims.currentAnim?.key !== "fire_idle_anim") {
+        this.fire.play("fire_idle_anim", true);
+      }
+    }
   }
 
   updateAnimationState() {
