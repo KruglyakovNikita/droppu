@@ -178,7 +178,7 @@ export default function Invites() {
         startColor="#793BC7"
         endColor="#C2D2FF"
         strokeWidth={1.5}
-        w={["90%", "100%"]}
+        w="100%"
         maxW="360px"
         h="130px"
         p={["12px", "16px"]}
@@ -287,7 +287,7 @@ export default function Invites() {
         maxW="360px"
         mb={4}
       >
-        Score 10% from buddies <br /> Plus an extra 8.5% from their referrals
+        Score 10% from buddies <br /> Plus an extra 2.5% from their referrals
       </Text>
 
       {/* Conditional Rendering of Friends List or Steps */}
