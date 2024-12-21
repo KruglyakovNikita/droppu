@@ -16,8 +16,8 @@ import GradientBorderWrapper from "../app/components/GradientBorderWrapper";
 import TaskPopup from "../app/components/TaskPop";
 import { useEffect, useState } from "react";
 import colors from "../theme/colors";
-import { getTasks, completeTask } from "../app/lib/api/tasks"; 
-import { useStore } from "../app/lib/store/store"; 
+import { getTasks, completeTask } from "../app/lib/api/tasks";
+import { useStore } from "../app/lib/store/store";
 
 const floatAnimation = keyframes`
   0% { transform: translateY(0px) rotate(0deg); }
@@ -36,7 +36,6 @@ const Earn: React.FC = () => {
   const toast = useToast();
   const [isTasksLoading, setIsTasksLoading] = useState(true);
   const userInfo = useStore((state) => state.user);
-
 
   useEffect(() => {
     const fetchTasks = async () => {
@@ -80,8 +79,8 @@ const Earn: React.FC = () => {
   };
 
   const handleCheck = () => {
-    if (selectedTask.type === 'New' || selectedTask.type === 'Socials'){
-      console.log(selectedTask.type)
+    if (selectedTask.type === "New" || selectedTask.type === "Socials") {
+      console.log(selectedTask.type);
       closeRewardPopup();
       completeTask(selectedTask.id);
 
@@ -94,9 +93,8 @@ const Earn: React.FC = () => {
         position: "top",
       });
 
-      if(userInfo?.coins) userInfo.coins += selectedTask.reward_coins??0;
-    }
-    else{
+      if (userInfo?.coins) userInfo.coins += selectedTask.reward_coins ?? 0;
+    } else {
       toast({
         title: "Task not complete!",
         status: "error",
@@ -113,10 +111,16 @@ const Earn: React.FC = () => {
       align="center"
       color="white"
       minH="100vh"
+      w={"100%"}
       p={[2, 4]}
     >
       {/* Weekly Header */}
-      <Box w={{ base: "95%", sm: "90%" }} maxW="360px" alignSelf="flex-start" mb={4}>
+      <Box
+        w={{ base: "95%", sm: "90%" }}
+        maxW="360px"
+        alignSelf="flex-start"
+        mb={4}
+      >
         <Heading
           fontSize={{ base: "18px", sm: "20px" }}
           fontFamily="'PixelifySans-Bold', sans-serif"
@@ -225,9 +229,9 @@ const Earn: React.FC = () => {
         mt="4"
         overflowX={{ base: "auto", sm: "visible" }}
         css={{
-          '&::-webkit-scrollbar': {
-            display: 'none'
-          }
+          "&::-webkit-scrollbar": {
+            display: "none",
+          },
         }}
       >
         {["New", "Socials", "Frens", "Farming"].map((item) => (
@@ -252,93 +256,104 @@ const Earn: React.FC = () => {
       </Flex>
 
       {/* Task List */}
-      <Grid templateColumns="1fr" gap={4} w={{ base: "95%", sm: "100%" }} maxW="360px">
-        {isTasksLoading ? (
-          Array(3).fill(0).map((_, index) => (
-            <GradientBorderWrapper
-              startColor="#793BC7"
-              endColor="#C2D2FF"
-              strokeWidth={1.5}
-              key={index}
-            >
-              <Flex
-                bg="transparent"
-                borderRadius="12px"
-                p={4}
-                h="50px"
-                align="center"
-                justify="space-between"
-                overflowY="auto"
+      <Grid
+        templateColumns="1fr"
+        gap={4}
+        w={{ base: "95%", sm: "100%" }}
+        maxW="360px"
+      >
+        {isTasksLoading
+          ? Array(3)
+              .fill(0)
+              .map((_, index) => (
+                <GradientBorderWrapper
+                  startColor="#793BC7"
+                  endColor="#C2D2FF"
+                  strokeWidth={1.5}
+                  key={index}
                 >
-                <Flex align="center">
-                  <Skeleton boxSize="23px" mr={3} />
-                  <Stack spacing={0}>
-                    <Skeleton height="16px" width="120px" mb={1} />
-                    <Skeleton height="12px" width="80px" />
-                  </Stack>
-                </Flex>
-                <Skeleton height="25px" width="70px" borderRadius="52px" />
-              </Flex>
-            </GradientBorderWrapper>
-          ))
-        ) : (
-          filteredTasks.map((task, index) => (
-            <GradientBorderWrapper
-              startColor="#793BC7"
-              endColor="#C2D2FF"
-              strokeWidth={1.5}
-              key={index}
-            >
-              <Flex
-                bg="transparent"
-                borderRadius="12px"
-                p={4}
-                h="50px"
-                align="center"
-                justify="space-between"
+                  <Flex
+                    bg="transparent"
+                    borderRadius="12px"
+                    p={4}
+                    h="50px"
+                    align="center"
+                    justify="space-between"
+                    overflowY="auto"
+                  >
+                    <Flex align="center">
+                      <Skeleton boxSize="23px" mr={3} />
+                      <Stack spacing={0}>
+                        <Skeleton height="16px" width="120px" mb={1} />
+                        <Skeleton height="12px" width="80px" />
+                      </Stack>
+                    </Flex>
+                    <Skeleton height="25px" width="70px" borderRadius="52px" />
+                  </Flex>
+                </GradientBorderWrapper>
+              ))
+          : filteredTasks.map((task, index) => (
+              <GradientBorderWrapper
+                startColor="#793BC7"
+                endColor="#C2D2FF"
+                strokeWidth={1.5}
+                key={index}
               >
-                <Flex align="center">
-                  <Image
-                    src="/icons/star_icon.svg"
-                    alt="Task Icon"
-                    boxSize="23px"
-                    mr={3}
-                  />
-                  <Stack spacing={0}>
-                    <Text
-                      fontFamily="'PixelifySans-Bold', sans-serif"
-                      fontSize="16px"
-                      isTruncated
-                    >
-                      {task.name}
-                    </Text>
-                    <Text fontSize="12px" color={colors.secondaryText} isTruncated>
-                      {task.reward_coins} Coins
-                    </Text>
-                  </Stack>
-                </Flex>
-                <Button
-                  height="25px"
-                  width="70px"
-                  border="1px solid white"
-                  borderRadius="52px"
+                <Flex
                   bg="transparent"
-                  fontFamily="'PixelifySans-Bold', sans-serif"
-                  fontWeight="normal"
-                  fontSize="14px"
-                  _hover={{ bg: "rgba(255, 255, 255, 0.1)" }}
-                  color={colors.primaryText}
-                  onClick={() => openRewardPopup(task)}
+                  borderRadius="12px"
+                  p={4}
+                  h="50px"
+                  align="center"
+                  justify="space-between"
                 >
-                  Start
-                </Button>
-              </Flex>
-            </GradientBorderWrapper>
-          ))
-        )}
+                  <Flex align="center">
+                    <Image
+                      src="/icons/star_icon.svg"
+                      alt="Task Icon"
+                      boxSize="23px"
+                      mr={3}
+                    />
+                    <Stack spacing={0}>
+                      <Text
+                        fontFamily="'PixelifySans-Bold', sans-serif"
+                        fontSize="16px"
+                        isTruncated
+                        maxW="150px"
+                      >
+                        {task.name}
+                      </Text>
+                      <Text
+                        fontSize="12px"
+                        color={colors.secondaryText}
+                        isTruncated
+                        maxW="150px"
+                      >
+                        {task.reward_coins} Coins
+                      </Text>
+                    </Stack>
+                  </Flex>
+                  <Button
+                    height="25px"
+                    width="70px"
+                    border="1px solid white"
+                    borderRadius="52px"
+                    bg="transparent"
+                    fontFamily="'PixelifySans-Bold', sans-serif"
+                    fontWeight="normal"
+                    fontSize="14px"
+                    _hover={{ bg: "rgba(255, 255, 255, 0.1)" }}
+                    color={colors.primaryText}
+                    onClick={() => openRewardPopup(task)}
+                  >
+                    Start
+                  </Button>
+                </Flex>
+              </GradientBorderWrapper>
+            ))}
       </Grid>
 
-     {/* Task Popup */}
+      {/* Task Popup */}
       {selectedTask && (
         <TaskPopup
           icon="/icons/star_icon.svg"
